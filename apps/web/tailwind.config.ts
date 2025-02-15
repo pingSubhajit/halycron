@@ -1,0 +1,1 @@
+export * from "@halycon/ui/tailwind.config";

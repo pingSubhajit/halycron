@@ -1,0 +1,4 @@
+{
+  "extends": "@halycon/typescript-config/base.json"
+}
+
