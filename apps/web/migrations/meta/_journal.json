@@ -8,6 +8,13 @@
       "when": 1739638078730,
       "tag": "0000_parched_franklin_richards",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1739646597834,
+      "tag": "0001_colossal_magneto",
+      "breakpoints": true
     }
   ]
 }

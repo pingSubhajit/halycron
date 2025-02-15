@@ -4,6 +4,7 @@ import {betterAuth} from 'better-auth'
 import {nextCookies} from 'better-auth/next-js'
 import {db} from '@/db/drizzle'
 import * as schema from '@/db/schema'
+import {twoFactor} from 'better-auth/plugins'
 
 export const auth = betterAuth({
 	database: drizzleAdapter(db, {
@@ -13,7 +14,10 @@ export const auth = betterAuth({
 	emailAndPassword: {
 		enabled: true
 	},
-	plugins: [nextCookies()],
+	plugins: [
+		nextCookies(),
+		twoFactor()
+	],
 	advanced: {
 		generateId: false
 	},

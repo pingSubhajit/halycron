@@ -37,6 +37,7 @@ export const user = pgTable('user', {
 	email: varchar('email').notNull(),
 	emailVerified: boolean('email_verified').default(false),
 	image: varchar('image'),
+	twoFactorEnabled: boolean('two_factor_enabled').default(false),
 	createdAt: timestamp('created_at', {withTimezone: true}).default(sql`CURRENT_TIMESTAMP`),
 	updatedAt: timestamp('updated_at', {withTimezone: true}).default(sql`CURRENT_TIMESTAMP`)
 })
@@ -75,6 +76,11 @@ export const verification = pgTable('verification', {
 	expiresAt: timestamp('expires_at', {withTimezone: true}).notNull(),
 	createdAt: timestamp('created_at', {withTimezone: true}).default(sql`CURRENT_TIMESTAMP`),
 	updatedAt: timestamp('updated_at', {withTimezone: true}).default(sql`CURRENT_TIMESTAMP`)
+})
+
+export const twoFactor = pgTable('two_factor', {
+	secret: text('secret'),
+	backupCodes: text('backup_codes'),
 })
 
 // Photos Table
