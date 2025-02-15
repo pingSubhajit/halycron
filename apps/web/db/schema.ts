@@ -1,0 +1,114 @@
+// import {waitlist, WaitlistInsert, WaitlistSelect} from '@/db/waitlist.schema'
+import {pgTable, uuid, varchar, text, boolean, integer, timestamp, bigint, unique} from 'drizzle-orm/pg-core'
+import {sql} from 'drizzle-orm'
+
+/*
+ * export {
+ * 	waitlist
+ * }
+ *
+ * export {
+ * 	WaitlistInsert, WaitlistSelect
+ * }
+ */
+
+
+/*
+ * Users Table
+ * export const users = pgTable('users', {
+ * 	id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
+ * 	email: varchar('email').notNull().unique(),
+ * 	encryptedMasterKey: text('encrypted_master_key').notNull(),
+ * 	masterKeyIv: text('master_key_iv').notNull(),
+ * 	passwordHash: text('password_hash').notNull(),
+ * 	mfaSecret: text('mfa_secret'),
+ * 	mfaEnabled: boolean('mfa_enabled').default(false),
+ * 	failedLoginAttempts: integer('failed_login_attempts').default(0),
+ * 	lastLoginAt: timestamp('last_login_at', {withTimezone: true}),
+ * 	passwordChangedAt: timestamp('password_changed_at', {withTimezone: true}).notNull(),
+ * 	createdAt: timestamp('created_at', {withTimezone: true}).default(sql`CURRENT_TIMESTAMP`),
+ * 	updatedAt: timestamp('updated_at', {withTimezone: true}).default(sql`CURRENT_TIMESTAMP`)
+ * })
+ */
+
+export const user = pgTable('user', {
+	id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
+	name: varchar('name').notNull(),
+	email: varchar('email').notNull(),
+	emailVerified: boolean('email_verified').default(false),
+	image: varchar('image'),
+	createdAt: timestamp('created_at', {withTimezone: true}).default(sql`CURRENT_TIMESTAMP`),
+	updatedAt: timestamp('updated_at', {withTimezone: true}).default(sql`CURRENT_TIMESTAMP`)
+})
+
+export const session = pgTable('session', {
+	id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
+	userId: uuid('user_id').notNull().references(() => user.id, {onDelete: 'cascade'}),
+	token: text('token').notNull(),
+	expiresAt: timestamp('expires_at', {withTimezone: true}).notNull(),
+	ipAddress: varchar('ip_address'),
+	userAgent: varchar('user_agent'),
+	createdAt: timestamp('created_at', {withTimezone: true}).default(sql`CURRENT_TIMESTAMP`),
+	updatedAt: timestamp('updated_at', {withTimezone: true}).default(sql`CURRENT_TIMESTAMP`)
+})
+
+export const account = pgTable('account', {
+	id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
+	userId: uuid('user_id').notNull().references(() => user.id, {onDelete: 'cascade'}),
+	accountId: varchar('account_id').notNull(),
+	providerId: varchar('provider_id').notNull(),
+	accessToken: text('access_token'),
+	refreshToken: text('refresh_token'),
+	accessTokenExpiresAt: timestamp('access_token_expires_at', {withTimezone: true}),
+	refreshTokenExpiresAt: timestamp('refresh_token_expires_at', {withTimezone: true}),
+	scope: text('scope'),
+	idToken: text('id_token'),
+	password: text('password'),
+	createdAt: timestamp('created_at', {withTimezone: true}).default(sql`CURRENT_TIMESTAMP`),
+	updatedAt: timestamp('updated_at', {withTimezone: true}).default(sql`CURRENT_TIMESTAMP`)
+})
+
+export const verification = pgTable('verification', {
+	id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
+	identifier: varchar('identifier').notNull(),
+	value: text('value').notNull(),
+	expiresAt: timestamp('expires_at', {withTimezone: true}).notNull(),
+	createdAt: timestamp('created_at', {withTimezone: true}).default(sql`CURRENT_TIMESTAMP`),
+	updatedAt: timestamp('updated_at', {withTimezone: true}).default(sql`CURRENT_TIMESTAMP`)
+})
+
+// Photos Table
+// export const photo = pgTable('photos', {
+// 	id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
+// 	userId: uuid('user_id').notNull().references(() => user.id, {onDelete: 'cascade'}),
+// 	encryptedFileKey: text('encrypted_file_key').notNull(),
+// 	fileKeyIv: text('file_key_iv').notNull(),
+// 	s3Key: text('s3_key').notNull(),
+// 	originalFilename: text('original_filename').notNull(),
+// 	mimeType: text('mime_type').notNull(),
+// 	encryptedMetadata: text('encrypted_metadata'),
+// 	metadataIv: text('metadata_iv'),
+// 	createdAt: timestamp('created_at', {withTimezone: true}).default(sql`CURRENT_TIMESTAMP`),
+// 	updatedAt: timestamp('updated_at', {withTimezone: true}).default(sql`CURRENT_TIMESTAMP`)
+// })
+//
+// // Tags Table
+// export const tag = pgTable('tags', {
+// 	id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
+// 	userId: uuid('user_id').notNull().references(() => user.id, {onDelete: 'cascade'}),
+// 	name: text('name').notNull(),
+// 	createdAt: timestamp('created_at', {withTimezone: true}).default(sql`CURRENT_TIMESTAMP`)
+// }, (t) => [
+// 	unique().on(t.id, t.name)
+// ])
+//
+// // Albums Table
+// export const album = pgTable('albums', {
+// 	id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
+// 	userId: uuid('user_id').notNull().references(() => user.id, {onDelete: 'cascade'}),
+// 	name: text('name').notNull(),
+// 	encryptedKey: text('encrypted_key').notNull(),
+// 	keyIv: text('key_iv').notNull(),
+// 	createdAt: timestamp('created_at', {withTimezone: true}).default(sql`CURRENT_TIMESTAMP`),
+// 	updatedAt: timestamp('updated_at', {withTimezone: true}).default(sql`CURRENT_TIMESTAMP`)
+// })
