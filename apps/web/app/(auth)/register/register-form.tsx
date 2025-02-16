@@ -11,6 +11,9 @@ import {Form, FormControl, FormField, FormItem, FormMessage} from '@halycon/ui/c
 import {Input} from '@halycon/ui/components/input'
 import {authClient} from '@/lib/auth/auth-client'
 import {toast} from 'sonner'
+import {TwoFactorSetup} from '@/components/two-factor-setup'
+import {useLogout} from '@/lib/auth/use-logout'
+import {useQueryState} from 'nuqs'
 
 const formSchema = z.object({
 	email: z.string().email('Please enter a valid email address'),
@@ -28,6 +31,17 @@ const RegisterForm = () => {
 	const router = useRouter()
 	const [showPassword, setShowPassword] = useState(false)
 	const [isLoading, setIsLoading] = useState(false)
+	const [userId, setUserId] = useState<string | null>(null)
+	const {logout} = useLogout()
+	const [twofa, setTwofa] = useQueryState<'form' | '2fa'>('twoFa', {
+		defaultValue: 'form',
+		parse: (value): 'form' | '2fa' => {
+		  if (value === 'form' || value === '2fa') {
+			return value
+		  }
+		  return 'form'
+		},
+	  })
 
 	const form = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
@@ -51,13 +65,31 @@ const RegisterForm = () => {
 				throw error || new Error('Failed to create account')
 			}
 
-			toast('Account created successfully!')
-			router.push('/login')
+			const loginResponse = await authClient.signIn.email({
+				email: values.email,
+				password: values.password
+			})
+
+			if (error || !data) {
+				throw error || new Error('Failed to sign in')
+			}
+
+			setUserId(data.user.id)
+			setTwofa('2fa')
 		} catch (error) {
 			toast.error(error instanceof Error ? error.message : 'Something went wrong')
 		} finally {
 			setIsLoading(false)
 		}
+	}
+
+	const onTwoFactorComplete = () => {
+		toast.success('2FA setup completed!')
+		logout()
+	}
+
+	if (twofa === '2fa') {
+		return <TwoFactorSetup onComplete={onTwoFactorComplete} />
 	}
 
 	return (
@@ -133,7 +165,6 @@ const RegisterForm = () => {
 				</Button>
 			</form>
 		</Form>
-
 	)
 }
 

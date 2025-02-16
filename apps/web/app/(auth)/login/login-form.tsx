@@ -11,6 +11,7 @@ import {Form, FormControl, FormField, FormItem, FormMessage} from '@halycon/ui/c
 import {Input} from '@halycon/ui/components/input'
 import {authClient} from '@/lib/auth/auth-client'
 import {toast} from 'sonner'
+import {TwoFactorVerify} from '@/components/two-factor-verify'
 
 const formSchema = z.object({
 	email: z.string().email('Please enter a valid email address'),
@@ -21,6 +22,8 @@ const LoginForm = () => {
 	const router = useRouter()
 	const [showPassword, setShowPassword] = useState(false)
 	const [isLoading, setIsLoading] = useState(false)
+	const [showTwoFactorVerify, setShowTwoFactorVerify] = useState(false)
+	const [tempSession, setTempSession] = useState<any>(null)
 
 	const form = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
@@ -42,14 +45,59 @@ const LoginForm = () => {
 				throw error || new Error('Failed to sign in')
 			}
 
-			toast.success('Signed in successfully!')
-			router.push('/app')
-			router.refresh()
+			// Check if 2FA is required
+			const has2FA = await authClient.twoFactor.isEnabled(data.user.id)
+			
+			if (has2FA) {
+				setTempSession(data)
+				setShowTwoFactorVerify(true)
+			} else {
+				toast.success('Signed in successfully!')
+				router.push('/app')
+				router.refresh()
+			}
 		} catch (error) {
 			toast.error(error instanceof Error ? error.message : 'Invalid credentials')
 		} finally {
 			setIsLoading(false)
 		}
+	}
+
+	const handleTwoFactorVerify = async (code: string) => {
+		try {
+			const response = await fetch('/api/auth/2fa/login-verify', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({
+					code,
+					userId: tempSession.user.id,
+				}),
+			})
+
+			if (!response.ok) {
+				throw new Error('Invalid verification code')
+			}
+
+			toast.success('Signed in successfully!')
+			router.push('/app')
+			router.refresh()
+		} catch (error) {
+			throw error
+		}
+	}
+
+	if (showTwoFactorVerify) {
+		return (
+			<TwoFactorVerify
+				onVerify={handleTwoFactorVerify}
+				onCancel={() => {
+					setShowTwoFactorVerify(false)
+					setTempSession(null)
+				}}
+			/>
+		)
 	}
 
 	return (

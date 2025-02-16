@@ -81,6 +81,7 @@ export const verification = pgTable('verification', {
 export const twoFactor = pgTable('two_factor', {
 	secret: text('secret'),
 	backupCodes: text('backup_codes'),
+	userId: uuid('user_id').notNull().references(() => user.id, {onDelete: 'cascade'})
 })
 
 // Photos Table
