@@ -1,15 +1,13 @@
 import {cn} from '@halycon/ui/lib/utils'
 
-function Skeleton({
+const Skeleton = ({
 	className,
 	...props
-}: React.HTMLAttributes<HTMLDivElement>) {
-	return (
-		<div
-			className={cn('animate-pulse rounded-md bg-muted', className)}
-			{...props}
-		/>
-	)
-}
+}: React.HTMLAttributes<HTMLDivElement>) => (
+	<div
+		className={cn('animate-pulse rounded-md bg-muted', className)}
+		{...props}
+	/>
+)
 
 export {Skeleton}

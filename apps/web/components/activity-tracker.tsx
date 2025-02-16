@@ -3,7 +3,7 @@
 import {useEffect, useRef} from 'react'
 import {useLogout} from '@/lib/auth/use-logout'
 import {createAuthClient} from 'better-auth/react'
-import { toast } from 'sonner'
+import {toast} from 'sonner'
 
 const {useSession} = createAuthClient()
 
@@ -14,28 +14,28 @@ export const ActivityTracker = () => {
 	const {logout} = useLogout()
 	const timeoutRef = useRef<NodeJS.Timeout>()
 
-	const resetTimer = () => {
-		if (timeoutRef.current) {
-			clearTimeout(timeoutRef.current)
-		}
-		
-		timeoutRef.current = setTimeout(() => {
-			if (session) {
-				toast('You have been logged out due to inactivity')
-				logout()
-			}
-		}, INACTIVITY_TIMEOUT)
-	}
-
 	useEffect(() => {
 		if (!session) return
+
+		const resetTimer = () => {
+			if (timeoutRef.current) {
+				clearTimeout(timeoutRef.current)
+			}
+
+			timeoutRef.current = setTimeout(() => {
+				if (session) {
+					toast('You have been logged out due to inactivity')
+					logout()
+				}
+			}, INACTIVITY_TIMEOUT)
+		}
 
 		// Reset timer on mount
 		resetTimer()
 
 		// Add event listeners for user activity
 		const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart']
-		
+
 		const handleActivity = () => {
 			resetTimer()
 		}
@@ -53,7 +53,7 @@ export const ActivityTracker = () => {
 				document.removeEventListener(event, handleActivity)
 			})
 		}
-	}, [session])
+	}, [logout, session])
 
 	return null
-} 
+}
