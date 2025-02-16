@@ -5,7 +5,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@haly
 import Image from 'next/image'
 import { authClient } from '@/lib/auth/auth-client'
 import QRCode from 'qrcode'
-import { useQueryState } from 'nuqs'
 
 export function TwoFactorSetup({ onComplete }: { onComplete: () => void }) {
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>('')
@@ -47,7 +46,6 @@ export function TwoFactorSetup({ onComplete }: { onComplete: () => void }) {
       const response = await authClient.twoFactor.verifyTotp({
         code: verificationCode
       })
-      console.log(response, "===========================")
 
       if (response.error) {
         throw new Error('Invalid verification code')

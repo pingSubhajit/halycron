@@ -46,8 +46,8 @@ const LoginForm = () => {
 			}
 
 			// Check if 2FA is required
-			const has2FA = await authClient.twoFactor.isEnabled(data.user.id)
-			
+			const has2FA = (data as unknown as {twoFactorRedirect: boolean}).twoFactorRedirect
+
 			if (has2FA) {
 				setTempSession(data)
 				setShowTwoFactorVerify(true)
@@ -65,24 +65,16 @@ const LoginForm = () => {
 
 	const handleTwoFactorVerify = async (code: string) => {
 		try {
-			const response = await fetch('/api/auth/2fa/login-verify', {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-				},
-				body: JSON.stringify({
-					code,
-					userId: tempSession.user.id,
-				}),
+			const response = await authClient.twoFactor.verifyTotp({
+				code
 			})
 
-			if (!response.ok) {
+			if (response.error) {
 				throw new Error('Invalid verification code')
 			}
 
 			toast.success('Signed in successfully!')
 			router.push('/app')
-			router.refresh()
 		} catch (error) {
 			throw error
 		}
