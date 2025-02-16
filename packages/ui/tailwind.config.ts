@@ -12,11 +12,18 @@ const config = {
 	theme: {
 		extend: {
 			fontFamily: {
-				sans: ['var(--font-sans)', ...fontFamily.sans],
-				mono: ['var(--font-mono)', ...fontFamily.mono]
+				sans: [
+					'var(--font-sans)',
+					...fontFamily.sans
+				],
+				mono: [
+					'var(--font-mono)',
+					...fontFamily.mono
+				]
 			},
 			colors: {
 				dark: 'hsl(var(--dark))',
+
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
 				ring: 'hsl(var(--ring))',
@@ -49,6 +56,16 @@ const config = {
 				card: {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
+				},
+				sidebar: {
+					DEFAULT: 'hsl(var(--sidebar-background))',
+					foreground: 'hsl(var(--sidebar-foreground))',
+					primary: 'hsl(var(--sidebar-primary))',
+					'primary-foreground': 'hsl(var(--sidebar-primary-foreground))',
+					accent: 'hsl(var(--sidebar-accent))',
+					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
+					border: 'hsl(var(--sidebar-border))',
+					ring: 'hsl(var(--sidebar-ring))'
 				}
 			},
 			borderRadius: {
@@ -58,8 +75,12 @@ const config = {
 			},
 			keyframes: {
 				'caret-blink': {
-					'0%,70%,100%': {opacity: '1'},
-					'20%,50%': {opacity: '0'}
+					'0%,70%,100%': {
+						opacity: '1'
+					},
+					'20%,50%': {
+						opacity: '0'
+					}
 				}
 			},
 			animation: {
