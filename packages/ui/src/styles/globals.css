@@ -88,7 +88,9 @@
   }
 }
 
-
+.all-none {
+  all: unset;
+}
 
 @layer base {
   * {

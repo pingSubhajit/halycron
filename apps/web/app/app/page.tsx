@@ -3,6 +3,7 @@
 import {useEffect, useState} from 'react'
 import Image from 'next/image'
 import {Lightbox} from '@halycon/ui/components/lightbox'
+import {Button} from '@halycon/ui/components/button'
 
 // Dummy image data with various dimensions
 type Image = { id: number, url: string, width: number, height: number }
@@ -39,8 +40,8 @@ const ApplicationHome = () => {
 	}, [])
 
 	return (
-		<div>
-			<div className="columns-1 gap-2 lg:gap-4 sm:columns-2 lg:columns-3 xl:columns-4 [&>div:not(:first-child)]:mt-2 lg:[&>div:not(:first-child)]:mt-4">
+		<div className="-mt-4">
+			<div className="columns-1 gap-2 lg:gap-4 sm:columns-2 lg:columns-3 xl:columns-4 [&>button]:mt-2 lg:[&>button]:mt-4">
 				{loading
 					? Array.from({length: 20}).map((_, index) => (
 						<div key={`skeleton-${index}`} className="break-inside-avoid">
@@ -48,9 +49,9 @@ const ApplicationHome = () => {
 						</div>
 					))
 					: images.map((image, index) => (
-						<div
+						<Button
 							key={image.id}
-							className="break-inside-avoid transition-transform hover:scale-[1.02] duration-200"
+							className="all-none break-inside-avoid !transition !cursor-pointer hover:scale-[1.02] duration-200"
 							onClick={() => {
 								setCurrentIndex(index)
 								setIsOpen(true)
@@ -65,7 +66,7 @@ const ApplicationHome = () => {
 									className="w-full h-auto object-cover hover:opacity-90 transition-opacity"
 								/>
 							</div>
-						</div>
+						</Button>
 					))
 				}
 			</div>
