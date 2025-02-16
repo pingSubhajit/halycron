@@ -13,7 +13,7 @@ Halyon is a service that will let me and other users have a private photo vault 
 - Session management:
     - JWT tokens with 15-minute expiration
     - Refresh tokens with 7-day expiration
-    - Automatic logout after 30 minutes of inactivity
+    - Automatic logout after 5 minutes of inactivity
     - Maximum of 5 concurrent sessions per user
 
 ### 2 Encryption Requirements
