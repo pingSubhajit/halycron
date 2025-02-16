@@ -2,6 +2,7 @@
 
 import {useEffect, useState} from 'react'
 import Image from 'next/image'
+import {Lightbox} from '@halycon/ui/components/lightbox'
 
 // Dummy image data with various dimensions
 type Image = { id: number, url: string, width: number, height: number }
@@ -15,18 +16,22 @@ const ImageSkeleton = () => (
 const ApplicationHome = () => {
 	const [loading, setLoading] = useState(true)
 	const [images, setImages] = useState<Image[]>([])
+	const [isOpen, setIsOpen] = useState(false)
+	const [currentIndex, setCurrentIndex] = useState(0)
 
 	useEffect(() => {
 		// Simulate loading delay
 		const timer = setTimeout(async () => {
 			const dummyImages = await (await fetch('https://api.unsplash.com/photos/random?count=20&client_id=1R1TrrTORi0nA7NhsfkSZINSdde4bbvnmzQTcsTDkdc')).json()
 
-			setImages(dummyImages.map((image: { id: string, urls: {regular: string}, width: string, height: string }) => ({
-				id: image.id,
-				url: image.urls.regular,
-				width: image.width,
-				height: image.height
-			})))
+			setImages([
+				...dummyImages.map((image: { id: string, urls: {regular: string}, width: string, height: string }) => ({
+					id: image.id,
+					url: image.urls.regular,
+					width: image.width,
+					height: image.height
+				}))
+			])
 			setLoading(false)
 		}, 2000)
 
@@ -42,10 +47,14 @@ const ApplicationHome = () => {
 							<ImageSkeleton />
 						</div>
 					))
-					: images.map((image) => (
+					: images.map((image, index) => (
 						<div
 							key={image.id}
 							className="break-inside-avoid transition-transform hover:scale-[1.02] duration-200"
+							onClick={() => {
+								setCurrentIndex(index)
+								setIsOpen(true)
+							}}
 						>
 							<div className="relative rounded-lg overflow-hidden">
 								<Image
@@ -57,8 +66,17 @@ const ApplicationHome = () => {
 								/>
 							</div>
 						</div>
-					))}
+					))
+				}
 			</div>
+
+			{isOpen && <Lightbox
+				images={images.map((image) => image.url)}
+				isOpen={isOpen}
+				onClose={() => setIsOpen(false)}
+				currentIndex={currentIndex}
+				setCurrentIndex={setCurrentIndex}
+			/>}
 		</div>
 	)
 }
