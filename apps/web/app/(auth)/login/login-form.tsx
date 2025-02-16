@@ -23,7 +23,6 @@ const LoginForm = () => {
 	const [showPassword, setShowPassword] = useState(false)
 	const [isLoading, setIsLoading] = useState(false)
 	const [showTwoFactorVerify, setShowTwoFactorVerify] = useState(false)
-	const [tempSession, setTempSession] = useState<any>(null)
 
 	const form = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
@@ -49,12 +48,10 @@ const LoginForm = () => {
 			const has2FA = (data as unknown as {twoFactorRedirect: boolean}).twoFactorRedirect
 
 			if (has2FA) {
-				setTempSession(data)
 				setShowTwoFactorVerify(true)
 			} else {
-				toast.success('Signed in successfully!')
-				router.push('/app')
-				router.refresh()
+				toast.success('Two factor authentication is not enabled. Please enable it to continue.')
+				router.push('/register?twoFa=2fa')
 			}
 		} catch (error) {
 			toast.error(error instanceof Error ? error.message : 'Invalid credentials')
@@ -64,20 +61,16 @@ const LoginForm = () => {
 	}
 
 	const handleTwoFactorVerify = async (code: string) => {
-		try {
-			const response = await authClient.twoFactor.verifyTotp({
-				code
-			})
+		const response = await authClient.twoFactor.verifyTotp({
+			code
+		})
 
-			if (response.error) {
-				throw new Error('Invalid verification code')
-			}
-
-			toast.success('Signed in successfully!')
-			router.push('/app')
-		} catch (error) {
-			throw error
+		if (response.error) {
+			throw new Error('Invalid verification code')
 		}
+
+		toast.success('Signed in successfully!')
+		router.push('/app')
 	}
 
 	if (showTwoFactorVerify) {
@@ -86,7 +79,6 @@ const LoginForm = () => {
 				onVerify={handleTwoFactorVerify}
 				onCancel={() => {
 					setShowTwoFactorVerify(false)
-					setTempSession(null)
 				}}
 			/>
 		)

@@ -1,7 +1,6 @@
 'use client'
 
 import {useState} from 'react'
-import {useRouter} from 'next/navigation'
 import {zodResolver} from '@hookform/resolvers/zod'
 import {useForm} from 'react-hook-form'
 import * as z from 'zod'
@@ -28,20 +27,18 @@ const formSchema = z.object({
 })
 
 const RegisterForm = () => {
-	const router = useRouter()
 	const [showPassword, setShowPassword] = useState(false)
 	const [isLoading, setIsLoading] = useState(false)
-	const [userId, setUserId] = useState<string | null>(null)
 	const {logout} = useLogout()
 	const [twofa, setTwofa] = useQueryState<'form' | '2fa'>('twoFa', {
 		defaultValue: 'form',
 		parse: (value): 'form' | '2fa' => {
-		  if (value === 'form' || value === '2fa') {
-			return value
-		  }
-		  return 'form'
-		},
-	  })
+			if (value === 'form' || value === '2fa') {
+				return value
+			}
+			return 'form'
+		}
+	})
 
 	const form = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
@@ -65,16 +62,15 @@ const RegisterForm = () => {
 				throw error || new Error('Failed to create account')
 			}
 
-			const loginResponse = await authClient.signIn.email({
+			const {data: loginData, error: loginError} = await authClient.signIn.email({
 				email: values.email,
 				password: values.password
 			})
 
-			if (error || !data) {
-				throw error || new Error('Failed to sign in')
+			if (loginError || !loginData) {
+				throw loginError || new Error('Failed to sign in')
 			}
 
-			setUserId(data.user.id)
 			setTwofa('2fa')
 		} catch (error) {
 			toast.error(error instanceof Error ? error.message : 'Something went wrong')
