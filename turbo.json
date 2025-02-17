@@ -10,7 +10,8 @@
     "AWS_SECRET_ACCESS_KEY",
     "AWS_BUCKET_NAME",
     "BETTER_AUTH_SECRET",
-    "BETTER_AUTH_URL"
+    "BETTER_AUTH_URL",
+    "NEXT_PUBLIC_BETTER_AUTH_URL"
   ],
   "tasks": {
     "build": {
