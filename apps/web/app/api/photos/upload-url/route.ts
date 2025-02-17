@@ -9,7 +9,7 @@ const requestSchema = z.object({
 	contentType: z.string().regex(/^image\/(jpeg|png|jpg|heic|raw)$/)
 })
 
-export async function POST(req: NextRequest) {
+export const POST = async (req: NextRequest) => {
 	try {
 		const session = await auth.api.getSession({
 			headers: await headers()
@@ -38,9 +38,8 @@ export async function POST(req: NextRequest) {
 
 		return NextResponse.json({uploadUrl, fileKey})
 	} catch (error) {
-		console.error('Error generating upload URL:', error)
 		return NextResponse.json(
-			{error: 'Internal server error'},
+			{error: error instanceof Error ? error.message : 'Internal server error'},
 			{status: 500}
 		)
 	}

@@ -48,7 +48,8 @@ export const generatePresignedUploadUrl = async (
 export const generatePresignedDownloadUrl = async (fileKey: string) => {
 	const command = new GetObjectCommand({
 		Bucket: process.env.AWS_BUCKET_NAME,
-		Key: fileKey
+		Key: fileKey,
+		ResponseContentDisposition: `attachment; filename="${encodeURIComponent(fileKey)}"`
 	})
 
 	return await getSignedUrl(s3Client, command, {

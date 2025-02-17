@@ -3,6 +3,8 @@ import {Upload} from 'lucide-react'
 import {useDropzone} from 'react-dropzone'
 import CryptoJS from 'crypto-js'
 import {cn} from '@halycon/ui/lib/utils'
+import {encryptFile} from '@/lib/utils'
+import {getPreSignedUploadUrl, savePhotoToDB, uploadEncryptedPhoto} from '@/lib/photos'
 
 interface UploadState {
     progress: number;
@@ -12,28 +14,6 @@ interface UploadState {
 
 export const PhotoUpload = () => {
 	const [uploadStates, setUploadStates] = useState<Record<string, UploadState>>({})
-
-	const encryptFile = async (file: File, encryptionKey: string) => {
-		const arrayBuffer = await file.arrayBuffer()
-		const wordArray = CryptoJS.lib.WordArray.create(arrayBuffer)
-		const iv = CryptoJS.lib.WordArray.random(16)
-
-		const encrypted = CryptoJS.AES.encrypt(wordArray, encryptionKey, {
-			iv: iv,
-			mode: CryptoJS.mode.CBC,
-			padding: CryptoJS.pad.NoPadding
-		})
-
-		const encryptedFile = new Blob([encrypted.ciphertext.toString()], {
-			type: file.type
-		})
-
-		return {
-			encryptedFile: new File([encryptedFile], file.name, {type: file.type}),
-			iv: iv.toString(),
-			key: encryptionKey
-		}
-	}
 
 	const uploadFile = async (file: File) => {
 		try {
@@ -49,23 +29,8 @@ export const PhotoUpload = () => {
 			// Encrypt the file
 			const {encryptedFile, iv, key} = await encryptFile(file, encryptionKey)
 
-			// Get presigned URL
-			const response = await fetch('/api/photos/upload-url', {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify({
-					fileName: file.name,
-					contentType: file.type
-				})
-			})
-
-			if (!response.ok) {
-				throw new Error('Failed to get upload URL')
-			}
-
-			const {uploadUrl, fileKey} = await response.json()
+			// Get pre-signed URL
+			const {uploadUrl, fileKey} = await getPreSignedUploadUrl(file.name, file.type)
 
 			// Update state to uploading
 			setUploadStates(prev => ({
@@ -74,34 +39,17 @@ export const PhotoUpload = () => {
 			}))
 
 			// Upload encrypted file
-			const uploadResponse = await fetch(uploadUrl, {
-				method: 'PUT',
-				body: encryptedFile,
-				headers: {
-					'Content-Type': file.type,
-					'x-amz-server-side-encryption': 'AES256'
-				}
-			})
-
-			if (!uploadResponse.ok) {
-				throw new Error('Upload failed')
-			}
+			await uploadEncryptedPhoto(encryptedFile, uploadUrl)
 
 			// Save encryption details to database (you'll need to implement this endpoint)
-			await fetch('/api/photos', {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify({
-					fileKey,
-					encryptedKey: key,
-					keyIv: iv,
-					originalFilename: file.name,
-					fileSize: file.size,
-					mimeType: file.type
-				})
-			})
+			await savePhotoToDB(
+				fileKey,
+				key,
+				iv,
+				file.name,
+				file.size,
+				file.type
+			)
 
 			// Update state to success
 			setUploadStates(prev => ({

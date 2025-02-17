@@ -4,6 +4,7 @@ import {z} from 'zod'
 import {db} from '@/db/drizzle'
 import {photo} from '@/db/schema'
 import {headers} from 'next/headers'
+import {generatePresignedDownloadUrl} from '@/lib/s3-client'
 
 const photoMetadataSchema = z.object({
 	fileKey: z.string(),
@@ -14,7 +15,7 @@ const photoMetadataSchema = z.object({
 	mimeType: z.string().regex(/^image\/(jpeg|png|jpg|heic|raw)$/)
 })
 
-export async function POST(req: NextRequest) {
+export const POST = async (req: NextRequest) => {
 	try {
 		const session = await auth.api.getSession({
 			headers: await headers()
@@ -38,7 +39,6 @@ export async function POST(req: NextRequest) {
 			encryptedKey,
 			keyIv,
 			originalFilename,
-			fileSize,
 			mimeType
 		} = result.data
 
@@ -54,9 +54,45 @@ export async function POST(req: NextRequest) {
 
 		return NextResponse.json(savedPhoto[0])
 	} catch (error) {
-		console.error('Error saving photo metadata:', error)
 		return NextResponse.json(
-			{error: 'Internal server error'},
+			{error: error instanceof Error ? error.message : 'Internal server error'},
+			{status: 500}
+		)
+	}
+}
+
+export const GET = async () => {
+	try {
+		const session = await auth.api.getSession({
+			headers: await headers()
+		})
+		if (!session) {
+			return NextResponse.json({error: 'Unauthorized'}, {status: 401})
+		}
+
+		const photos = await db.query.photo.findMany({
+			where: (photos, {eq}) => eq(photos.userId, session.user.id),
+			orderBy: (photos, {desc}) => [desc(photos.createdAt)]
+		})
+
+		// Generate pre-signed URLs for each photo
+		const photosWithUrls = await Promise.all(photos.map(async (photo) => {
+			const url = await generatePresignedDownloadUrl(photo.s3Key)
+			return {
+				id: photo.id,
+				url,
+				originalFilename: photo.originalFilename,
+				createdAt: photo.createdAt,
+				encryptedKey: photo.encryptedFileKey,
+				keyIv: photo.fileKeyIv,
+				mimeType: photo.mimeType
+			}
+		}))
+
+		return NextResponse.json(photosWithUrls)
+	} catch (error) {
+		return NextResponse.json(
+			{error: error instanceof Error ? error.message : 'Internal server error'},
 			{status: 500}
 		)
 	}

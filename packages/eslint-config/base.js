@@ -24,7 +24,6 @@ export const config = [
       "@stylistic/js": stylistic
     },
     rules: {
-      "turbo/no-undeclared-env-vars": "warn",
       "@stylistic/js/semi": ["error", "never"],
       "@stylistic/js/quotes": ["error", "single"],
       "no-console": "error",

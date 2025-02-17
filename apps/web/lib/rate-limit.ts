@@ -2,8 +2,8 @@ import {Redis} from '@upstash/redis'
 import {NextRequest} from 'next/server'
 
 // Initialize Redis client
-const redis = new Redis({ // eslint-disable-next-line turbo/no-undeclared-env-vars
-	url: process.env.UPSTASH_REDIS_REST_URL || '', // eslint-disable-next-line turbo/no-undeclared-env-vars
+const redis = new Redis({
+	url: process.env.UPSTASH_REDIS_REST_URL || '',
 	token: process.env.UPSTASH_REDIS_REST_TOKEN || ''
 })
 
@@ -18,7 +18,7 @@ export const RATE_LIMIT_CONFIGS = {
 	passwordReset: {limit: 2, window: 60} // 2 requests per minute
 } as const
 
-const getIpAddress = (request: NextRequest): string | undefined => { // eslint-disable-next-line turbo/no-undeclared-env-vars
+const getIpAddress = (request: NextRequest): string | undefined => {
 	if (process.env.VERCEL_ENV) {
 		// We're on Vercel, use the real function
 		// eslint-disable-next-line @typescript-eslint/no-require-imports
