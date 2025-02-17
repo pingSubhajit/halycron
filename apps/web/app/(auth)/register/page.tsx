@@ -2,6 +2,7 @@ import RegisterForm from '@/app/(auth)/register/register-form'
 import banner from '@/public/banner_square.png'
 import Image from 'next/image'
 import Link from 'next/link'
+import {Suspense} from 'react'
 
 const RegisterPage = () => {
 	return (
@@ -23,7 +24,9 @@ const RegisterPage = () => {
 						</p>
 					</div>
 
-					<RegisterForm />
+					<Suspense fallback={<div>Loading...</div>}>
+						<RegisterForm />
+					</Suspense>
 
 					<p className="px-8 text-center text-sm text-muted-foreground">
 						Already have an account?{' '}
