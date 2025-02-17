@@ -1,5 +1,5 @@
 // import {waitlist, WaitlistInsert, WaitlistSelect} from '@/db/waitlist.schema'
-import {boolean, pgTable, text, timestamp, uuid, varchar} from 'drizzle-orm/pg-core'
+import {boolean, integer, pgTable, text, timestamp, uuid, varchar} from 'drizzle-orm/pg-core'
 import {sql} from 'drizzle-orm'
 
 /*
@@ -93,6 +93,8 @@ export const photo = pgTable('photos', {
 	s3Key: text('s3_key').notNull(),
 	originalFilename: text('original_filename').notNull(),
 	mimeType: text('mime_type').notNull(),
+	imageWidth: integer('image_width'),
+	imageHeight: integer('image_height'),
 	encryptedMetadata: text('encrypted_metadata'),
 	metadataIv: text('metadata_iv'),
 	createdAt: timestamp('created_at', {withTimezone: true}).default(sql`CURRENT_TIMESTAMP`),

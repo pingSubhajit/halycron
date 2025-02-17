@@ -43,7 +43,15 @@ export const uploadEncryptedPhoto = async (file: File, uploadUrl: string) => {
 	return uploadResponse
 }
 
-export const savePhotoToDB = async (fileKey: string, key: string, iv: string, name: string, size: number, mimeType: string) => {
+export const savePhotoToDB = async (
+	fileKey: string,
+	key: string,
+	iv: string,
+	name: string,
+	mimeType: string,
+	imageWidth?: number,
+	imageHeight?: number
+) => {
 	await fetch('/api/photos', {
 		method: 'POST',
 		headers: {
@@ -54,8 +62,9 @@ export const savePhotoToDB = async (fileKey: string, key: string, iv: string, na
 			encryptedKey: key,
 			keyIv: iv,
 			originalFilename: name,
-			fileSize: size,
-			mimeType: mimeType
+			mimeType,
+			imageWidth,
+			imageHeight
 		})
 	})
 }

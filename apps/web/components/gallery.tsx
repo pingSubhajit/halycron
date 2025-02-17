@@ -5,6 +5,11 @@ export type Photo = {
 	url: string
 	originalFilename: string
 	createdAt: string
+	encryptedKey: string
+	keyIv: string
+	mimeType: string
+	imageWidth?: number
+	imageHeight?: number
 }
 
 type Props = {
@@ -33,8 +38,8 @@ export const Gallery = ({photos, onClick, onDelete, totalPhotos, loaded}: Props)
 						<Image
 							src={photo.url}
 							alt={photo.originalFilename}
-							width={800}
-							height={600}
+							width={photo.imageWidth || 800}
+							height={photo.imageHeight || 600}
 							className="w-full h-auto object-cover hover:opacity-90 transition-opacity cursor-pointer"
 							onClick={() => onClick(photo, index)}
 						/>

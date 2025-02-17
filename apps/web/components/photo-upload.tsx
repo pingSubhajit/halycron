@@ -11,11 +11,25 @@ interface UploadState {
     error?: string;
 }
 
+const getImageDimensions = (file: File): Promise<{width: number; height: number}> => {
+	return new Promise((resolve, reject) => {
+		const img = new Image()
+		img.onload = () => {
+			resolve({width: img.width, height: img.height})
+		}
+		img.onerror = reject
+		img.src = URL.createObjectURL(file)
+	})
+}
+
 export const PhotoUpload = () => {
 	const [uploadStates, setUploadStates] = useState<Record<string, UploadState>>({})
 
 	const uploadFile = async (file: File) => {
 		try {
+			// Get image dimensions
+			const dimensions = await getImageDimensions(file)
+
 			// Generate a secure random encryption key
 			const encryptionKey = generateEncryptionKey()
 
@@ -40,14 +54,15 @@ export const PhotoUpload = () => {
 			// Upload encrypted file
 			await uploadEncryptedPhoto(encryptedFile, uploadUrl)
 
-			// Save encryption details to database (you'll need to implement this endpoint)
+			// Save encryption details to database
 			await savePhotoToDB(
 				fileKey,
 				key,
 				iv,
 				file.name,
-				file.size,
-				file.type
+				file.type,
+				dimensions.width,
+				dimensions.height
 			)
 
 			// Update state to success

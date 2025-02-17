@@ -29,6 +29,13 @@
       "when": 1739765192012,
       "tag": "0003_striped_loki",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1739820902710,
+      "tag": "0004_smiling_risque",
+      "breakpoints": true
     }
   ]
 }

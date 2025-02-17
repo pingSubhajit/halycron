@@ -13,8 +13,9 @@ const photoMetadataSchema = z.object({
 	encryptedKey: z.string(),
 	keyIv: z.string(),
 	originalFilename: z.string(),
-	fileSize: z.number(),
-	mimeType: z.string().regex(/^image\/(jpeg|png|jpg|heic|raw)$/)
+	mimeType: z.string().regex(/^image\/(jpeg|png|jpg|heic|raw)$/),
+	imageWidth: z.number().optional(),
+	imageHeight: z.number().optional()
 })
 
 export const POST = async (req: NextRequest) => {
@@ -41,7 +42,9 @@ export const POST = async (req: NextRequest) => {
 			encryptedKey,
 			keyIv,
 			originalFilename,
-			mimeType
+			mimeType,
+			imageWidth,
+			imageHeight
 		} = result.data
 
 		// Save photo metadata to database
@@ -51,7 +54,9 @@ export const POST = async (req: NextRequest) => {
 			fileKeyIv: keyIv,
 			s3Key: fileKey,
 			originalFilename,
-			mimeType
+			mimeType,
+			imageWidth,
+			imageHeight
 		}).returning()
 
 		return NextResponse.json(savedPhoto[0])
@@ -87,7 +92,9 @@ export const GET = async () => {
 				createdAt: photo.createdAt,
 				encryptedKey: photo.encryptedFileKey,
 				keyIv: photo.fileKeyIv,
-				mimeType: photo.mimeType
+				mimeType: photo.mimeType,
+				imageWidth: photo.imageWidth,
+				imageHeight: photo.imageHeight
 			}
 		}))
 
