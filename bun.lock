@@ -31,7 +31,6 @@
         "@upstash/redis": "^1.34.4",
         "@vercel/functions": "^2.0.0",
         "class-variance-authority": "^0.7.1",
-        "crypto-js": "^4.2.0",
         "drizzle-orm": "^0.39.3",
         "drizzle-zod": "^0.7.0",
         "embla-carousel-react": "^8.5.2",
@@ -52,7 +51,6 @@
       "devDependencies": {
         "@halycon/eslint-config": "workspace:^",
         "@halycon/typescript-config": "workspace:*",
-        "@types/crypto-js": "^4.2.2",
         "@types/node": "^20",
         "@types/react": "18.3.0",
         "@types/react-dom": "18.3.1",
@@ -565,8 +563,6 @@
     "@turbo/gen": ["@turbo/gen@2.4.2", "", { "dependencies": { "@turbo/workspaces": "2.4.2", "commander": "^10.0.0", "fs-extra": "^10.1.0", "inquirer": "^8.2.4", "minimatch": "^9.0.0", "node-plop": "^0.26.3", "picocolors": "1.0.1", "proxy-agent": "^6.2.2", "ts-node": "^10.9.2", "update-check": "^1.5.4", "validate-npm-package-name": "^5.0.0" }, "bin": { "gen": "dist/cli.js" } }, "sha512-iAndpPDVI5GxAd6a2c3WtVhjGeVDBGYml6DV+fLDTrElHc4MtvMa2EeU19mR0RzCscCZbATeAGzDxdnHtuxlJA=="],
 
     "@turbo/workspaces": ["@turbo/workspaces@2.4.2", "", { "dependencies": { "commander": "^10.0.0", "execa": "5.1.1", "fast-glob": "^3.2.12", "fs-extra": "^10.1.0", "gradient-string": "^2.0.0", "inquirer": "^8.0.0", "js-yaml": "^4.1.0", "ora": "4.1.1", "picocolors": "1.0.1", "semver": "7.6.2", "update-check": "^1.5.4" }, "bin": { "workspaces": "dist/cli.js" } }, "sha512-HdXoW7LxCL+cvoEx8SBdg98o7DupN48hEvoEeUJ08R0ud8cLHCO8/2heyG/X/Y60pY9uxhpwjsmn9l5Dx75uMA=="],
-
-    "@types/crypto-js": ["@types/crypto-js@4.2.2", "", {}, "sha512-sDOLlVbHhXpAUAL0YHDUUwDZf3iN4Bwi4W6a0W0b+QcAezUbRtH4FVb+9J4h+XFPW7l/gQ9F8qC7P+Ec4k8QVQ=="],
 
     "@types/estree": ["@types/estree@1.0.6", "", {}, "sha512-AYnb1nQyY49te+VRAVgmzfcgjYS91mY5P0TKUDCLEM+gNnA+3T6rWITXRLYCpahpqSQbN5cE+gHpnPyXjHWxcw=="],
 

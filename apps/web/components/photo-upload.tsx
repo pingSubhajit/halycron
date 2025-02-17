@@ -1,9 +1,8 @@
 import {useCallback, useState} from 'react'
 import {Upload} from 'lucide-react'
 import {useDropzone} from 'react-dropzone'
-import CryptoJS from 'crypto-js'
 import {cn} from '@halycon/ui/lib/utils'
-import {encryptFile} from '@/lib/utils'
+import {encryptFile, generateEncryptionKey} from '@/lib/utils'
 import {getPreSignedUploadUrl, savePhotoToDB, uploadEncryptedPhoto} from '@/lib/photos'
 
 interface UploadState {
@@ -17,8 +16,8 @@ export const PhotoUpload = () => {
 
 	const uploadFile = async (file: File) => {
 		try {
-			// Generate a random encryption key
-			const encryptionKey = CryptoJS.lib.WordArray.random(32).toString()
+			// Generate a secure random encryption key
+			const encryptionKey = generateEncryptionKey()
 
 			// Update state to encrypting
 			setUploadStates(prev => ({
@@ -57,6 +56,7 @@ export const PhotoUpload = () => {
 				[file.name]: {progress: 100, status: 'success'}
 			}))
 		} catch (error) {
+			console.log('Upload failed:', error)
 			setUploadStates(prev => ({
 				...prev,
 				[file.name]: {

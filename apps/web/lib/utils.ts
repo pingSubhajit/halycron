@@ -1,55 +1,69 @@
-import CryptoJS from 'crypto-js'
+export const generateEncryptionKey = () => {
+	// Generate 32 random bytes (256 bits) and convert to base64
+	const randomBytes = window.crypto.getRandomValues(new Uint8Array(32))
+	return btoa(String.fromCharCode(...randomBytes))
+}
 
 export const encryptFile = async (file: File, encryptionKey: string) => {
+	const subtle = window.crypto.subtle
+	const iv = window.crypto.getRandomValues(new Uint8Array(16))
+
+	// Convert base64 key back to bytes
+	const keyBytes = Uint8Array.from(atob(encryptionKey), c => c.charCodeAt(0))
+
+	// Import the key
+	const cryptoKey = await subtle.importKey(
+		'raw',
+		keyBytes,
+		{name: 'AES-CBC', length: 256},
+		false,
+		['encrypt']
+	)
+
+	// Encrypt the file
 	const arrayBuffer = await file.arrayBuffer()
-	const wordArray = CryptoJS.lib.WordArray.create(arrayBuffer)
-	const iv = CryptoJS.lib.WordArray.random(16)
-	const key = CryptoJS.enc.Utf8.parse(encryptionKey) // Ensure correct key format
+	const encryptedData = await subtle.encrypt(
+		{name: 'AES-CBC', iv},
+		cryptoKey,
+		arrayBuffer
+	)
 
-	const encrypted = CryptoJS.AES.encrypt(wordArray, key, {
-		iv: iv,
-		mode: CryptoJS.mode.CBC,
-		padding: CryptoJS.pad.NoPadding
-	})
-
-	// Store encrypted data as Hex string
-	const encryptedBlob = new Blob([CryptoJS.enc.Hex.stringify(encrypted.ciphertext)], {
-		type: file.type
-	})
+	const encryptedBlob = new Blob([encryptedData], {type: file.type})
 
 	return {
 		encryptedFile: new File([encryptedBlob], file.name, {type: file.type}),
-		iv: iv.toString(CryptoJS.enc.Hex), // Store IV as hex string
+		iv: Array.from(iv).map(b => b.toString(16).padStart(2, '0')).join(''), // Convert to hex string
 		key: encryptionKey
 	}
 }
 
-export const wordArrayToArrayBuffer = (wordArray: CryptoJS.lib.WordArray): ArrayBuffer => {
-	const {words, sigBytes} = wordArray
-	const uint8View = new Uint8Array(sigBytes)
-
-	for (let i = 0; i < sigBytes; i++) {
-		uint8View[i] = (words[i >>> 2]! >>> ((3 - (i % 4)) * 8)) & 0xff
-	}
-
-	return uint8View.buffer
-}
-
 export const decryptFile = async (encryptedBlob: Blob, key: string, iv: string) => {
-	const encryptedText = await encryptedBlob.text() // Read as text (Hex string)
-	const keyWordArray = CryptoJS.enc.Utf8.parse(key) // Ensure correct key format
+	const subtle = window.crypto.subtle
 
-	const cipherParams = CryptoJS.lib.CipherParams.create({
-		ciphertext: CryptoJS.enc.Hex.parse(encryptedText) // Convert hex back to WordArray
-	})
+	// Convert hex IV back to Uint8Array
+	const ivArray = new Uint8Array(iv.match(/.{2}/g)!.map(byte => parseInt(byte, 16)))
 
-	const decrypted = CryptoJS.AES.decrypt(cipherParams, keyWordArray, {
-		iv: CryptoJS.enc.Hex.parse(iv),
-		mode: CryptoJS.mode.CBC,
-		padding: CryptoJS.pad.NoPadding
-	})
+	// Convert base64 key back to bytes
+	const keyBytes = Uint8Array.from(atob(key), c => c.charCodeAt(0))
 
-	return wordArrayToArrayBuffer(decrypted)
+	// Import the key
+	const cryptoKey = await subtle.importKey(
+		'raw',
+		keyBytes,
+		{name: 'AES-CBC', length: 256},
+		false,
+		['decrypt']
+	)
+
+	// Decrypt the data
+	const encryptedData = await encryptedBlob.arrayBuffer()
+	const decryptedData = await subtle.decrypt(
+		{name: 'AES-CBC', iv: ivArray},
+		cryptoKey,
+		encryptedData
+	)
+
+	return decryptedData
 }
 
 export const downloadAndDecryptFile = async (fileUrl: string, key: string, iv: string, mimeType: string) => {
