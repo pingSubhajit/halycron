@@ -12,6 +12,7 @@ interface LightboxProps {
 	currentIndex?: number;
 	setCurrentIndex: (index: number) => void;
 	onClose: () => void;
+	onDelete?: () => void;
 	isOpen: boolean;
 	className?: string;
 }
@@ -21,6 +22,7 @@ export const Lightbox = ({
 	currentIndex = 0,
 	setCurrentIndex,
 	onClose,
+	onDelete,
 	isOpen,
 	className
 }: LightboxProps) => {
@@ -85,8 +87,24 @@ export const Lightbox = ({
 						<span className="sr-only">Close</span>
 					</Button>
 
+					{onDelete && (
+						<Button
+							variant="ghost"
+							size="icon"
+							className="absolute top-4 right-16 z-50"
+							onClick={onDelete}
+						>
+							<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+								<path d="M3 6h18"></path>
+								<path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+								<path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+							</svg>
+							<span className="sr-only">Delete</span>
+						</Button>
+					)}
+
 					{/* Controls */}
-					<div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-50">
+					<div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-50 p-1 rounded-full bg-background/50 backdrop-blur-md">
 						<Button
 							variant="ghost"
 							size="icon"
@@ -98,6 +116,7 @@ export const Lightbox = ({
 								setScale(1)
 							}}
 							disabled={currentIndex <= 0}
+							className="rounded-l-full"
 						>
 							<ChevronLeft className="h-4 w-4" />
 							<span className="sr-only">Previous image</span>
@@ -131,6 +150,7 @@ export const Lightbox = ({
 								setScale(1)
 							}}
 							disabled={currentIndex >= images.length - 1}
+							className="rounded-r-full"
 						>
 							<ChevronRight className="h-4 w-4" />
 							<span className="sr-only">Next image</span>

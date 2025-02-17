@@ -3,8 +3,9 @@
 import {useEffect, useState} from 'react'
 import {Lightbox} from '@halycon/ui/components/lightbox'
 import {downloadAndDecryptFile} from '@/lib/utils'
-import {fetchPhotos} from '@/lib/photos'
+import {deletePhoto, fetchPhotos} from '@/lib/photos'
 import {Gallery, Photo} from '@/components/gallery'
+import {toast} from 'sonner'
 
 export const PhotoView = () => {
 	const [loaded, setLoaded] = useState(0)
@@ -35,12 +36,23 @@ export const PhotoView = () => {
 		fetch()
 	}, [])
 
+	const onDelete = async (photo: Photo) => {
+		try {
+			await deletePhoto(photo.id)
+			setPhotos((prev) => prev.filter(p => p.id !== photo.id))
+			setTotalPhotos((prev) => prev - 1)
+			toast.success('Photo deleted successfully')
+		} catch (error) {
+			toast.error(error instanceof Error ? error.message : 'Failed to delete photo')
+		}
+	}
+
 	return (
 		<div>
 			<Gallery photos={photos} onClick={(_, index) => {
 				setCurrentIndex(index)
 				setIsOpen(true)
-			}} totalPhotos={totalPhotos} loaded={loaded}/>
+			}} onDelete={onDelete} totalPhotos={totalPhotos} loaded={loaded}/>
 
 			{isOpen && <Lightbox
 				images={photos.map((photo) => photo.url)}
@@ -48,6 +60,13 @@ export const PhotoView = () => {
 				onClose={() => setIsOpen(false)}
 				currentIndex={currentIndex}
 				setCurrentIndex={setCurrentIndex}
+				onDelete={() => {
+					const photo = photos[currentIndex]
+					if (photo) {
+						onDelete(photo)
+						setIsOpen(false)
+					}
+				}}
 			/>}
 		</div>
 	)

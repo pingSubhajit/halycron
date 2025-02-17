@@ -56,7 +56,6 @@ export const PhotoUpload = () => {
 				[file.name]: {progress: 100, status: 'success'}
 			}))
 		} catch (error) {
-			console.log('Upload failed:', error)
 			setUploadStates(prev => ({
 				...prev,
 				[file.name]: {

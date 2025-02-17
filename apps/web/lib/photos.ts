@@ -59,3 +59,19 @@ export const savePhotoToDB = async (fileKey: string, key: string, iv: string, na
 		})
 	})
 }
+
+export const deletePhoto = async (photoId: string) => {
+	const response = await fetch('/api/photos', {
+		method: 'DELETE',
+		headers: {
+			'Content-Type': 'application/json'
+		},
+		body: JSON.stringify({photoId})
+	})
+
+	if (!response.ok) {
+		throw new Error('Failed to delete photo')
+	}
+
+	return response.json()
+}

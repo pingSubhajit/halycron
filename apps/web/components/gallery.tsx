@@ -10,6 +10,7 @@ export type Photo = {
 type Props = {
 	photos: Photo[]
 	onClick: (photo: Photo, index: number) => void
+	onDelete?: (photo: Photo) => Promise<void>
 	totalPhotos: number
 	loaded: number
 }
@@ -20,14 +21,13 @@ const ImageSkeleton = () => (
 	</div>
 )
 
-export const Gallery = ({photos, onClick, totalPhotos, loaded}: Props) => {
+export const Gallery = ({photos, onClick, onDelete, totalPhotos, loaded}: Props) => {
 	return (
 		<div className="columns-1 gap-2 lg:gap-4 sm:columns-2 lg:columns-3 xl:columns-4 [&>div:not(:first-child)]:mt-2 lg:[&>div:not(:first-child)]:mt-4">
 			{photos.map((photo, index) => (
 				<div
 					key={photo.id}
-					className="break-inside-avoid transition-transform hover:scale-[1.02] duration-200"
-					onClick={() => onClick(photo, index)}
+					className="break-inside-avoid transition-transform hover:scale-[1.02] duration-200 group relative"
 				>
 					<div className="relative rounded-lg overflow-hidden">
 						<Image
@@ -35,8 +35,24 @@ export const Gallery = ({photos, onClick, totalPhotos, loaded}: Props) => {
 							alt={photo.originalFilename}
 							width={800}
 							height={600}
-							className="w-full h-auto object-cover hover:opacity-90 transition-opacity"
+							className="w-full h-auto object-cover hover:opacity-90 transition-opacity cursor-pointer"
+							onClick={() => onClick(photo, index)}
 						/>
+						{onDelete && (
+							<button
+								onClick={(e) => {
+									e.stopPropagation()
+									onDelete(photo)
+								}}
+								className="absolute top-2 right-2 p-2 rounded-full bg-black/50 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/70"
+							>
+								<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+									<path d="M3 6h18"></path>
+									<path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+									<path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+								</svg>
+							</button>
+						)}
 					</div>
 				</div>
 			))}

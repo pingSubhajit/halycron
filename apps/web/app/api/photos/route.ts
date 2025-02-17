@@ -4,7 +4,9 @@ import {z} from 'zod'
 import {db} from '@/db/drizzle'
 import {photo} from '@/db/schema'
 import {headers} from 'next/headers'
-import {generatePresignedDownloadUrl} from '@/lib/s3-client'
+import {generatePresignedDownloadUrl, s3Client} from '@/lib/s3-client'
+import {DeleteObjectCommand} from '@aws-sdk/client-s3'
+import {eq} from 'drizzle-orm'
 
 const photoMetadataSchema = z.object({
 	fileKey: z.string(),
@@ -90,6 +92,50 @@ export const GET = async () => {
 		}))
 
 		return NextResponse.json(photosWithUrls)
+	} catch (error) {
+		return NextResponse.json(
+			{error: error instanceof Error ? error.message : 'Internal server error'},
+			{status: 500}
+		)
+	}
+}
+
+export const DELETE = async (req: NextRequest) => {
+	try {
+		const session = await auth.api.getSession({
+			headers: await headers()
+		})
+		if (!session) {
+			return NextResponse.json({error: 'Unauthorized'}, {status: 401})
+		}
+
+		const {photoId} = await req.json()
+		if (!photoId) {
+			return NextResponse.json({error: 'Photo ID is required'}, {status: 400})
+		}
+
+		// Get the photo to verify ownership and get S3 key
+		const photoToDelete = await db.query.photo.findFirst({
+			where: (photos, {and, eq}) => and(
+				eq(photos.id, photoId),
+				eq(photos.userId, session.user.id)
+			)
+		})
+
+		if (!photoToDelete) {
+			return NextResponse.json({error: 'Photo not found'}, {status: 404})
+		}
+
+		// Delete from S3
+		await s3Client.send(new DeleteObjectCommand({
+			Bucket: process.env.AWS_BUCKET_NAME,
+			Key: photoToDelete.s3Key
+		}))
+
+		// Delete from database
+		await db.delete(photo).where(eq(photo.id, photoId))
+
+		return NextResponse.json({success: true})
 	} catch (error) {
 		return NextResponse.json(
 			{error: error instanceof Error ? error.message : 'Internal server error'},
