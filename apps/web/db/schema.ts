@@ -1,5 +1,5 @@
 // import {waitlist, WaitlistInsert, WaitlistSelect} from '@/db/waitlist.schema'
-import {pgTable, uuid, varchar, text, boolean, integer, timestamp, bigint, unique} from 'drizzle-orm/pg-core'
+import {boolean, pgTable, text, timestamp, uuid, varchar} from 'drizzle-orm/pg-core'
 import {sql} from 'drizzle-orm'
 
 /*
@@ -85,19 +85,19 @@ export const twoFactor = pgTable('two_factor', {
 })
 
 // Photos Table
-// export const photo = pgTable('photos', {
-// 	id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
-// 	userId: uuid('user_id').notNull().references(() => user.id, {onDelete: 'cascade'}),
-// 	encryptedFileKey: text('encrypted_file_key').notNull(),
-// 	fileKeyIv: text('file_key_iv').notNull(),
-// 	s3Key: text('s3_key').notNull(),
-// 	originalFilename: text('original_filename').notNull(),
-// 	mimeType: text('mime_type').notNull(),
-// 	encryptedMetadata: text('encrypted_metadata'),
-// 	metadataIv: text('metadata_iv'),
-// 	createdAt: timestamp('created_at', {withTimezone: true}).default(sql`CURRENT_TIMESTAMP`),
-// 	updatedAt: timestamp('updated_at', {withTimezone: true}).default(sql`CURRENT_TIMESTAMP`)
-// })
+export const photo = pgTable('photos', {
+	id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
+	userId: uuid('user_id').notNull().references(() => user.id, {onDelete: 'cascade'}),
+	encryptedFileKey: text('encrypted_file_key').notNull(),
+	fileKeyIv: text('file_key_iv').notNull(),
+	s3Key: text('s3_key').notNull(),
+	originalFilename: text('original_filename').notNull(),
+	mimeType: text('mime_type').notNull(),
+	encryptedMetadata: text('encrypted_metadata'),
+	metadataIv: text('metadata_iv'),
+	createdAt: timestamp('created_at', {withTimezone: true}).default(sql`CURRENT_TIMESTAMP`),
+	updatedAt: timestamp('updated_at', {withTimezone: true}).default(sql`CURRENT_TIMESTAMP`)
+})
 //
 // // Tags Table
 // export const tag = pgTable('tags', {
