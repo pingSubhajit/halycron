@@ -19,6 +19,9 @@ const nextConfig = {
 				pathname: '/**'
 			}
 		]
+	},
+	experimental: {
+		reactCompiler: true
 	}
 }
 
