@@ -12,6 +12,7 @@ export const auth = betterAuth({
 		provider: 'pg', // or "mysql", "sqlite",
 		schema
 	}),
+	secret: process.env.BETTER_AUTH_SECRET,
 	emailAndPassword: {
 		enabled: true
 	},
@@ -22,6 +23,5 @@ export const auth = betterAuth({
 	],
 	advanced: {
 		generateId: false
-	},
-	baseURL: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+	}
 })
