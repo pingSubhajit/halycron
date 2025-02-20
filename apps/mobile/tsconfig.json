@@ -1,0 +1,15 @@
+{
+  "extends": "@halycon/typescript-config/base.json",
+  "compilerOptions": {
+    "jsx": "react-native",
+    "strict": true
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    "nativewind-env.d.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}
