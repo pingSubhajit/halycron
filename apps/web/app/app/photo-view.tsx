@@ -2,11 +2,13 @@
 
 import {useState} from 'react'
 import {Lightbox} from '@halycon/ui/components/lightbox'
-import {Gallery} from '@/components/gallery'
 import {toast} from 'sonner'
 import {Photo} from '@/app/api/photos/types'
 import {useAllPhotos} from '@/app/api/photos/query'
 import {deletePhoto} from '@/app/api/photos/utils'
+import dynamic from 'next/dynamic'
+
+const Gallery = dynamic(() => import('@/components/gallery').then(mod => mod.Gallery), {ssr: false})
 
 export const fetchPhotos = async () => {
 	const response = await fetch('/api/photos')

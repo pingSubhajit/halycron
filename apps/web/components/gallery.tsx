@@ -1,7 +1,6 @@
 import Image from 'next/image'
 import {Photo} from '@/app/api/photos/types'
 import {Masonry} from 'masonic'
-import useResponsive, {breakpoints} from '@/hooks/use-responsive'
 import {HTMLProps} from 'react'
 import {cn} from '@halycon/ui/lib/utils'
 
@@ -21,13 +20,15 @@ const ImageSkeleton = (props: HTMLProps<HTMLDivElement>) => (
 )
 
 export const Gallery = ({photos, onClick, onDelete, totalPhotos, loaded, dimensions}: Props) => {
-	const breakpoint = useResponsive()
+	// const breakpoint = useResponsive()
 
 	return (
-		<Masonry items={Array.from(Array(totalPhotos), () => ({id: 1}))} columnCount={
-			breakpoint >= breakpoints.xl ? 4 :
-				breakpoint >= breakpoints.lg ? 3 :
-					breakpoint >= breakpoints.sm ? 2 : 1
+		<Masonry items={Array.from(Array(totalPhotos), () => ({id: 1}))} columnCount={4
+			/*
+			 * breakpoint >= breakpoints.xl ? 4 :
+			 * 	breakpoint >= breakpoints.lg ? 3 :
+			 * 		breakpoint >= breakpoints.sm ? 2 : 1
+			 */
 		} columnGutter={16} render={
 			({index}) => {
 				if (index >= loaded) {
