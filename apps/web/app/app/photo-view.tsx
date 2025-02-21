@@ -19,11 +19,12 @@ export const fetchPhotos = async () => {
 export const PhotoView = () => {
 	const [loaded, setLoaded] = useState(0)
 	const [photos, setPhotos] = useState<Photo[]>([])
+	const [dimensions, setDimensions] = useState<{width: number, height: number}[]>([])
 	const [totalPhotos, setTotalPhotos] = useState(0)
 	const [isOpen, setIsOpen] = useState(false)
 	const [currentIndex, setCurrentIndex] = useState(0)
 
-	useAllPhotos(setTotalPhotos, setPhotos, setLoaded)
+	useAllPhotos(setTotalPhotos, setPhotos, setLoaded, setDimensions)
 
 	/*
 	 * useEffect(() => {
@@ -65,7 +66,7 @@ export const PhotoView = () => {
 			<Gallery photos={photos} onClick={(_, index) => {
 				setCurrentIndex(index)
 				setIsOpen(true)
-			}} onDelete={onDelete} totalPhotos={totalPhotos} loaded={loaded}/>
+			}} onDelete={onDelete} totalPhotos={totalPhotos} loaded={loaded} dimensions={dimensions} />
 
 			{isOpen && <Lightbox
 				images={photos.map((photo) => photo.url)}
