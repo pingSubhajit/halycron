@@ -1,6 +1,7 @@
 import type {Config} from 'tailwindcss'
 import tailwindcssAnimate from 'tailwindcss-animate'
-import {fontFamily} from 'tailwindcss/defaultTheme'
+
+const defaultTheme = require('tailwindcss/defaultTheme')
 
 const config = {
 	darkMode: ['class'],
@@ -14,11 +15,14 @@ const config = {
 			fontFamily: {
 				sans: [
 					'var(--font-sans)',
-					...fontFamily.sans
+					...defaultTheme.fontFamily.sans
 				],
 				mono: [
 					'var(--font-mono)',
-					...fontFamily.mono
+					...defaultTheme.fontFamily.mono
+				],
+				grotesque: [
+					'var(--font-grotesque)'
 				]
 			},
 			colors: {
