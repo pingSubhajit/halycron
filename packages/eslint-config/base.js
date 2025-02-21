@@ -27,10 +27,6 @@ export const config = [
       "@stylistic/js/semi": ["error", "never"],
       "@stylistic/js/quotes": ["error", "single"],
       "no-console": "error",
-      "react/jsx-no-undef": ["error", { "allowGlobals": true }],
-      "react-hooks/exhaustive-deps": "off", // Disable exhaustive-deps rule
-      "react/no-unescaped-entities": "off",
-      "react/display-name": "off",
       "prefer-arrow/prefer-arrow-functions": ["error", {
         "disallowPrototype": true,
         "singleReturnOnly": false,

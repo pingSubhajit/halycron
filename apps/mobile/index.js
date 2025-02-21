@@ -1,2 +1,2 @@
-import "expo-router/entry"
-import "../../packages/ui/src/styles/globals.css"
+import 'expo-router/entry'
+import '../../packages/ui/src/styles/globals.css'

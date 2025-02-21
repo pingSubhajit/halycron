@@ -12,6 +12,7 @@
   "devDependencies": {
     "@halycon/eslint-config": "workspace:*",
     "@halycon/typescript-config": "workspace:*",
+    "eslint": "^9.20.1",
     "prettier": "^3.2.5",
     "turbo": "^2.3.0",
     "typescript": "5.5.4"
