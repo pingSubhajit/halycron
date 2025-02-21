@@ -1,16 +1,5 @@
 import Image from 'next/image'
-
-export type Photo = {
-	id: string
-	url: string
-	originalFilename: string
-	createdAt: string
-	encryptedKey: string
-	keyIv: string
-	mimeType: string
-	imageWidth?: number
-	imageHeight?: number
-}
+import {Photo} from '@/app/api/photos/types'
 
 type Props = {
 	photos: Photo[]
@@ -21,7 +10,7 @@ type Props = {
 }
 
 const ImageSkeleton = () => (
-	<div className="relative overflow-hidden rounded-lg bg-accent animate-pulse" style={{paddingBottom: '75%'}}>
+	<div className="relative overflow-hidden bg-accent animate-pulse" style={{paddingBottom: '75%'}}>
 		<div className="absolute inset-0" />
 	</div>
 )

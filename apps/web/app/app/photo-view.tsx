@@ -1,11 +1,20 @@
 'use client'
 
-import {useEffect, useState} from 'react'
+import {useState} from 'react'
 import {Lightbox} from '@halycon/ui/components/lightbox'
-import {downloadAndDecryptFile} from '@/lib/utils'
-import {deletePhoto, fetchPhotos} from '@/lib/photos'
-import {Gallery, Photo} from '@/components/gallery'
+import {Gallery} from '@/components/gallery'
 import {toast} from 'sonner'
+import {Photo} from '@/app/api/photos/types'
+import {useAllPhotos} from '@/app/api/photos/query'
+import {deletePhoto} from '@/app/api/photos/utils'
+
+export const fetchPhotos = async () => {
+	const response = await fetch('/api/photos')
+	if (!response.ok) {
+		throw new Error('Failed to fetch photos')
+	}
+	return await response.json()
+}
 
 export const PhotoView = () => {
 	const [loaded, setLoaded] = useState(0)
@@ -14,27 +23,31 @@ export const PhotoView = () => {
 	const [isOpen, setIsOpen] = useState(false)
 	const [currentIndex, setCurrentIndex] = useState(0)
 
-	useEffect(() => {
-		const fetch = async () => {
-			const response = await fetchPhotos()
-			setTotalPhotos(response.length)
+	useAllPhotos(setTotalPhotos, setPhotos, setLoaded)
 
-			for (let i = 0; i < response.length; i++) {
-				const photo = response[i]
-				photo.url = await downloadAndDecryptFile(photo.url, photo.encryptedKey, photo.keyIv, photo.mimeType)
-				setPhotos((prev) => {
-					// Check if photo with this ID already exists
-					if (prev.some(p => p.id === photo.id)) {
-						return prev
-					}
-					return [...prev, photo]
-				})
-				setLoaded(i + 1)
-			}
-		}
-
-		fetch()
-	}, [])
+	/*
+	 * useEffect(() => {
+	 * 	const fetch = async () => {
+	 * 		const response = await fetchPhotos()
+	 * 		setTotalPhotos(response.length)
+	 *
+	 * 		for (let i = 0; i < response.length; i++) {
+	 * 			const photo = response[i]
+	 * 			photo.url = await downloadAndDecryptFile(photo.url, photo.encryptedKey, photo.keyIv, photo.mimeType)
+	 * 			setPhotos((prev) => {
+	 * 				// Check if photo with this ID already exists
+	 * 				if (prev.some(p => p.id === photo.id)) {
+	 * 					return prev
+	 * 				}
+	 * 				return [...prev, photo]
+	 * 			})
+	 * 			setLoaded(i + 1)
+	 * 		}
+	 * 	}
+	 *
+	 * 	fetch()
+	 * }, [])
+	 */
 
 	const onDelete = async (photo: Photo) => {
 		try {

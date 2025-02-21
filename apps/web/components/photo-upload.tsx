@@ -2,85 +2,12 @@ import {useCallback, useState} from 'react'
 import {Upload} from 'lucide-react'
 import {useDropzone} from 'react-dropzone'
 import {cn} from '@halycon/ui/lib/utils'
-import {encryptFile, generateEncryptionKey} from '@/lib/utils'
-import {getPreSignedUploadUrl, savePhotoToDB, uploadEncryptedPhoto} from '@/lib/photos'
-
-interface UploadState {
-    progress: number;
-    status: 'idle' | 'uploading' | 'encrypting' | 'success' | 'error';
-    error?: string;
-}
-
-const getImageDimensions = (file: File): Promise<{width: number; height: number}> => {
-	return new Promise((resolve, reject) => {
-		const img = new Image()
-		img.onload = () => {
-			resolve({width: img.width, height: img.height})
-		}
-		img.onerror = reject
-		img.src = URL.createObjectURL(file)
-	})
-}
+import {UploadState} from '@/app/api/photos/types'
+import {useUploadPhoto} from '@/app/api/photos/mutation'
 
 export const PhotoUpload = () => {
 	const [uploadStates, setUploadStates] = useState<Record<string, UploadState>>({})
-
-	const uploadFile = async (file: File) => {
-		try {
-			// Get image dimensions
-			const dimensions = await getImageDimensions(file)
-
-			// Generate a secure random encryption key
-			const encryptionKey = generateEncryptionKey()
-
-			// Update state to encrypting
-			setUploadStates(prev => ({
-				...prev,
-				[file.name]: {progress: 0, status: 'encrypting'}
-			}))
-
-			// Encrypt the file
-			const {encryptedFile, iv, key} = await encryptFile(file, encryptionKey)
-
-			// Get pre-signed URL
-			const {uploadUrl, fileKey} = await getPreSignedUploadUrl(file.name, file.type)
-
-			// Update state to uploading
-			setUploadStates(prev => ({
-				...prev,
-				[file.name]: {progress: 0, status: 'uploading'}
-			}))
-
-			// Upload encrypted file
-			await uploadEncryptedPhoto(encryptedFile, uploadUrl)
-
-			// Save encryption details to database
-			await savePhotoToDB(
-				fileKey,
-				key,
-				iv,
-				file.name,
-				file.type,
-				dimensions.width,
-				dimensions.height
-			)
-
-			// Update state to success
-			setUploadStates(prev => ({
-				...prev,
-				[file.name]: {progress: 100, status: 'success'}
-			}))
-		} catch (error) {
-			setUploadStates(prev => ({
-				...prev,
-				[file.name]: {
-					progress: 0,
-					status: 'error',
-					error: error instanceof Error ? error.message : 'Upload failed'
-				}
-			}))
-		}
-	}
+	const {mutate: uploadFile} = useUploadPhoto(setUploadStates)
 
 	const onDrop = useCallback((acceptedFiles: File[]) => {
 		acceptedFiles.forEach(file => {

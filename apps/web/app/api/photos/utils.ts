@@ -1,3 +1,6 @@
+import {api} from '@/lib/data/api-client'
+import {Photo} from '@/app/api/photos/types'
+
 export const generateEncryptionKey = () => {
 	// Generate 32 random bytes (256 bits) and convert to base64
 	const randomBytes = window.crypto.getRandomValues(new Uint8Array(32))
@@ -80,3 +83,77 @@ export const downloadAndDecryptFile = async (fileUrl: string, key: string, iv: s
 	// Create a download link
 	return URL.createObjectURL(decryptedBlob)
 }
+
+export const getImageDimensions = (file: File): Promise<{width: number; height: number}> => {
+	return new Promise((resolve, reject) => {
+		const img = new Image()
+		img.onload = () => {
+			resolve({width: img.width, height: img.height})
+		}
+		img.onerror = reject
+		img.src = URL.createObjectURL(file)
+	})
+}
+
+export const getPreSignedUploadUrl = async (name: string, type: string) => {
+	const response = await api.post<{uploadUrl: string, fileKey: string}>('/api/photos/upload-url', {
+		fileName: name,
+		contentType: type
+	})
+
+	return {uploadUrl: response.uploadUrl, fileKey: response.fileKey}
+}
+
+export const uploadEncryptedPhoto = async (file: File, uploadUrl: string) => {
+	const uploadResponse = await fetch(uploadUrl, {
+		method: 'PUT',
+		body: file,
+		headers: {
+			'Content-Type': file.type,
+			'x-amz-server-side-encryption': 'AES256'
+		}
+	})
+
+	if (!uploadResponse.ok) {
+		throw new Error('Upload failed')
+	}
+
+	return uploadResponse
+}
+
+export const savePhotoToDB = async (
+	fileKey: string,
+	key: string,
+	iv: string,
+	name: string,
+	mimeType: string,
+	imageWidth?: number,
+	imageHeight?: number
+) => {
+	return await api.post('/api/photos', {
+		fileKey,
+		encryptedKey: key,
+		keyIv: iv,
+		originalFilename: name,
+		mimeType,
+		imageWidth,
+		imageHeight
+	}) as Photo
+}
+
+export const deletePhoto = async (photoId: string) => {
+	const response = await fetch('/api/photos', {
+		method: 'DELETE',
+		headers: {
+			'Content-Type': 'application/json'
+		},
+		body: JSON.stringify({photoId})
+	})
+
+	if (!response.ok) {
+		throw new Error('Failed to delete photo')
+	}
+
+	return response.json()
+}
+
