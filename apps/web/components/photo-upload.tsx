@@ -103,7 +103,7 @@ export const PhotoUpload = () => {
 	return (
 		<div className="w-full">
 			{/* Upload Progress */}
-			<div className="h-[200px] flex flex-col-reverse overflow-y-scroll gap-2">
+			{Object.entries(uploadStates).length > 0 && <div className="h-[200px] flex flex-col-reverse overflow-y-auto gap-2">
 				{Object.entries(uploadStates).map(([fileName, state]) => (
 					<div
 						key={fileName}
@@ -119,16 +119,15 @@ export const PhotoUpload = () => {
 							state.status === 'success' && 'text-green-500',
 							state.status === 'error' && 'text-red-500'
 						)}>
-							{/* {state.status === 'success' && <span className="w-1 h-1 bg-green-500 rounded-full" />}*/}
 							<span>{state.status}</span>
 						</div>
 					</div>
 				))}
-			</div>
+			</div>}
 
 			<div
 				{...getRootProps()}
-				className={`mt-4 border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors
+				className={`mt-4 border-2 border-dashed p-8 text-center cursor-pointer transition-colors
                     ${isDragActive ? 'border-primary bg-primary/5' : 'border-gray-300 hover:border-primary'}`}
 			>
 				<input {...getInputProps()} />

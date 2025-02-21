@@ -27,11 +27,10 @@ export const UserMenu = () => {
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
 				<Button
-					variant="ghost"
-					size="icon"
-					className="relative h-8 w-8 rounded-full"
+					variant="outline"
+					className="relative h-10 w-10 rounded-none"
 				>
-					<Avatar className="h-8 w-8">
+					<Avatar className="h-7 w-7 rounded-none">
 						<AvatarImage src={
 							session?.user?.email
 								? `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(session?.user.email)}`

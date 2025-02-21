@@ -3,8 +3,8 @@ import {StatusBar} from "expo-status-bar";
 
 export default function Native() {
   return (
-    <View style={styles.container}>
-      <Text className="text-red-500">Native</Text>
+    <View className="flex-1 bg-neutral-950 items-center justify-center">
+      <Text className="text-red-500 text-2xl">Native</Text>
       <StatusBar style="auto" />
     </View>
   );

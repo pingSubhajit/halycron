@@ -32,9 +32,9 @@ export const Gallery = ({photos, onClick, onDelete, totalPhotos, loaded}: Props)
 			{photos.map((photo, index) => (
 				<div
 					key={photo.id}
-					className="break-inside-avoid transition-transform hover:scale-[1.02] duration-200 group relative"
+					className="break-inside-avoid hover:border-2 hover:border-primary transition duration-200 group relative"
 				>
-					<div className="relative rounded-lg overflow-hidden">
+					<div className="relative overflow-hidden">
 						<Image
 							src={photo.url}
 							alt={photo.originalFilename}
