@@ -12,7 +12,7 @@ const INACTIVITY_TIMEOUT = 5 * 60 * 1000 // 30 minutes in milliseconds
 export const ActivityTracker = () => {
 	const {data: session} = useSession()
 	const {logout} = useLogout()
-	const timeoutRef = useRef<NodeJS.Timeout>()
+	const timeoutRef = useRef<NodeJS.Timeout>(null)
 
 	useEffect(() => {
 		if (!session) return

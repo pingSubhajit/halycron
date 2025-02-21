@@ -4,7 +4,7 @@ import {StatusBar} from "expo-status-bar";
 export default function Native() {
   return (
     <View className="flex-1 bg-neutral-950 items-center justify-center">
-      <Text className="text-red-500 text-2xl">Native</Text>
+      <Text className="text-red-500 text-xl">Native</Text>
       <StatusBar style="auto" />
     </View>
   );
