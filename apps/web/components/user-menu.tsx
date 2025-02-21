@@ -28,15 +28,15 @@ export const UserMenu = () => {
 			<DropdownMenuTrigger asChild>
 				<Button
 					variant="outline"
-					className="relative h-10 w-10 rounded-none"
+					className="h-10 w-10 rounded-none"
 				>
-					<Avatar className="h-7 w-7 rounded-none">
+					<Avatar className="h-10 w-10 rounded-none">
 						<AvatarImage src={
 							session?.user?.email
-								? `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(session?.user.email)}`
+								? `https://api.dicebear.com/7.x/thumbs/svg?seed=${encodeURIComponent(session?.user.email)}`
 								: undefined} alt={session?.user?.name || 'User avatar'}
 						/>
-						<AvatarFallback>
+						<AvatarFallback className="rounded-none">
 							<User className="h-4 w-4" />
 						</AvatarFallback>
 					</Avatar>
