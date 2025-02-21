@@ -7,7 +7,7 @@ import {toast} from 'sonner'
 
 const {useSession} = createAuthClient()
 
-const INACTIVITY_TIMEOUT = 5 * 60 * 1000 // 30 minutes in milliseconds
+const INACTIVITY_TIMEOUT = 5 * 60 * 1000 // 5 minutes in milliseconds
 
 export const ActivityTracker = () => {
 	const {data: session} = useSession()

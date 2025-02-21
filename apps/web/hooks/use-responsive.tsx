@@ -10,21 +10,27 @@ export const breakpoints = {
 
 const useResponsive = () => {
 	const [width, setWidth] = useState(0)
+	const [hasMounted, setHasMounted] = useState(false)
 
 	useEffect(() => {
-		if (typeof window !== 'undefined') {
-			// Initialize on mount
-			setWidth(window.innerWidth)
-
-			const handleResize = () => {
-				setWidth(window.innerWidth)
-			}
-
-			window.addEventListener('resize', handleResize)
-			return () => window.removeEventListener('resize', handleResize)
-		}
+		setHasMounted(true)
 	}, [])
 
+	useEffect(() => {
+		if (!hasMounted) return
+
+		const handleResize = () => {
+			setWidth(window.innerWidth)
+		}
+
+		// Set initial width
+		handleResize()
+
+		window.addEventListener('resize', handleResize)
+		return () => window.removeEventListener('resize', handleResize)
+	}, [hasMounted])
+
+	// Return 0 during SSR, actual width after mounting
 	return width
 }
 
