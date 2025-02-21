@@ -2,8 +2,7 @@ import {SidebarProvider, SidebarTrigger} from '@halycon/ui/components/sidebar'
 import {AppSidebar} from '@/components/app-sidebar'
 import {ReactNode} from 'react'
 import {UserMenu} from '@/components/user-menu'
-import {Button} from '@halycon/ui/components/button'
-import {Upload} from 'lucide-react'
+import {AddNewButton} from '@/app/app/add-new-button'
 
 const DashboardLayout = ({children}: {children: ReactNode}) => {
 	return (
@@ -17,10 +16,7 @@ const DashboardLayout = ({children}: {children: ReactNode}) => {
 					</div>
 
 					<div className="flex items-center gap-2">
-						<Button>
-							<Upload className="size-4" />
-							Add new
-						</Button>
+						<AddNewButton />
 						<UserMenu />
 					</div>
 				</header>

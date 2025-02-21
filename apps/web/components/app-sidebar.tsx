@@ -25,7 +25,7 @@ export const AppSidebar = () => {
 
 	return (
 		<Sidebar>
-			<SidebarContent className="px-6 py-10 bg-dark flex flex-col justify-between">
+			<SidebarContent className="px-6 py-10 flex flex-col justify-between">
 				<div>
 					<Image src={logo} alt="Halycron Logo" className="w-[60%]" />
 

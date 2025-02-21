@@ -61,7 +61,7 @@ export const useUploadPhoto = (
 				// Update state to success
 				setUploadStates(prev => ({
 					...prev,
-					[file.name]: {progress: 100, status: 'success'}
+					[file.name]: {progress: 100, status: 'uploaded'}
 				}))
 
 				// Invalidate all photos query

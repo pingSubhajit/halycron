@@ -12,6 +12,6 @@ export type Photo = {
 
 export interface UploadState {
 	progress: number;
-	status: 'idle' | 'uploading' | 'encrypting' | 'success' | 'error';
+	status: 'idle' | 'uploading' | 'encrypting' | 'uploaded' | 'error';
 	error?: string;
 }

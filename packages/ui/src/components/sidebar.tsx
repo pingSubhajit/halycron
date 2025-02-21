@@ -247,7 +247,7 @@ const Sidebar = React.forwardRef<
 				>
 					<div
 						data-sidebar="sidebar"
-						className="flex h-full w-full flex-col bg-sidebar group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:border-sidebar-border group-data-[variant=floating]:shadow"
+						className="flex h-full w-full flex-col bg-background group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:border-sidebar-border group-data-[variant=floating]:shadow"
 					>
 						{children}
 					</div>
@@ -506,7 +506,7 @@ const SidebarMenuItem = React.forwardRef<
 		data-sidebar="menu-item"
 		className={cn('group/menu-item relative group ' +
 			'after:content-[""] after:absolute after:inset-0 after:bg-gradient-to-br after:from-cyan-500/35 after:to-cyan-800/35 after:pointer-events-none after:shadow-xl after:shadow-primary/25 ' +
-			'after:scale-x-[112%] after:rounded-full after:border after:border-primary ' +
+			'after:scale-x-[112%] after:border after:border-primary ' +
 			'after:opacity-0 hover:after:opacity-30 after:transition ' +
 			'[&>*]:relative [&>*]:z-10 after:z-0',
 		className)}
