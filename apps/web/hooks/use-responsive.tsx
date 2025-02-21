@@ -12,15 +12,17 @@ const useResponsive = () => {
 	const [width, setWidth] = useState(0)
 
 	useEffect(() => {
-		// Initialize on mount
-		setWidth(window.innerWidth)
-
-		const handleResize = () => {
+		if (typeof window !== 'undefined') {
+			// Initialize on mount
 			setWidth(window.innerWidth)
-		}
 
-		window.addEventListener('resize', handleResize)
-		return () => window.removeEventListener('resize', handleResize)
+			const handleResize = () => {
+				setWidth(window.innerWidth)
+			}
+
+			window.addEventListener('resize', handleResize)
+			return () => window.removeEventListener('resize', handleResize)
+		}
 	}, [])
 
 	return width
