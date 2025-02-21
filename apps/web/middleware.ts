@@ -1,7 +1,7 @@
 import {betterFetch} from '@better-fetch/fetch'
 import type {auth} from '@/lib/auth/config'
 import {NextRequest, NextResponse} from 'next/server'
-import {rateLimit, RATE_LIMIT_CONFIGS, getRateLimitHeaders} from '@/lib/rate-limit'
+import {getRateLimitHeaders, RATE_LIMIT_CONFIGS, rateLimit} from '@/lib/rate-limit'
 
 type Session = typeof auth.$Infer.Session
 
@@ -24,8 +24,8 @@ export const middleware = async (request: NextRequest) => {
 			status: 429,
 			headers: {
 				...getRateLimitHeaders(rateLimitResult),
-				'Retry-After': Math.ceil((rateLimitResult.reset - Date.now()) / 1000).toString(),
-			},
+				'Retry-After': Math.ceil((rateLimitResult.reset - Date.now()) / 1000).toString()
+			}
 		})
 	}
 
@@ -39,7 +39,7 @@ export const middleware = async (request: NextRequest) => {
 	}
 
 	// Continue with existing session checks for protected routes
-	if (path.startsWith('/app/')) {
+	if (path.startsWith('/app')) {
 		const {data: session} = await betterFetch<Session>('/api/auth/get-session', {
 			baseURL: request.nextUrl.origin,
 			headers: {
