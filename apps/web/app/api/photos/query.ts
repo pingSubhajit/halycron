@@ -9,7 +9,7 @@ export const useAllPhotos = (
 	setTotal?: (total: number) => void,
 	setPhotos?: (value: SetStateAction<Photo[]>) => void,
 	setLoaded?: (loaded: number) => void,
-	setDimensions?: (value: SetStateAction<{width: number, height: number}[]>) => void,
+	setDimensions?: (value: SetStateAction<{width: number, height: number, id: string}[]>) => void,
 	options?: QueryOptions<Photo[], Error>
 ) => {
 	return useQuery({
@@ -22,7 +22,11 @@ export const useAllPhotos = (
 			setTotal?.(response.length)
 
 			const photos = []
-			setDimensions?.(response.map(photo => ({width: photo.imageWidth || 800, height: photo.imageHeight || 600})))
+			setDimensions?.(response.map(photo => ({
+				width: photo.imageWidth || 800,
+				height: photo.imageHeight || 600,
+				id: photo.id
+			})))
 
 			for (let i = 0; i < response.length; i++) {
 				const photo = response[i]!

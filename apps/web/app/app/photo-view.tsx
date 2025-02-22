@@ -10,47 +10,15 @@ import dynamic from 'next/dynamic'
 
 const Gallery = dynamic(() => import('@/components/gallery').then(mod => mod.Gallery), {ssr: false})
 
-export const fetchPhotos = async () => {
-	const response = await fetch('/api/photos')
-	if (!response.ok) {
-		throw new Error('Failed to fetch photos')
-	}
-	return await response.json()
-}
-
 export const PhotoView = () => {
 	const [loaded, setLoaded] = useState(0)
 	const [photos, setPhotos] = useState<Photo[]>([])
-	const [dimensions, setDimensions] = useState<{width: number, height: number}[]>([])
+	const [dimensions, setDimensions] = useState<{width: number, height: number, id: string}[]>([])
 	const [totalPhotos, setTotalPhotos] = useState(0)
 	const [isOpen, setIsOpen] = useState(false)
 	const [currentIndex, setCurrentIndex] = useState(0)
 
 	useAllPhotos(setTotalPhotos, setPhotos, setLoaded, setDimensions)
-
-	/*
-	 * useEffect(() => {
-	 * 	const fetch = async () => {
-	 * 		const response = await fetchPhotos()
-	 * 		setTotalPhotos(response.length)
-	 *
-	 * 		for (let i = 0; i < response.length; i++) {
-	 * 			const photo = response[i]
-	 * 			photo.url = await downloadAndDecryptFile(photo.url, photo.encryptedKey, photo.keyIv, photo.mimeType)
-	 * 			setPhotos((prev) => {
-	 * 				// Check if photo with this ID already exists
-	 * 				if (prev.some(p => p.id === photo.id)) {
-	 * 					return prev
-	 * 				}
-	 * 				return [...prev, photo]
-	 * 			})
-	 * 			setLoaded(i + 1)
-	 * 		}
-	 * 	}
-	 *
-	 * 	fetch()
-	 * }, [])
-	 */
 
 	const onDelete = async (photo: Photo) => {
 		try {
