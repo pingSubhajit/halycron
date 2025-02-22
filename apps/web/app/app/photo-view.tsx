@@ -1,11 +1,11 @@
 'use client'
 
-import {useState} from 'react'
+import {useEffect, useState} from 'react'
 import {Lightbox} from '@halycon/ui/components/lightbox'
 import {toast} from 'sonner'
 import {Photo} from '@/app/api/photos/types'
 import {useAllPhotos} from '@/app/api/photos/query'
-import {deletePhoto} from '@/app/api/photos/utils'
+import {useDeletePhoto} from '@/app/api/photos/mutation'
 import dynamic from 'next/dynamic'
 
 const Gallery = dynamic(() => import('@/components/gallery').then(mod => mod.Gallery), {ssr: false})
@@ -18,17 +18,25 @@ export const PhotoView = () => {
 	const [isOpen, setIsOpen] = useState(false)
 	const [currentIndex, setCurrentIndex] = useState(0)
 
-	useAllPhotos(setTotalPhotos, setPhotos, setLoaded, setDimensions)
+	const {data: optimisticPhotos} = useAllPhotos(setTotalPhotos, setPhotos, setLoaded, setDimensions)
 
-	const onDelete = async (photo: Photo) => {
-		try {
-			await deletePhoto(photo.id)
-			setPhotos((prev) => prev.filter(p => p.id !== photo.id))
-			setTotalPhotos((prev) => prev - 1)
+	useEffect(() => {
+		if (optimisticPhotos) {
+			setPhotos(optimisticPhotos)
+		}
+	}, [optimisticPhotos])
+
+	const {mutate: deletePhoto} = useDeletePhoto({
+		onSuccess: () => {
 			toast.success('Photo deleted successfully')
-		} catch (error) {
+		},
+		onError: (error) => {
 			toast.error(error instanceof Error ? error.message : 'Failed to delete photo')
 		}
+	})
+
+	const onDelete = (photo: Photo) => {
+		deletePhoto(photo.id)
 	}
 
 	return (

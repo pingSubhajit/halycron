@@ -9,7 +9,7 @@ import usePrevious from '@/hooks/use-previous'
 type Props = {
 	photos: Photo[]
 	onClick: (photo: Photo, index: number) => void
-	onDelete?: (photo: Photo) => Promise<void>
+	onDelete?: (photo: Photo) => void | Promise<void>
 	totalPhotos: number
 	loaded: number
 	dimensions: {width: number, height: number, id: string}[]

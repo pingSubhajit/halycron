@@ -140,20 +140,3 @@ export const savePhotoToDB = async (
 		imageHeight
 	}) as Photo
 }
-
-export const deletePhoto = async (photoId: string) => {
-	const response = await fetch('/api/photos', {
-		method: 'DELETE',
-		headers: {
-			'Content-Type': 'application/json'
-		},
-		body: JSON.stringify({photoId})
-	})
-
-	if (!response.ok) {
-		throw new Error('Failed to delete photo')
-	}
-
-	return response.json()
-}
-
