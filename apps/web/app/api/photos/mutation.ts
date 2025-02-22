@@ -1,4 +1,4 @@
-import {MutationOptions, useMutation, useQueryClient} from '@tanstack/react-query'
+import {MutationOptions, useMutation} from '@tanstack/react-query'
 import {SetStateAction} from 'react'
 import {Photo, UploadState} from '@/app/api/photos/types'
 import {
@@ -9,14 +9,11 @@ import {
 	savePhotoToDB,
 	uploadEncryptedPhoto
 } from '@/app/api/photos/utils'
-import {photoQueryKeys} from '@/app/api/photos/keys'
 
 export const useUploadPhoto = (
 	setUploadStates: (value: SetStateAction<Record<string, UploadState>>) => void,
 	options?: MutationOptions<Photo, Error, File>
 ) => {
-	const queryClient = useQueryClient()
-
 	return useMutation({
 		mutationFn: async (file: File) => {
 			try {
@@ -63,9 +60,6 @@ export const useUploadPhoto = (
 					...prev,
 					[file.name]: {progress: 100, status: 'uploaded'}
 				}))
-
-				// Invalidate all photos query
-				queryClient.invalidateQueries({queryKey: photoQueryKeys.allPhotos()})
 
 				return response
 			} catch (error) {

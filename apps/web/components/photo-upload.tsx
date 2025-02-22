@@ -5,12 +5,24 @@ import {cn} from '@halycon/ui/lib/utils'
 import {UploadState} from '@/app/api/photos/types'
 import {useUploadPhoto} from '@/app/api/photos/mutation'
 import {TextShimmer} from '@halycon/ui/components/text-shimmer'
+import {useQueryClient} from '@tanstack/react-query'
+import {photoQueryKeys} from '@/app/api/photos/keys'
 
 export const PhotoUpload = () => {
 	const [uploadStates, setUploadStates] = useState<Record<string, UploadState>>({})
 	const {mutate: uploadFile} = useUploadPhoto(setUploadStates)
 	const uploadQueue = useRef<File[]>([])
 	const processingFiles = useRef<Set<string>>(new Set())
+	const queryClient = useQueryClient()
+	const hasSuccessfulUploads = useRef(false)
+
+	const checkAndInvalidateQueries = useCallback(() => {
+		// Only invalidate if there are no more processing files and we had at least one successful upload
+		if (processingFiles.current.size === 0 && hasSuccessfulUploads.current) {
+			queryClient.invalidateQueries({queryKey: photoQueryKeys.allPhotos()})
+			hasSuccessfulUploads.current = false // Reset for next batch
+		}
+	}, [queryClient])
 
 	const processQueue = useCallback(() => {
 		const availableSlots = 10 - processingFiles.current.size
@@ -34,14 +46,21 @@ export const PhotoUpload = () => {
 			([_, state]) => state.status === 'uploaded' || state.status === 'error'
 		)
 
-		completedFiles.forEach(([fileName]) => {
-			processingFiles.current.delete(fileName)
-		})
+		if (completedFiles.length > 0) {
+			completedFiles.forEach(([fileName, state]) => {
+				processingFiles.current.delete(fileName)
+				if (state.status === 'uploaded') {
+					hasSuccessfulUploads.current = true
+				}
+			})
+
+			checkAndInvalidateQueries()
+		}
 
 		if (uploadQueue.current.length > 0) {
 			processQueue()
 		}
-	}, [uploadStates, processQueue])
+	}, [uploadStates, processQueue, checkAndInvalidateQueries])
 
 	const onDrop = useCallback((acceptedFiles: File[]) => {
 		uploadQueue.current.push(...acceptedFiles)

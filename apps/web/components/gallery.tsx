@@ -34,7 +34,7 @@ export const Gallery = ({photos, onClick, onDelete, totalPhotos, loaded, dimensi
 			return removesCount.current
 		}
 
-		if (totalPhotos > prevItemsCount) {
+		if (totalPhotos >= prevItemsCount) {
 			removesCount.current = 0
 			return removesCount.current
 		}
