@@ -17,7 +17,7 @@ export const PhotoUpload = () => {
 	const hasSuccessfulUploads = useRef(false)
 
 	const checkAndInvalidateQueries = useCallback(() => {
-		// Only invalidate if there are no more processing files and we had at least one successful upload
+		// Only invalidate if there are no more processing files, and we had at least one successful upload
 		if (processingFiles.current.size === 0 && hasSuccessfulUploads.current) {
 			queryClient.invalidateQueries({queryKey: photoQueryKeys.allPhotos()})
 			hasSuccessfulUploads.current = false // Reset for next batch

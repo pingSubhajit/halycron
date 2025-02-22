@@ -26,20 +26,24 @@ export const Gallery = ({photos, onClick, onDelete, totalPhotos, loaded, dimensi
 
 	const prevItemsCount = usePrevious(totalPhotos)
 	const removesCount = useRef(0)
+	const addsCount = useRef(0)
 
 	const gridKeyPostfix = useMemo(() => {
-		if (!totalPhotos || !prevItemsCount) return removesCount.current
+		if (!totalPhotos || !prevItemsCount) return `${removesCount.current}-${addsCount.current}`
+		
 		if (totalPhotos < prevItemsCount) {
 			removesCount.current += 1
-			return removesCount.current
+			addsCount.current = 0
+			return `${removesCount.current}-${addsCount.current}`
 		}
 
-		if (totalPhotos >= prevItemsCount) {
+		if (totalPhotos > prevItemsCount) {
+			addsCount.current += 1
 			removesCount.current = 0
-			return removesCount.current
+			return `${removesCount.current}-${addsCount.current}`
 		}
 
-		return removesCount.current
+		return `${removesCount.current}-${addsCount.current}`
 	}, [totalPhotos, prevItemsCount])
 
 	return (
