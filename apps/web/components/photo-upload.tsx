@@ -1,4 +1,4 @@
-import {useCallback, useState} from 'react'
+import {useCallback, useEffect, useRef, useState} from 'react'
 import {Upload} from 'lucide-react'
 import {useDropzone} from 'react-dropzone'
 import {cn} from '@halycon/ui/lib/utils'
@@ -9,16 +9,44 @@ import {TextShimmer} from '@halycon/ui/components/text-shimmer'
 export const PhotoUpload = () => {
 	const [uploadStates, setUploadStates] = useState<Record<string, UploadState>>({})
 	const {mutate: uploadFile} = useUploadPhoto(setUploadStates)
+	const uploadQueue = useRef<File[]>([])
+	const processingFiles = useRef<Set<string>>(new Set())
 
-	const onDrop = useCallback((acceptedFiles: File[]) => {
-		acceptedFiles.forEach(file => {
+	const processQueue = useCallback(() => {
+		const availableSlots = 10 - processingFiles.current.size
+		if (availableSlots <= 0 || uploadQueue.current.length === 0) return
+
+		const filesToProcess = uploadQueue.current.slice(0, availableSlots)
+		uploadQueue.current = uploadQueue.current.slice(availableSlots)
+
+		filesToProcess.forEach(file => {
+			processingFiles.current.add(file.name)
+			uploadFile(file)
 			setUploadStates(prev => ({
 				...prev,
 				[file.name]: {progress: 0, status: 'idle'}
 			}))
-			uploadFile(file)
 		})
-	}, [])
+	}, [uploadFile])
+
+	useEffect(() => {
+		const completedFiles = Object.entries(uploadStates).filter(
+			([_, state]) => state.status === 'uploaded' || state.status === 'error'
+		)
+
+		completedFiles.forEach(([fileName]) => {
+			processingFiles.current.delete(fileName)
+		})
+
+		if (uploadQueue.current.length > 0) {
+			processQueue()
+		}
+	}, [uploadStates, processQueue])
+
+	const onDrop = useCallback((acceptedFiles: File[]) => {
+		uploadQueue.current.push(...acceptedFiles)
+		processQueue()
+	}, [processQueue])
 
 	const {getRootProps, getInputProps, isDragActive} = useDropzone({
 		onDrop,
