@@ -24,15 +24,6 @@ const ImageSkeleton = (props: HTMLProps<HTMLDivElement>) => (
 export const Gallery = ({photos, onClick, onDelete, totalPhotos, loaded, dimensions}: Props) => {
 	const breakpoint = useResponsive()
 
-	/*
-	 * const itemCounter = useRef<number>(props.items.length);
-	 * let shrunk = false;
-	 * if (props.items.length !== itemCounter.current) {
-	 * 	if (props.items.length < itemCounter.current) shrunk = true;
-	 * 	itemCounter.current = props.items.length;
-	 * }
-	 */
-
 	const prevItemsCount = usePrevious(totalPhotos)
 	const removesCount = useRef(0)
 
@@ -66,7 +57,13 @@ export const Gallery = ({photos, onClick, onDelete, totalPhotos, loaded, dimensi
 						}} />
 					}
 
-					const photo = photos[index]!
+					const photo = photos[index]
+
+					if (!photo) {
+						return <ImageSkeleton key={index} style={{
+							aspectRatio: `${dimensions[index]?.width || 800}/${dimensions[index]?.height || 600}`
+						}} />
+					}
 
 					return (
 						<div
