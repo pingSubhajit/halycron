@@ -1,7 +1,6 @@
 import bg from '@halycon/ui/media/bg.png'
 import Image from 'next/image'
-import {GetStartedButton} from '@/app/get-started-button'
-import logo from '@halycon/ui/media/logo.svg'
+import {GetStartedButton} from '@/app/(site)/get-started-button'
 
 const Page = () => (
 	<div className="flex items-end pb-28 justify-center h-svh relative overflow-y-hidden px-4">
@@ -12,10 +11,6 @@ const Page = () => (
 			fill={true}
 			priority={true}
 		/>
-
-		<div className="absolute w-screen px-20 py-6 top-0 inset-x-0 flex justify-between items-center">
-			<Image src={logo} alt="Halycron Logo" className="w-32" />
-		</div>
 
 		<div className="flex flex-col items-center justify-center gap-4 max-w-[1300px]">
 			<h1 className="text-3xl md:text-4xl lg:text-5xl xl:text-6xl 2xl:text-[64px] font-bold font-grotesque text-center">Private photo storage for your peace of mind</h1>

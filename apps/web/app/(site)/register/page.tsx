@@ -1,4 +1,4 @@
-import RegisterForm from '@/app/(auth)/register/register-form'
+import RegisterForm from '@/app/(site)/register/register-form'
 import banner from '@/public/banner_square.png'
 import Image from 'next/image'
 import Link from 'next/link'

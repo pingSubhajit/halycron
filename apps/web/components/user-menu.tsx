@@ -1,6 +1,6 @@
 'use client'
 
-import {LogOut, Mail, Settings, Shield, User, UserCircle} from 'lucide-react'
+import {LogOut, User} from 'lucide-react'
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -13,6 +13,7 @@ import {Button} from '@halycon/ui/components/button'
 import {useLogout} from '@/lib/auth/use-logout'
 import {Avatar, AvatarFallback, AvatarImage} from '@halycon/ui/components/avatar'
 import {createAuthClient} from 'better-auth/react'
+import Link from 'next/link'
 
 const {useSession} = createAuthClient()
 
@@ -42,38 +43,58 @@ export const UserMenu = () => {
 					</Avatar>
 				</Button>
 			</DropdownMenuTrigger>
-			<DropdownMenuContent align="end" className="w-56">
-				<DropdownMenuLabel className="font-normal">
+			<DropdownMenuContent align="end" className="min-w-64">
+				<DropdownMenuLabel className="flex items-center gap-2">
+					<Avatar className="h-10 w-10 rounded-none">
+						<AvatarImage src={
+							session?.user?.email
+								? `https://api.dicebear.com/7.x/thumbs/svg?seed=${encodeURIComponent(session?.user.email)}`
+								: undefined} alt={session?.user?.name || 'User avatar'}
+						/>
+						<AvatarFallback className="rounded-none">
+							<User className="h-4 w-4" />
+						</AvatarFallback>
+					</Avatar>
+
 					<div className="flex flex-col space-y-1">
-						<p className="text-sm font-medium leading-none">{session?.user.name || 'Loading...'}</p>
-						<p className="text-xs leading-none text-muted-foreground">{session?.user.email || 'Loading...'}</p>
+						<p className="text-sm font-medium leading-none truncate">{session?.user.name || 'Loading...'}</p>
+						<p className="text-sm leading-none text-muted-foreground truncate">{session?.user.email || 'Loading...'}</p>
 					</div>
 				</DropdownMenuLabel>
+
 				<DropdownMenuSeparator />
-				<DropdownMenuItem className="cursor-pointer">
-					<UserCircle className="mr-2 h-4 w-4" />
+				<DropdownMenuItem className="cursor-pointer text-muted-foreground">
 					<span>Profile</span>
 				</DropdownMenuItem>
-				<DropdownMenuItem className="cursor-pointer">
-					<Settings className="mr-2 h-4 w-4" />
+				<DropdownMenuItem className="cursor-pointer text-muted-foreground">
 					<span>Settings</span>
 				</DropdownMenuItem>
-				<DropdownMenuItem className="cursor-pointer">
-					<Mail className="mr-2 h-4 w-4" />
+				<DropdownMenuItem className="cursor-pointer text-muted-foreground">
 					<span>Email preferences</span>
 				</DropdownMenuItem>
-				<DropdownMenuItem className="cursor-pointer">
-					<Shield className="mr-2 h-4 w-4" />
+				<DropdownMenuItem className="cursor-pointer text-muted-foreground">
 					<span>Security</span>
 				</DropdownMenuItem>
+
 				<DropdownMenuSeparator />
+				<DropdownMenuItem className="cursor-pointer text-muted-foreground">
+					<span>Account settings</span>
+				</DropdownMenuItem>
+				<DropdownMenuItem className="cursor-pointer text-muted-foreground">
+					<span>Shield</span>
+				</DropdownMenuItem>
+
+				<DropdownMenuSeparator />
+				<Link href="/"><DropdownMenuItem className="cursor-pointer text-muted-foreground">
+					<span>Home page</span>
+				</DropdownMenuItem></Link>
 				<DropdownMenuItem
 					disabled={isLoading}
 					onClick={() => logout()}
-					className="text-destructive focus:text-destructive cursor-pointer"
+					className="cursor-pointer flex items-center justify-between text-muted-foreground"
 				>
+					<span>{isLoading ? 'Logging out...' : 'Log out'}</span>
 					<LogOut className="mr-2 h-4 w-4" />
-					<span>{isLoading ? 'Signing out...' : 'Sign out'}</span>
 				</DropdownMenuItem>
 			</DropdownMenuContent>
 		</DropdownMenu>

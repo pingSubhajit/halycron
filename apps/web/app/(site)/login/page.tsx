@@ -1,4 +1,4 @@
-import LoginForm from '@/app/(auth)/login/login-form'
+import LoginForm from '@/app/(site)/login/login-form'
 import banner from '@/public/banner_square.png'
 import Image from 'next/image'
 import Link from 'next/link'
