@@ -26,7 +26,7 @@ export const Gallery = ({photos, onClick, onDelete, totalPhotos, loaded, dimensi
 	return (
 		<Masonry items={Array.from(Array(totalPhotos), () => ({id: 1}))} columnCount={
 			breakpoint >= breakpoints.xl ? 4 : breakpoint >= breakpoints.lg ? 3 : 2
-		} columnGutter={16} render={
+		} columnGutter={breakpoint >= breakpoints.xl ? 16 : breakpoint >= breakpoints.lg ? 10 : 8} render={
 			({index}) => {
 				if (index >= loaded) {
 					return <ImageSkeleton style={{

@@ -3,6 +3,7 @@ import localFont from 'next/font/local'
 
 import '@halycon/ui/globals.css'
 import {Providers} from '@/components/providers'
+import {Metadata} from 'next'
 
 const fontGrotesque = localFont({
 	src: '../../../packages/ui/src/fonts/medium.otf',
@@ -19,6 +20,11 @@ const fontMono = Geist_Mono({
 	subsets: ['latin'],
 	variable: '--font-mono'
 })
+
+export const metadata: Metadata = {
+	metadataBase: new URL(process.env.BETTER_AUTH_URL),
+	authors: [{name: 'Subhajit Kundu', url: 'https://subhajit.lol'}]
+}
 
 const RootLayout = ({
 	children

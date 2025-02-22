@@ -2,6 +2,19 @@ import LoginForm from '@/app/(site)/login/login-form'
 import banner from '@/public/banner_square.png'
 import Image from 'next/image'
 import Link from 'next/link'
+import {Metadata} from 'next'
+
+export const metadata: Metadata = {
+	title: 'Halycron Login – Securely Access Your Private Photo Vault',
+	description: 'Log in to Halycron and access your private, encrypted photo vault. Your photos are stored securely with end-to-end encryption—only you can access them.',
+	keywords: [
+		'Halycron login',
+		'secure photo vault login',
+		'encrypted gallery access',
+		'private photo storage login',
+		'end-to-end encrypted photo storage'
+	]
+}
 
 const LoginPage = () => {
 	return (

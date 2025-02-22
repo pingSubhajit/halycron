@@ -3,6 +3,19 @@ import banner from '@/public/banner_square.png'
 import Image from 'next/image'
 import Link from 'next/link'
 import {Suspense} from 'react'
+import {Metadata} from 'next'
+
+export const metadata: Metadata = {
+	title: 'Halycron Sign Up – Create Your Secure Photo Vault Account',
+	description: 'Join Halycron and secure your photos with end-to-end encryption. Sign up now to store, manage, and access your private images safely in your personal or private S3 bucket.',
+	keywords: [
+		'Halycron sign up',
+		'secure photo vault registration',
+		'encrypted photo storage account',
+		'private photo storage signup',
+		'secure cloud photo backup'
+	]
+}
 
 const RegisterPage = () => {
 	return (
