@@ -70,8 +70,7 @@ const LoginForm = () => {
 		}
 
 		toast.success('Signed in successfully!')
-		router.refresh()
-		router.replace('/app')
+		window.location.href = '/app'
 	}
 
 	if (showTwoFactorVerify) {
