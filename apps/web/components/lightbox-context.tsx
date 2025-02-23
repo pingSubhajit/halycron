@@ -47,6 +47,9 @@ const Lightbox = ({
 	const [loading, setLoading] = useState(false)
 	const [scale, setScale] = useState(1)
 	const [position, setPosition] = useState({x: 0, y: 0})
+	const [isDragging, setIsDragging] = useState(false)
+	const [dragStart, setDragStart] = useState({x: 0, y: 0})
+	const [pinchStart, setPinchStart] = useState<{ distance: number, scale: number } | null>(null)
 	const imageRef = useRef<HTMLDivElement>(null)
 	const containerRef = useRef<HTMLDivElement>(null)
 
@@ -88,6 +91,136 @@ const Lightbox = ({
 		}
 
 		setScale(newScale)
+	}
+
+	const calculateTouchDistance = (touch1: React.Touch, touch2: React.Touch) => {
+		const dx = touch1.clientX - touch2.clientX
+		const dy = touch1.clientY - touch2.clientY
+		return Math.sqrt(dx * dx + dy * dy)
+	}
+
+	const handleMouseDown = (e: React.MouseEvent) => {
+		if (scale === 1) return // Only allow dragging when zoomed in
+		setIsDragging(true)
+		setDragStart({x: e.clientX - position.x, y: e.clientY - position.y})
+	}
+
+	const handleMouseMove = (e: React.MouseEvent) => {
+		if (!isDragging || !imageRef.current || !containerRef.current) return
+
+		const imageRect = imageRef.current.getBoundingClientRect()
+		const containerRect = containerRef.current.getBoundingClientRect()
+
+		const newX = e.clientX - dragStart.x
+		const newY = e.clientY - dragStart.y
+
+		updatePosition(newX, newY, imageRect, containerRect)
+	}
+
+	const handleMouseUp = () => {
+		setIsDragging(false)
+	}
+
+	const updatePosition = (newX: number, newY: number, imageRect: DOMRect, containerRect: DOMRect) => {
+		// Calculate bounds
+		const scaledWidth = imageRect.width * scale
+		const scaledHeight = imageRect.height * scale
+		const minX = Math.min(0, -(scaledWidth - containerRect.width) / 2)
+		const maxX = Math.max(0, (scaledWidth - containerRect.width) / 2)
+		const minY = Math.min(0, -(scaledHeight - containerRect.height) / 2)
+		const maxY = Math.max(0, (scaledHeight - containerRect.height) / 2)
+
+		// Clamp position within bounds
+		const clampedPosition = {
+			x: Math.min(maxX, Math.max(minX, newX)),
+			y: Math.min(maxY, Math.max(minY, newY))
+		}
+
+		setPosition(clampedPosition)
+	}
+
+	const handleTouchStart = (e: React.TouchEvent) => {
+		if (e.touches.length === 2) {
+			// Pinch gesture starting
+			if (!e.touches[0] || !e.touches[1]) return
+			const distance = calculateTouchDistance(e.touches[0], e.touches[1])
+			setPinchStart({distance, scale})
+			setIsDragging(false)
+		} else if (e.touches.length === 1) {
+			// Single touch for panning
+			if (scale === 1 || !e.touches[0]) return
+			setIsDragging(true)
+			setDragStart({
+				x: e.touches[0].clientX - position.x,
+				y: e.touches[0].clientY - position.y
+			})
+		}
+	}
+
+	const handleTouchMove = (e: React.TouchEvent) => {
+		e.preventDefault() // Prevent scrolling while interacting
+
+		if (!imageRef.current || !containerRef.current) return
+
+		if (e.touches.length === 2 && pinchStart && e.touches[0] && e.touches[1]) {
+			// Handle pinch gesture
+			const distance = calculateTouchDistance(e.touches[0], e.touches[1])
+			const pinchScale = distance / pinchStart.distance
+			const newScale = Math.max(1, Math.min(5, pinchStart.scale * pinchScale))
+
+			if (newScale === scale) return
+
+			// Calculate the center point of the pinch
+			const centerX = (e.touches[0].clientX + e.touches[1].clientX) / 2
+			const centerY = (e.touches[0].clientY + e.touches[1].clientY) / 2
+
+			const imageRect = imageRef.current.getBoundingClientRect()
+			const containerRect = containerRef.current.getBoundingClientRect()
+
+			// Calculate position relative to image center
+			const mouseX = centerX - (imageRect.left + imageRect.width / 2)
+			const mouseY = centerY - (imageRect.top + imageRect.height / 2)
+
+			// Calculate new position to zoom towards pinch center
+			const scaleChange = newScale - scale
+			const newPosition = {
+				x: position.x - (mouseX * scaleChange),
+				y: position.y - (mouseY * scaleChange)
+			}
+
+			// Keep image within container bounds
+			const scaledWidth = imageRect.width * newScale
+			const scaledHeight = imageRect.height * newScale
+
+			// Calculate bounds
+			const minX = Math.min(0, -(scaledWidth - containerRect.width) / 2)
+			const maxX = Math.max(0, (scaledWidth - containerRect.width) / 2)
+			const minY = Math.min(0, -(scaledHeight - containerRect.height) / 2)
+			const maxY = Math.max(0, (scaledHeight - containerRect.height) / 2)
+
+			// Clamp position within bounds
+			const clampedPosition = {
+				x: Math.min(maxX, Math.max(minX, newPosition.x)),
+				y: Math.min(maxY, Math.max(minY, newPosition.y))
+			}
+
+			setScale(newScale)
+			setPosition(clampedPosition)
+		} else if (e.touches.length === 1 && isDragging && e.touches[0]) {
+			// Handle panning
+			const imageRect = imageRef.current.getBoundingClientRect()
+			const containerRect = containerRef.current.getBoundingClientRect()
+
+			const newX = e.touches[0].clientX - dragStart.x
+			const newY = e.touches[0].clientY - dragStart.y
+
+			updatePosition(newX, newY, imageRect, containerRect)
+		}
+	}
+
+	const handleTouchEnd = () => {
+		setIsDragging(false)
+		setPinchStart(null)
 	}
 
 	// Handle keyboard navigation and zoom
@@ -186,12 +319,19 @@ const Lightbox = ({
 			setPosition(clampedPosition)
 		}
 
+		// Add global mouse up handler to stop dragging even if released outside the image
+		const handleGlobalMouseUp = () => {
+			setIsDragging(false)
+		}
+
 		window.addEventListener('keydown', handleKeyDown)
 		window.addEventListener('wheel', handleWheel, {passive: false})
+		window.addEventListener('mouseup', handleGlobalMouseUp)
 
 		return () => {
 			window.removeEventListener('keydown', handleKeyDown)
 			window.removeEventListener('wheel', handleWheel)
+			window.removeEventListener('mouseup', handleGlobalMouseUp)
 		}
 	}, [hasNext, hasPrev, loading, onClose, scale, position])
 
@@ -240,15 +380,26 @@ const Lightbox = ({
 									transform: `scale(${scale})`,
 									transformOrigin: '50% 50%',
 									translate: `${position.x}px ${position.y}px`,
-									transition: 'transform 0.1s ease-out, translate 0.1s ease-out'
+									transition: isDragging ? 'none' : 'transform 0.1s ease-out, translate 0.1s ease-out',
+									cursor: scale > 1 ? 'grab' : 'default',
+									...(isDragging && {cursor: 'grabbing'}),
+									touchAction: 'none' // Prevent browser handling of touch events
 								}}
+								onMouseDown={handleMouseDown}
+								onMouseMove={handleMouseMove}
+								onMouseUp={handleMouseUp}
+								onMouseLeave={handleMouseUp}
+								onTouchStart={handleTouchStart}
+								onTouchMove={handleTouchMove}
+								onTouchEnd={handleTouchEnd}
+								onTouchCancel={handleTouchEnd}
 							>
 								<Image
 									src={decryptedUrl}
 									alt={photo.originalFilename}
 									width={photo.imageWidth || 1920}
 									height={photo.imageHeight || 1080}
-									className="max-h-[90vh] w-auto object-contain"
+									className="max-h-[90vh] w-auto object-contain select-none"
 									priority
 									draggable={false}
 								/>
