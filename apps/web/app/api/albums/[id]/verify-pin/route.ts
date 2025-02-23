@@ -5,9 +5,9 @@ import {checkAlbumAccess, verifyAlbumPin} from '../../utils'
 import {headers} from 'next/headers'
 
 interface Props {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
 export const POST = async (request: NextRequest, {params}: Props) => {
@@ -19,7 +19,8 @@ export const POST = async (request: NextRequest, {params}: Props) => {
 		return new NextResponse('Unauthorized', {status: 401})
 	}
 
-	const hasAccess = await checkAlbumAccess(params.id, session.user.id)
+	const {id} = await params
+	const hasAccess = await checkAlbumAccess(id, session.user.id)
 	if (!hasAccess) {
 		return new NextResponse('Not Found', {status: 404})
 	}
@@ -32,7 +33,7 @@ export const POST = async (request: NextRequest, {params}: Props) => {
 	}
 
 	const {pin} = result.data
-	const isValid = await verifyAlbumPin(params.id, pin)
+	const isValid = await verifyAlbumPin(id, pin)
 
 	if (!isValid) {
 		return NextResponse.json({

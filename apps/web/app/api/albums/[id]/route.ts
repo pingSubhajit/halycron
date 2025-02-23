@@ -8,9 +8,9 @@ import {checkAlbumAccess, getAlbumWithPhotoCount, hashPin} from '../utils'
 import {headers} from 'next/headers'
 
 interface Props {
-  params: {
-    id: string
-  }
+  params: Promise<{
+	  id: string
+  }>
 }
 
 export const GET = async (request: NextRequest, {params}: Props) => {
@@ -21,12 +21,13 @@ export const GET = async (request: NextRequest, {params}: Props) => {
 		return new NextResponse('Unauthorized', {status: 401})
 	}
 
-	const hasAccess = await checkAlbumAccess(params.id, session.user.id)
+	const {id} = await params
+	const hasAccess = await checkAlbumAccess(id, session.user.id)
 	if (!hasAccess) {
 		return new NextResponse('Not Found', {status: 404})
 	}
 
-	const result = await getAlbumWithPhotoCount(params.id)
+	const result = await getAlbumWithPhotoCount(id)
 	if (!result) {
 		return new NextResponse('Not Found', {status: 404})
 	}
@@ -42,7 +43,8 @@ export const PATCH = async (request: NextRequest, {params}: Props) => {
 		return new NextResponse('Unauthorized', {status: 401})
 	}
 
-	const hasAccess = await checkAlbumAccess(params.id, session.user.id)
+	const {id} = await params
+	const hasAccess = await checkAlbumAccess(id, session.user.id)
 	if (!hasAccess) {
 		return new NextResponse('Not Found', {status: 404})
 	}
@@ -64,7 +66,7 @@ export const PATCH = async (request: NextRequest, {params}: Props) => {
 
 	const updatedAlbum = await db.update(album)
 		.set(updateData)
-		.where(eq(album.id, params.id))
+		.where(eq(album.id, id))
 		.returning()
 
 	return NextResponse.json(updatedAlbum[0])
@@ -78,11 +80,12 @@ export const DELETE = async (request: NextRequest, {params}: Props) => {
 		return new NextResponse('Unauthorized', {status: 401})
 	}
 
-	const hasAccess = await checkAlbumAccess(params.id, session.user.id)
+	const {id} = await params
+	const hasAccess = await checkAlbumAccess(id, session.user.id)
 	if (!hasAccess) {
 		return new NextResponse('Not Found', {status: 404})
 	}
 
-	await db.delete(album).where(eq(album.id, params.id))
+	await db.delete(album).where(eq(album.id, id))
 	return new NextResponse(null, {status: 204})
 }
