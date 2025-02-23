@@ -9,6 +9,10 @@ export type Photo = {
 	mimeType: string
 	imageWidth: number | null
 	imageHeight: number | null
+	albums?: {
+		id: string
+		name: string
+	}[]
 }
 
 export interface UploadState {

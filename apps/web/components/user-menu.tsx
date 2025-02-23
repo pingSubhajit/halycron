@@ -58,43 +58,43 @@ export const UserMenu = () => {
 
 					<div className="flex flex-col space-y-1">
 						<p className="text-sm font-medium leading-none truncate">{session?.user.name || 'Loading...'}</p>
-						<p className="text-sm leading-none text-muted-foreground truncate">{session?.user.email || 'Loading...'}</p>
+						<p className="text-sm leading-none truncate">{session?.user.email || 'Loading...'}</p>
 					</div>
 				</DropdownMenuLabel>
 
 				<DropdownMenuSeparator />
-				<DropdownMenuItem className="cursor-pointer text-muted-foreground">
+				<DropdownMenuItem>
 					<span>Profile</span>
 				</DropdownMenuItem>
-				<DropdownMenuItem className="cursor-pointer text-muted-foreground">
+				<DropdownMenuItem>
 					<span>Settings</span>
 				</DropdownMenuItem>
-				<DropdownMenuItem className="cursor-pointer text-muted-foreground">
+				<DropdownMenuItem>
 					<span>Email preferences</span>
 				</DropdownMenuItem>
-				<DropdownMenuItem className="cursor-pointer text-muted-foreground">
+				<DropdownMenuItem>
 					<span>Security</span>
 				</DropdownMenuItem>
 
 				<DropdownMenuSeparator />
-				<DropdownMenuItem className="cursor-pointer text-muted-foreground">
+				<DropdownMenuItem>
 					<span>Account settings</span>
 				</DropdownMenuItem>
-				<DropdownMenuItem className="cursor-pointer text-muted-foreground">
+				<DropdownMenuItem>
 					<span>Shield</span>
 				</DropdownMenuItem>
 
 				<DropdownMenuSeparator />
-				<Link href="/"><DropdownMenuItem className="cursor-pointer text-muted-foreground">
+				<Link href="/"><DropdownMenuItem>
 					<span>Home page</span>
 				</DropdownMenuItem></Link>
 				<DropdownMenuItem
 					disabled={isLoading}
-					onClick={() => logout()}
-					className="cursor-pointer flex items-center justify-between text-muted-foreground"
+					onSelect={() => logout()}
+					className="flex items-center justify-between"
 				>
 					<span>{isLoading ? 'Logging out...' : 'Log out'}</span>
-					<LogOut className="mr-2 h-4 w-4" />
+					<LogOut className="h-4 w-4" />
 				</DropdownMenuItem>
 			</DropdownMenuContent>
 		</DropdownMenu>

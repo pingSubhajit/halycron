@@ -79,7 +79,14 @@ export const GET = async () => {
 
 		const photos = await db.query.photo.findMany({
 			where: (photos, {eq}) => eq(photos.userId, session.user.id),
-			orderBy: (photos, {desc}) => [desc(photos.createdAt)]
+			orderBy: (photos, {desc}) => [desc(photos.createdAt)],
+			with: {
+				albums: {
+					with: {
+						album: true
+					}
+				}
+			}
 		})
 
 		// Generate pre-signed URLs for each photo
@@ -94,7 +101,11 @@ export const GET = async () => {
 				keyIv: photo.fileKeyIv,
 				mimeType: photo.mimeType,
 				imageWidth: photo.imageWidth,
-				imageHeight: photo.imageHeight
+				imageHeight: photo.imageHeight,
+				albums: photo.albums?.map(pa => ({
+					id: pa.album.id,
+					name: pa.album.name
+				})) || []
 			}
 		}))
 

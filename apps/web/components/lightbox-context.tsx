@@ -7,6 +7,7 @@ import {ChevronLeft, ChevronRight, Minus, Plus, Trash2, X} from 'lucide-react'
 import {AnimatePresence, motion} from 'framer-motion'
 import {Button} from '@halycon/ui/components/button'
 import {useDecryptedUrl} from '@/hooks/use-decrypted-url'
+import {AlbumSelector} from './album-selector'
 
 interface LightboxContextType {
   openLightbox: (photo: Photo, hasNext?: boolean, hasPrev?: boolean, onDelete?: () => void) => void
@@ -14,6 +15,7 @@ interface LightboxContextType {
   onNext?: () => Promise<Photo | null>
   onPrev?: () => Promise<Photo | null>
   setNavigationHandlers: (handlers: { onNext?: () => Promise<Photo | null>, onPrev?: () => Promise<Photo | null> }) => void
+  updateCurrentPhoto: (photo: Photo) => void
 }
 
 const LightboxContext = createContext<LightboxContextType | undefined>(undefined)
@@ -451,6 +453,7 @@ const Lightbox = ({
 						<Plus className="h-4 w-4" />
 						<span className="sr-only">Zoom in</span>
 					</Button>
+					<AlbumSelector photo={photo} variant="dropdown" />
 					<Button
 						variant="ghost"
 						size="icon"
@@ -492,6 +495,10 @@ export const LightboxProvider = ({children}: { children: React.ReactNode }) => {
 		setHasNext(false)
 		setHasPrev(false)
 		setOnDeleteHandler(undefined)
+	}, [])
+
+	const updateCurrentPhoto = useCallback((photo: Photo) => {
+		setCurrentPhoto(photo)
 	}, [])
 
 	const handleNext = async () => {
@@ -539,7 +546,8 @@ export const LightboxProvider = ({children}: { children: React.ReactNode }) => {
 				closeLightbox,
 				onNext: navigationHandlers.onNext,
 				onPrev: navigationHandlers.onPrev,
-				setNavigationHandlers
+				setNavigationHandlers,
+				updateCurrentPhoto
 			}}
 		>
 			{children}

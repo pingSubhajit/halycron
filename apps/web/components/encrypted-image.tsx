@@ -6,6 +6,16 @@ import {HTMLProps} from 'react'
 import {cn} from '@halycon/ui/lib/utils'
 import {useLightbox} from './lightbox-context'
 import {useDecryptedUrl} from '@/hooks/use-decrypted-url'
+import {
+	ContextMenu,
+	ContextMenuContent,
+	ContextMenuItem,
+	ContextMenuSeparator,
+	ContextMenuTrigger
+} from '@halycon/ui/components/context-menu'
+import {Download, Image as ImageIcon, Trash2} from 'lucide-react'
+import {format} from 'date-fns'
+import {AlbumSelector} from './album-selector'
 
 type Props = {
 	photo: Photo
@@ -37,14 +47,41 @@ export const EncryptedImage = ({photo, hasNext, hasPrev, onOpen, onDelete}: Prop
 	}
 
 	return (
-		<Image
-			src={decryptedUrl}
-			alt={photo.originalFilename}
-			width={photo.imageWidth || 800}
-			height={photo.imageHeight || 600}
-			className="w-full h-auto object-cover hover:opacity-90 transition-opacity cursor-pointer"
-			onClick={handleClick}
-		/>
+		<ContextMenu>
+			<ContextMenuTrigger>
+				<Image
+					src={decryptedUrl}
+					alt={photo.originalFilename}
+					width={photo.imageWidth || 800}
+					height={photo.imageHeight || 600}
+					className="w-full h-auto object-cover hover:opacity-90 transition-opacity cursor-pointer"
+					onClick={handleClick}
+				/>
+			</ContextMenuTrigger>
+			<ContextMenuContent>
+				<div className="p-2">
+					<p className="text-sm opacity-80">Uploaded on: {format(photo.createdAt || new Date(), 'MMM dd, yyyy')}</p>
+					<p className="mt-0.5 text-xs opacity-60 font-bold">Secured using 256-bit AES-CBC key</p>
+				</div>
+
+				<ContextMenuSeparator />
+
+				<ContextMenuItem className="flex items-center justify-between" onSelect={handleClick}>
+					<span>View photo</span>
+					<ImageIcon className="h-4 w-4" />
+				</ContextMenuItem>
+				<ContextMenuItem className="flex items-center justify-between">
+					<span>Download</span>
+					<Download className="h-4 w-4" />
+				</ContextMenuItem>
+				<AlbumSelector photo={photo} variant="context-menu" />
+				<ContextMenuSeparator />
+				<ContextMenuItem className="flex items-center justify-between" onSelect={onDelete}>
+					<span>Delete photo</span>
+					<Trash2 className="h-4 w-4" />
+				</ContextMenuItem>
+			</ContextMenuContent>
+		</ContextMenu>
 	)
 }
 

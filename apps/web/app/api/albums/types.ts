@@ -27,14 +27,17 @@ export type UpdateAlbumInput = z.infer<typeof updateAlbumSchema>
 export type VerifyPinInput = z.infer<typeof verifyPinSchema>
 export type AddPhotosToAlbumInput = z.infer<typeof addPhotosToAlbumSchema>
 
-export interface Album {
-  id: string
-  name: string
-  isSensitive: boolean
-  isProtected: boolean
-  createdAt: Date
-  updatedAt: Date
-  _count?: {
-    photos: number
-  }
+export type Album = {
+	id: string
+	name: string
+	isSensitive: boolean
+	isProtected: boolean
+	createdAt: Date | null
+	updatedAt: Date | null
+}
+
+export type PhotoToAlbum = {
+	photoId: string
+	albumId: string
+	createdAt: Date | null
 }

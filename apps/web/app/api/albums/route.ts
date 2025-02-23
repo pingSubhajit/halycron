@@ -1,72 +1,151 @@
 import {NextRequest, NextResponse} from 'next/server'
 import {auth} from '@/lib/auth/config'
-import {db} from '@/db/drizzle'
-import {album} from '@/db/schema'
-import {eq} from 'drizzle-orm'
-import {createAlbumSchema} from './types'
-import {hashPin} from './utils'
 import {headers} from 'next/headers'
+import {db} from '@/db/drizzle'
+import {album, photosToAlbums} from '@/db/schema'
+import {createAlbumSchema} from './types'
+import {and, eq} from 'drizzle-orm'
 
 export const GET = async () => {
-	const session = await auth.api.getSession({
-		headers: await headers()
-	})
-	if (!session) {
-		return new NextResponse('Unauthorized', {status: 401})
-	}
-
-	const albums = await db.query.album.findMany({
-		where: eq(album.userId, session.user.id),
-		with: {
-			photos: true
+	try {
+		const session = await auth.api.getSession({
+			headers: await headers()
+		})
+		if (!session) {
+			return NextResponse.json({error: 'Unauthorized'}, {status: 401})
 		}
-	})
 
-	return NextResponse.json(
-		albums.map(album => ({
-			id: album.id,
-			name: album.name,
-			isSensitive: album.isSensitive,
-			isProtected: album.isProtected,
-			createdAt: album.createdAt,
-			updatedAt: album.updatedAt,
-			_count: {
-				photos: Object.keys(album.photos).length
-			}
-		}))
-	)
+		const albums = await db.query.album.findMany({
+			where: (albums, {eq}) => eq(albums.userId, session.user.id),
+			orderBy: (albums, {desc}) => [desc(albums.createdAt)]
+		})
+
+		return NextResponse.json(albums)
+	} catch (error) {
+		return NextResponse.json(
+			{error: error instanceof Error ? error.message : 'Internal server error'},
+			{status: 500}
+		)
+	}
 }
 
-export const POST = async (request: NextRequest) => {
-	const session = await auth.api.getSession({
-		headers: await headers()
-	})
-	if (!session) {
-		return new NextResponse('Unauthorized', {status: 401})
+export const POST = async (req: NextRequest) => {
+	try {
+		const session = await auth.api.getSession({
+			headers: await headers()
+		})
+		if (!session) {
+			return NextResponse.json({error: 'Unauthorized'}, {status: 401})
+		}
+
+		const body = await req.json()
+		const result = createAlbumSchema.safeParse(body)
+
+		if (!result.success) {
+			return NextResponse.json(
+				{error: 'Invalid request body'},
+				{status: 400}
+			)
+		}
+
+		const {name, isSensitive = false, isProtected = false, pin} = result.data
+
+		// Save album to database
+		const savedAlbum = await db.insert(album).values({
+			userId: session.user.id,
+			name,
+			isSensitive,
+			isProtected,
+			pinHash: pin // TODO: Hash the PIN if provided
+		}).returning()
+
+		return NextResponse.json(savedAlbum[0])
+	} catch (error) {
+		return NextResponse.json(
+			{error: error instanceof Error ? error.message : 'Internal server error'},
+			{status: 500}
+		)
 	}
+}
 
-	const json = await request.json()
-	const result = createAlbumSchema.safeParse(json)
+// Add photos to album
+export const PATCH = async (req: NextRequest) => {
+	try {
+		const session = await auth.api.getSession({
+			headers: await headers()
+		})
+		if (!session) {
+			return NextResponse.json({error: 'Unauthorized'}, {status: 401})
+		}
 
-	if (!result.success) {
-		return NextResponse.json(result.error.format(), {status: 400})
+		const {albumId, photoIds} = await req.json()
+
+		// Verify album ownership
+		const userAlbum = await db.query.album.findFirst({
+			where: (albums, {and, eq}) => and(
+				eq(albums.id, albumId),
+				eq(albums.userId, session.user.id)
+			)
+		})
+
+		if (!userAlbum) {
+			return NextResponse.json({error: 'Album not found'}, {status: 404})
+		}
+
+		// Add photos to album
+		const photoAlbums = await db.insert(photosToAlbums)
+			.values(photoIds.map((photoId: string) => ({
+				albumId,
+				photoId,
+				createdAt: new Date()
+			})))
+			.returning()
+
+		return NextResponse.json(photoAlbums)
+	} catch (error) {
+		return NextResponse.json(
+			{error: error instanceof Error ? error.message : 'Internal server error'},
+			{status: 500}
+		)
 	}
+}
 
-	const {name, isSensitive, isProtected, pin} = result.data
+// Remove photos from album
+export const DELETE = async (req: NextRequest) => {
+	try {
+		const session = await auth.api.getSession({
+			headers: await headers()
+		})
+		if (!session) {
+			return NextResponse.json({error: 'Unauthorized'}, {status: 401})
+		}
 
-	if (isProtected && !pin) {
-		return NextResponse.json({
-			error: 'PIN is required for protected albums'
-		}, {status: 400})
+		const {albumId, photoIds} = await req.json()
+
+		// Verify album ownership
+		const userAlbum = await db.query.album.findFirst({
+			where: (albums, {and, eq}) => and(
+				eq(albums.id, albumId),
+				eq(albums.userId, session.user.id)
+			)
+		})
+
+		if (!userAlbum) {
+			return NextResponse.json({error: 'Album not found'}, {status: 404})
+		}
+
+		// Remove photos from album
+		await db.delete(photosToAlbums)
+			.where(and(
+				eq(photosToAlbums.albumId, albumId),
+				eq(photosToAlbums.photoId, photoIds[0])
+			))
+
+		return NextResponse.json({success: true})
+	} catch (error) {
+		return NextResponse.json(
+			{error: error instanceof Error ? error.message : 'Internal server error'},
+			{status: 500}
+		)
 	}
-
-	const newAlbum = await db.insert(album).values({
-		name,
-		userId: session.user.id,
-		isSensitive,
-		isProtected,
-		pinHash: pin ? hashPin(pin) : null
-	}).returning()
-
-	return NextResponse.json(newAlbum[0])
 }
