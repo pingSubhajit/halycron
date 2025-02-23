@@ -58,7 +58,7 @@ export const PATCH = async (request: NextRequest, {params}: Props) => {
 
 	const {name, isSensitive, isProtected, pin} = result.data
 
-	const updateData: any = {}
+	const updateData: Record<string, unknown> = {}
 	if (name) updateData.name = name
 	if (typeof isSensitive !== 'undefined') updateData.isSensitive = isSensitive
 	if (typeof isProtected !== 'undefined') updateData.isProtected = isProtected

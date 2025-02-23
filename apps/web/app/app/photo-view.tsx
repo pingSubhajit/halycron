@@ -25,7 +25,7 @@ export const PhotoView = () => {
 		try {
 			await api.post('api/photos/cleanup', {s3Key})
 		} catch (error) {
-			console.error('Failed to cleanup S3:', error)
+			toast.error(error instanceof Error ? `Failed to cleanup S3: ${error.message}` : 'Failed to cleanup S3')
 		}
 	}
 

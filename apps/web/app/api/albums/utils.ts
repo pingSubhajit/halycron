@@ -1,12 +1,12 @@
 import {createHash} from 'crypto'
 import {db} from '@/db/drizzle'
-import {album, photosToAlbums} from '@/db/schema'
-import {and, eq, inArray} from 'drizzle-orm'
+import {album} from '@/db/schema'
+import {and, eq} from 'drizzle-orm'
 import {Album} from './types'
 
 export const hashPin = (pin: string): string => createHash('sha256').update(pin).digest('hex')
 
-export async function verifyAlbumPin(albumId: string, pin: string): Promise<boolean> {
+export const verifyAlbumPin = async (albumId: string, pin: string): Promise<boolean> => {
 	const result = await db.query.album.findFirst({
 		where: eq(album.id, albumId),
 		columns: {
@@ -49,23 +49,4 @@ export const getAlbumWithPhotoCount = async (albumId: string): Promise<Album | n
 			photos: Object.keys(result.photos).length
 		}
 	}
-}
-
-export const addPhotosToAlbum = async (albumId: string, photoIds: string[]): Promise<void> => {
-	await db.insert(photosToAlbums).values(
-		photoIds.map(photoId => ({
-			albumId,
-			photoId
-		}))
-	)
-}
-
-export const removePhotosFromAlbum = async (albumId: string, photoIds: string[]): Promise<void> => {
-	await db.delete(photosToAlbums)
-		.where(
-			and(
-				eq(photosToAlbums.albumId, albumId),
-				inArray(photosToAlbums.photoId, photoIds)
-			)
-		)
 }

@@ -32,4 +32,4 @@ export const useAlbumPhotos = (id: string, options?: QueryOptions<Photo[], Error
 		},
 		...options
 	})
-} 
+}

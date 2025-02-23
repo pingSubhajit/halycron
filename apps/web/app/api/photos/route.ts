@@ -191,7 +191,7 @@ export const PATCH = async (req: NextRequest) => {
 				Key: photoData.s3Key
 			}))
 		} catch (error) {
-			return NextResponse.json({error: 'Photo file no longer exists'}, {status: 404})
+			return NextResponse.json({error: error instanceof Error ? error.message : 'Photo file no longer exists'}, {status: 404})
 		}
 
 		// Restore photo in database

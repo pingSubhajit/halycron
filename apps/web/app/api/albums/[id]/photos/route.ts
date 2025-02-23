@@ -70,7 +70,7 @@ export const POST = async (req: NextRequest, {params}: {params: Promise<{id: str
 		}
 
 		// Add photos to album
-	
+
 		const photoAlbums = await db.insert(photosToAlbums)
 			.values(photoIds.map((photoId: string) => ({
 				albumId: id,
