@@ -6,6 +6,9 @@ import {HTMLProps, useEffect, useState} from 'react'
 import {downloadAndDecryptFile} from '@/app/api/photos/utils'
 import {cn} from '@halycon/ui/lib/utils'
 
+// Cache for storing decrypted URLs
+const decryptedUrlCache = new Map<string, {url: string, timestamp: number}>()
+
 type Props = {
 	photo: Photo,
 	index: number,
@@ -31,7 +34,7 @@ const ImageSkeleton = (props: HTMLProps<HTMLDivElement>) => (
 
 export const EncryptedImage = ({photo, index, onClick}: Props) => {
 	const [decryptedUrl, setDecryptedUrl] = useState<string | null>(null)
-	const CACHE_EXPIRATION = 60 * 60 * 1000
+	const CACHE_EXPIRATION = 60 * 60 * 1000 // 1 hour
 
 	const stableUrlPart = getStableUrlPart(photo.url)
 	const cacheKey = `${photo.id}-${stableUrlPart}`
@@ -39,12 +42,28 @@ export const EncryptedImage = ({photo, index, onClick}: Props) => {
 	// Decrypt the photo URL
 	useEffect(() => {
 		const decryptUrl = async () => {
+			// Check cache first
+			const cached = decryptedUrlCache.get(cacheKey)
+			const now = Date.now()
+
+			if (cached && (now - cached.timestamp) < CACHE_EXPIRATION) {
+				setDecryptedUrl(cached.url)
+				return
+			}
+
 			const decryptedUrl = await downloadAndDecryptFile(photo.url, photo.encryptedKey, photo.keyIv, photo.mimeType)
+
+			// Store in cache
+			decryptedUrlCache.set(cacheKey, {
+				url: decryptedUrl,
+				timestamp: now
+			})
+
 			setDecryptedUrl(decryptedUrl)
 		}
 
 		decryptUrl()
-	}, [])
+	}, [cacheKey, photo.url, photo.encryptedKey, photo.keyIv, photo.mimeType])
 
 	if (!decryptedUrl) {
 		return <ImageSkeleton style={{
