@@ -5,6 +5,7 @@ import {Photo} from '@/app/api/photos/types'
 import {useAllPhotos} from '@/app/api/photos/query'
 import {useDeletePhoto} from '@/app/api/photos/mutation'
 import dynamic from 'next/dynamic'
+import {TextShimmer} from '@halycon/ui/components/text-shimmer'
 
 const Gallery = dynamic(() => import('@/components/gallery').then(mod => mod.Gallery), {ssr: false})
 
@@ -25,7 +26,9 @@ export const PhotoView = () => {
 	}
 
 	if (isLoading) {
-		return <div>Loading...</div>
+		return <TextShimmer duration={1}>
+			Collecting and decrypting . . .
+		</TextShimmer>
 	}
 
 	if (isError) {

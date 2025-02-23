@@ -6,6 +6,7 @@ import {HTMLProps} from 'react'
 import {cn} from '@halycon/ui/lib/utils'
 import {useLightbox} from './lightbox-context'
 import {useDecryptedUrl} from '@/hooks/use-decrypted-url'
+import {TextShimmer} from '@halycon/ui/components/text-shimmer'
 
 type Props = {
 	photo: Photo
@@ -18,6 +19,9 @@ type Props = {
 const ImageSkeleton = (props: HTMLProps<HTMLDivElement>) => (
 	<div className={cn('relative overflow-hidden bg-accent animate-pulse w-full h-full', props.className)} style={{paddingBottom: '75%', ...props.style}} {...props}>
 		<div className="absolute inset-0" />
+		<TextShimmer duration={1} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center text-sm">
+			Decrypting . . .
+		</TextShimmer>
 	</div>
 )
 
