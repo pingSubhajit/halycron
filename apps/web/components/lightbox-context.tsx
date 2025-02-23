@@ -5,8 +5,8 @@ import {Photo} from '@/app/api/photos/types'
 import Image from 'next/image'
 import {ChevronLeft, ChevronRight, Trash2, X} from 'lucide-react'
 import {AnimatePresence, motion} from 'framer-motion'
-import {downloadAndDecryptFile} from '@/app/api/photos/utils'
 import {Button} from '@halycon/ui/components/button'
+import {useDecryptedUrl} from '@/hooks/use-decrypted-url'
 
 interface LightboxContextType {
   openLightbox: (photo: Photo, hasNext?: boolean, hasPrev?: boolean, onDelete?: () => void) => void
@@ -43,17 +43,8 @@ const Lightbox = ({
 	onNext?: () => Promise<Photo | null>
 	onPrev?: () => Promise<Photo | null>
 }) => {
-	const [decryptedUrl, setDecryptedUrl] = useState<string | null>(null)
+	const decryptedUrl = useDecryptedUrl(photo)
 	const [loading, setLoading] = useState(false)
-
-	useEffect(() => {
-		const decryptUrl = async () => {
-			setDecryptedUrl(null) // Clear the current image while loading
-			const url = await downloadAndDecryptFile(photo.url, photo.encryptedKey, photo.keyIv, photo.mimeType)
-			setDecryptedUrl(url)
-		}
-		decryptUrl()
-	}, [photo])
 
 	const handleDelete = () => {
 		onDelete?.()
@@ -156,24 +147,6 @@ const Lightbox = ({
 						<ChevronLeft className="h-4 w-4" />
 						<span className="sr-only">Previous image</span>
 					</Button>
-					{/* <Button*/}
-					{/*	variant="ghost"*/}
-					{/*	size="icon"*/}
-					{/*	onClick={() => setScale((s) => Math.max(0.5, s - 0.25))}*/}
-					{/*	disabled={scale <= 0.5}*/}
-					{/* >*/}
-					{/*	<ZoomOut className="h-4 w-4" />*/}
-					{/*	<span className="sr-only">Zoom out</span>*/}
-					{/* </Button>*/}
-					{/* <Button*/}
-					{/*	variant="ghost"*/}
-					{/*	size="icon"*/}
-					{/*	onClick={() => setScale((s) => Math.min(3, s + 0.25))}*/}
-					{/*	disabled={scale >= 3}*/}
-					{/* >*/}
-					{/*	<ZoomIn className="h-4 w-4" />*/}
-					{/*	<span className="sr-only">Zoom in</span>*/}
-					{/* </Button>*/}
 					<Button
 						variant="ghost"
 						size="icon"

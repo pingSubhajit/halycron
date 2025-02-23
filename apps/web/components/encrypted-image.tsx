@@ -2,13 +2,10 @@
 
 import {Photo} from '@/app/api/photos/types'
 import Image from 'next/image'
-import {HTMLProps, useEffect, useState} from 'react'
-import {downloadAndDecryptFile} from '@/app/api/photos/utils'
+import {HTMLProps} from 'react'
 import {cn} from '@halycon/ui/lib/utils'
 import {useLightbox} from './lightbox-context'
-
-// Cache for storing decrypted URLs
-const decryptedUrlCache = new Map<string, {url: string, timestamp: number}>()
+import {useDecryptedUrl} from '@/hooks/use-decrypted-url'
 
 type Props = {
 	photo: Photo
@@ -18,17 +15,6 @@ type Props = {
 	onDelete?: () => void
 }
 
-// Extract the stable part of the S3 URL for caching
-const getStableUrlPart = (url: string): string => {
-	try {
-		const urlObj = new URL(url)
-		// Get the pathname without query parameters
-		return urlObj.pathname
-	} catch (e) {
-		return url
-	}
-}
-
 const ImageSkeleton = (props: HTMLProps<HTMLDivElement>) => (
 	<div className={cn('relative overflow-hidden bg-accent animate-pulse w-full h-full', props.className)} style={{paddingBottom: '75%', ...props.style}} {...props}>
 		<div className="absolute inset-0" />
@@ -36,38 +22,8 @@ const ImageSkeleton = (props: HTMLProps<HTMLDivElement>) => (
 )
 
 export const EncryptedImage = ({photo, hasNext, hasPrev, onOpen, onDelete}: Props) => {
-	const [decryptedUrl, setDecryptedUrl] = useState<string | null>(null)
+	const decryptedUrl = useDecryptedUrl(photo)
 	const {openLightbox} = useLightbox()
-	const CACHE_EXPIRATION = 60 * 60 * 1000 // 1 hour
-
-	const stableUrlPart = getStableUrlPart(photo.url)
-	const cacheKey = `${photo.id}-${stableUrlPart}`
-
-	// Decrypt the photo URL
-	useEffect(() => {
-		const decryptUrl = async () => {
-			// Check cache first
-			const cached = decryptedUrlCache.get(cacheKey)
-			const now = Date.now()
-
-			if (cached && (now - cached.timestamp) < CACHE_EXPIRATION) {
-				setDecryptedUrl(cached.url)
-				return
-			}
-
-			const decryptedUrl = await downloadAndDecryptFile(photo.url, photo.encryptedKey, photo.keyIv, photo.mimeType)
-
-			// Store in cache
-			decryptedUrlCache.set(cacheKey, {
-				url: decryptedUrl,
-				timestamp: now
-			})
-
-			setDecryptedUrl(decryptedUrl)
-		}
-
-		decryptUrl()
-	}, [cacheKey, photo.url, photo.encryptedKey, photo.keyIv, photo.mimeType])
 
 	if (!decryptedUrl) {
 		return <ImageSkeleton style={{
