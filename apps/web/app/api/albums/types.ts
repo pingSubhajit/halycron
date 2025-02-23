@@ -34,6 +34,9 @@ export type Album = {
 	isProtected: boolean
 	createdAt: Date | null
 	updatedAt: Date | null
+	_count?: {
+		photos: number
+	}
 }
 
 export type PhotoToAlbum = {
