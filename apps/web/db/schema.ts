@@ -1,5 +1,5 @@
 // import {waitlist, WaitlistInsert, WaitlistSelect} from '@/db/waitlist.schema'
-import {boolean, integer, pgTable, text, timestamp, uuid, varchar} from 'drizzle-orm/pg-core'
+import {boolean, integer, pgTable, primaryKey, text, timestamp, uuid, varchar} from 'drizzle-orm/pg-core'
 import {sql} from 'drizzle-orm'
 
 /*
@@ -37,6 +37,10 @@ export const user = pgTable('user', {
 	email: varchar('email').notNull(),
 	emailVerified: boolean('email_verified').default(false),
 	image: varchar('image'),
+	/*
+	 * encryptedUserKey: text('encrypted_user_key').notNull(),
+	 * userKeyIv: text('user_key_iv').notNull(),
+	 */
 	twoFactorEnabled: boolean('two_factor_enabled').default(false),
 	createdAt: timestamp('created_at', {withTimezone: true}).default(sql`CURRENT_TIMESTAMP`),
 	updatedAt: timestamp('updated_at', {withTimezone: true}).default(sql`CURRENT_TIMESTAMP`)
@@ -110,14 +114,24 @@ export const photo = pgTable('photos', {
 // }, (t) => [
 // 	unique().on(t.id, t.name)
 // ])
-//
-// // Albums Table
-// export const album = pgTable('albums', {
-// 	id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
-// 	userId: uuid('user_id').notNull().references(() => user.id, {onDelete: 'cascade'}),
-// 	name: text('name').notNull(),
-// 	encryptedKey: text('encrypted_key').notNull(),
-// 	keyIv: text('key_iv').notNull(),
-// 	createdAt: timestamp('created_at', {withTimezone: true}).default(sql`CURRENT_TIMESTAMP`),
-// 	updatedAt: timestamp('updated_at', {withTimezone: true}).default(sql`CURRENT_TIMESTAMP`)
-// })
+
+// Albums Table
+export const album = pgTable('albums', {
+	id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
+	userId: uuid('user_id').notNull().references(() => user.id, {onDelete: 'cascade'}),
+	name: text('name').notNull(),
+	isSensitive: boolean('is_sensitive').default(false).notNull(),
+	isProtected: boolean('is_protected').default(false).notNull(),
+	pinHash: text('pin_hash'),
+	createdAt: timestamp('created_at', {withTimezone: true}).default(sql`CURRENT_TIMESTAMP`),
+	updatedAt: timestamp('updated_at', {withTimezone: true}).default(sql`CURRENT_TIMESTAMP`)
+})
+
+// Junction table for photos and albums many-to-many relationship
+export const photosToAlbums = pgTable('photos_to_albums', {
+	photoId: uuid('photo_id').notNull().references(() => photo.id, {onDelete: 'cascade'}),
+	albumId: uuid('album_id').notNull().references(() => album.id, {onDelete: 'cascade'}),
+	createdAt: timestamp('created_at', {withTimezone: true}).default(sql`CURRENT_TIMESTAMP`)
+}, (t) => ({
+	pk: primaryKey(t.photoId, t.albumId)
+}))
