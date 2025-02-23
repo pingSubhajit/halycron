@@ -1,18 +1,44 @@
 import {Photo} from '@/app/api/photos/types'
 import {Masonry} from 'masonic'
-import {useMemo, useRef} from 'react'
+import {useCallback, useEffect, useMemo, useRef, useState} from 'react'
 import useResponsive, {breakpoints} from '@/hooks/use-responsive'
 import usePrevious from '@/hooks/use-previous'
 import EncryptedImage from '@/components/encrypted-image'
+import {useLightbox} from './lightbox-context'
 
 type Props = {
 	photos: Photo[]
-	onClick: (photo: Photo, index: number) => void
 	onDelete?: (photo: Photo) => void | Promise<void>
 }
 
-export const Gallery = ({photos, onClick, onDelete}: Props) => {
+export const Gallery = ({photos, onDelete}: Props) => {
 	const breakpoint = useResponsive()
+	const [currentIndex, setCurrentIndex] = useState<number | null>(null)
+	const {setNavigationHandlers} = useLightbox()
+
+	const getNextPhoto = useCallback(async () => {
+		const nextIndex = (currentIndex ?? 0) + 1
+		if (nextIndex >= photos.length) return null
+		setCurrentIndex(nextIndex)
+		return photos[nextIndex] as Photo
+	}, [currentIndex, photos])
+
+	const getPrevPhoto = useCallback(async () => {
+		const prevIndex = (currentIndex ?? 0) - 1
+		if (prevIndex < 0) return null
+		setCurrentIndex(prevIndex)
+		return photos[prevIndex] as Photo
+	}, [currentIndex, photos])
+
+	// Set up navigation handlers at the gallery level
+	useEffect(() => {
+		if (currentIndex !== null) {
+			setNavigationHandlers({
+				onNext: getNextPhoto,
+				onPrev: getPrevPhoto
+			})
+		}
+	}, [getNextPhoto, getPrevPhoto, setNavigationHandlers, currentIndex])
 
 	const prevItemsCount = usePrevious(photos.length)
 	const removesCount = useRef(0)
@@ -46,13 +72,21 @@ export const Gallery = ({photos, onClick, onDelete}: Props) => {
 			render={
 				({index}) => {
 					const photo = photos[index]!
+					const hasNext = index < photos.length - 1
+					const hasPrev = index > 0
 
 					return (
 						<div
 							className="break-inside-avoid hover:ring-2 hover:ring-primary transition duration-200 group relative"
 						>
 							<div className="relative overflow-hidden">
-								<EncryptedImage photo={photo} index={index} onClick={() => onClick(photo, index)} />
+								<EncryptedImage
+									photo={photo}
+									hasNext={hasNext}
+									hasPrev={hasPrev}
+									onOpen={() => setCurrentIndex(index)}
+									onDelete={() => onDelete?.(photo)}
+								/>
 
 								{onDelete && (
 									<button

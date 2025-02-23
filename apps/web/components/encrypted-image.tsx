@@ -5,14 +5,17 @@ import Image from 'next/image'
 import {HTMLProps, useEffect, useState} from 'react'
 import {downloadAndDecryptFile} from '@/app/api/photos/utils'
 import {cn} from '@halycon/ui/lib/utils'
+import {useLightbox} from './lightbox-context'
 
 // Cache for storing decrypted URLs
 const decryptedUrlCache = new Map<string, {url: string, timestamp: number}>()
 
 type Props = {
-	photo: Photo,
-	index: number,
-	onClick: (photo: Photo, index: number) => void
+	photo: Photo
+	hasNext?: boolean
+	hasPrev?: boolean
+	onOpen?: () => void
+	onDelete?: () => void
 }
 
 // Extract the stable part of the S3 URL for caching
@@ -32,8 +35,9 @@ const ImageSkeleton = (props: HTMLProps<HTMLDivElement>) => (
 	</div>
 )
 
-export const EncryptedImage = ({photo, index, onClick}: Props) => {
+export const EncryptedImage = ({photo, hasNext, hasPrev, onOpen, onDelete}: Props) => {
 	const [decryptedUrl, setDecryptedUrl] = useState<string | null>(null)
+	const {openLightbox} = useLightbox()
 	const CACHE_EXPIRATION = 60 * 60 * 1000 // 1 hour
 
 	const stableUrlPart = getStableUrlPart(photo.url)
@@ -71,6 +75,11 @@ export const EncryptedImage = ({photo, index, onClick}: Props) => {
 		}} />
 	}
 
+	const handleClick = () => {
+		onOpen?.()
+		openLightbox(photo, hasNext, hasPrev, onDelete)
+	}
+
 	return (
 		<Image
 			src={decryptedUrl}
@@ -78,7 +87,7 @@ export const EncryptedImage = ({photo, index, onClick}: Props) => {
 			width={photo.imageWidth || 800}
 			height={photo.imageHeight || 600}
 			className="w-full h-auto object-cover hover:opacity-90 transition-opacity cursor-pointer"
-			onClick={() => onClick(photo, index)}
+			onClick={handleClick}
 		/>
 	)
 }
