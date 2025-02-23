@@ -336,7 +336,16 @@ const Lightbox = ({
 	}, [hasNext, hasPrev, loading, onClose, scale, position])
 
 	return (
-		<div className="fixed inset-0 z-50 bg-background/95 backdrop-blur-xl">
+		<div
+			className="fixed inset-0 z-50 bg-background/95 backdrop-blur-xl touch-none"
+			onTouchMove={(e) => e.preventDefault()}
+			onTouchStart={(e) => {
+				// Allow two-finger touch events for pinch zoom
+				if (e.touches.length !== 2) {
+					e.preventDefault()
+				}
+			}}
+		>
 			<div className="absolute right-4 top-4 z-50 flex">
 				{onDelete && (
 					<Button
