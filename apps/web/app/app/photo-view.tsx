@@ -3,18 +3,44 @@
 import {toast} from 'sonner'
 import {Photo} from '@/app/api/photos/types'
 import {useAllPhotos} from '@/app/api/photos/query'
-import {useDeletePhoto} from '@/app/api/photos/mutation'
+import {useDeletePhoto, useRestorePhoto} from '@/app/api/photos/mutation'
 import dynamic from 'next/dynamic'
 import {TextShimmer} from '@halycon/ui/components/text-shimmer'
+import {api} from '@/lib/data/api-client'
 
 const Gallery = dynamic(() => import('@/components/gallery').then(mod => mod.Gallery), {ssr: false})
 
 export const PhotoView = () => {
 	const {data: photos, isLoading, isError} = useAllPhotos()
+	const {mutate: restorePhoto} = useRestorePhoto({
+		onSuccess: () => {
+			toast.success('Photo restored successfully')
+		},
+		onError: (error) => {
+			toast.error(error.message)
+		}
+	})
+
+	const cleanupS3 = async (s3Key: string) => {
+		try {
+			await api.post('api/photos/cleanup', {s3Key})
+		} catch (error) {
+			console.error('Failed to cleanup S3:', error)
+		}
+	}
 
 	const {mutate: deletePhoto} = useDeletePhoto({
-		onSuccess: () => {
-			toast.success('Photo deleted successfully')
+		onSuccess: (deletedPhoto) => {
+			toast.success('Photo deleted successfully', {
+				action: {
+					label: 'Undo',
+					onClick: () => restorePhoto(deletedPhoto)
+				},
+				onDismiss: () => {
+					// Clean up S3 file after toast is dismissed (user didn't click undo)
+					cleanupS3(deletedPhoto.s3Key)
+				}
+			})
 		},
 		onError: (error) => {
 			toast.error(error.message)
@@ -22,7 +48,7 @@ export const PhotoView = () => {
 	})
 
 	const onDelete = (photo: Photo) => {
-		deletePhoto(photo.id)
+		deletePhoto(photo)
 	}
 
 	if (isLoading) {

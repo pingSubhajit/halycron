@@ -1,6 +1,7 @@
 export type Photo = {
 	id: string
 	url: string
+	s3Key: string
 	originalFilename: string
 	createdAt: Date | null
 	encryptedKey: string

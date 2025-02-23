@@ -16,16 +16,17 @@ type DeletePhotoContext = {
 	previousPhotos: Photo[] | undefined
 }
 
-export const useDeletePhoto = (options?: MutationOptions<void, Error, string, DeletePhotoContext>) => {
+export const useDeletePhoto = (options?: MutationOptions<Photo, Error, Photo, DeletePhotoContext>) => {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: async (photoId: string) => {
-			await api.delete('api/photos', {
-				body: {photoId}
+		mutationFn: async (photo: Photo) => {
+			const response = await api.delete<Photo>('api/photos', {
+				body: {photoId: photo.id}
 			})
+			return response // Return the server response which includes full photo data
 		},
-		onMutate: async (photoId): Promise<DeletePhotoContext> => {
+		onMutate: async (photo): Promise<DeletePhotoContext> => {
 			// Cancel any outgoing re-fetches
 			await queryClient.cancelQueries({queryKey: photoQueryKeys.allPhotos()})
 
@@ -36,14 +37,14 @@ export const useDeletePhoto = (options?: MutationOptions<void, Error, string, De
 			if (previousPhotos) {
 				queryClient.setQueryData<Photo[]>(
 					photoQueryKeys.allPhotos(),
-					previousPhotos.filter(photo => photo.id !== photoId)
+					previousPhotos.filter(p => p.id !== photo.id)
 				)
 			}
 
 			// Return a context object with the snapshot value
 			return {previousPhotos}
 		},
-		onError: (err, photoId, context) => {
+		onError: (err, photo, context) => {
 			// If the mutation fails, use the context returned from onMutate to roll back
 			if (context?.previousPhotos) {
 				queryClient.setQueryData(photoQueryKeys.allPhotos(), context.previousPhotos)
@@ -117,6 +118,60 @@ export const useUploadPhoto = (
 
 				throw error
 			}
+		},
+		...options
+	})
+}
+
+export const useRestorePhoto = (options?: MutationOptions<void, Error, Photo, DeletePhotoContext>) => {
+	const queryClient = useQueryClient()
+
+	return useMutation({
+		mutationFn: async (photo: Photo) => {
+			const photoData = {
+				id: photo.id,
+				s3Key: photo.s3Key,
+				originalFilename: photo.originalFilename,
+				createdAt: photo.createdAt,
+				encryptedKey: photo.encryptedKey,
+				keyIv: photo.keyIv,
+				mimeType: photo.mimeType,
+				imageWidth: photo.imageWidth,
+				imageHeight: photo.imageHeight
+			}
+
+			await api.patch('api/photos', photoData)
+
+			// Invalidate and refetch photos query to show the restored photo
+			await queryClient.invalidateQueries({queryKey: photoQueryKeys.allPhotos()})
+		},
+		onMutate: async (photo): Promise<DeletePhotoContext> => {
+			// Cancel any outgoing re-fetches
+			await queryClient.cancelQueries({queryKey: photoQueryKeys.allPhotos()})
+
+			// Snapshot the previous value
+			const previousPhotos = queryClient.getQueryData<Photo[]>(photoQueryKeys.allPhotos())
+
+			// Optimistically update to the new value
+			if (previousPhotos) {
+				queryClient.setQueryData<Photo[]>(
+					photoQueryKeys.allPhotos(),
+					[...previousPhotos, photo]
+				)
+			}
+
+			// Return a context object with the snapshot value
+			return {previousPhotos}
+		},
+		onError: (err, photo, context) => {
+			// If the mutation fails, use the context returned from onMutate to roll back
+			if (context?.previousPhotos) {
+				queryClient.setQueryData(photoQueryKeys.allPhotos(), context.previousPhotos)
+			}
+		},
+		onSettled: () => {
+			// Always invalidate the photos query after mutation settles
+			queryClient.invalidateQueries({queryKey: photoQueryKeys.allPhotos()})
 		},
 		...options
 	})

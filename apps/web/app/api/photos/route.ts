@@ -5,7 +5,7 @@ import {db} from '@/db/drizzle'
 import {photo} from '@/db/schema'
 import {headers} from 'next/headers'
 import {generatePresignedDownloadUrl, s3Client} from '@/lib/s3-client'
-import {DeleteObjectCommand} from '@aws-sdk/client-s3'
+import {HeadObjectCommand} from '@aws-sdk/client-s3'
 import {eq} from 'drizzle-orm'
 
 const photoMetadataSchema = z.object({
@@ -133,16 +133,72 @@ export const DELETE = async (req: NextRequest) => {
 			return NextResponse.json({error: 'Photo not found'}, {status: 404})
 		}
 
-		// Delete from S3
-		await s3Client.send(new DeleteObjectCommand({
-			Bucket: process.env.AWS_BUCKET_NAME,
-			Key: photoToDelete.s3Key
-		}))
-
-		// Delete from database
+		// Only delete from database, keep the S3 file for potential restore
 		await db.delete(photo).where(eq(photo.id, photoId))
 
-		return NextResponse.json({success: true})
+		// Return the deleted photo data for restoration
+		const url = await generatePresignedDownloadUrl(photoToDelete.s3Key)
+		return NextResponse.json({
+			id: photoToDelete.id,
+			url,
+			s3Key: photoToDelete.s3Key,
+			originalFilename: photoToDelete.originalFilename,
+			createdAt: photoToDelete.createdAt,
+			encryptedKey: photoToDelete.encryptedFileKey,
+			keyIv: photoToDelete.fileKeyIv,
+			mimeType: photoToDelete.mimeType,
+			imageWidth: photoToDelete.imageWidth,
+			imageHeight: photoToDelete.imageHeight
+		})
+	} catch (error) {
+		return NextResponse.json(
+			{error: error instanceof Error ? error.message : 'Internal server error'},
+			{status: 500}
+		)
+	}
+}
+
+export const PATCH = async (req: NextRequest) => {
+	try {
+		const session = await auth.api.getSession({
+			headers: await headers()
+		})
+		if (!session) {
+			return NextResponse.json({error: 'Unauthorized'}, {status: 401})
+		}
+
+		const photoData = await req.json()
+
+		if (!photoData || !photoData.id || !photoData.s3Key) {
+			return NextResponse.json({error: 'Invalid photo data'}, {status: 400})
+		}
+
+		// Check if the photo exists in S3
+		try {
+			await s3Client.send(new HeadObjectCommand({
+				Bucket: process.env.AWS_BUCKET_NAME,
+				Key: photoData.s3Key
+			}))
+		} catch (error) {
+			return NextResponse.json({error: 'Photo file no longer exists'}, {status: 404})
+		}
+
+		// Restore photo in database
+		const restoredPhoto = await db.insert(photo).values({
+			id: photoData.id,
+			userId: session.user.id,
+			encryptedFileKey: photoData.encryptedKey,
+			fileKeyIv: photoData.keyIv,
+			s3Key: photoData.s3Key,
+			originalFilename: photoData.originalFilename,
+			mimeType: photoData.mimeType,
+			imageWidth: photoData.imageWidth,
+			imageHeight: photoData.imageHeight,
+			createdAt: new Date(photoData.createdAt),
+			updatedAt: new Date()
+		}).returning()
+
+		return NextResponse.json(restoredPhoto[0])
 	} catch (error) {
 		return NextResponse.json(
 			{error: error instanceof Error ? error.message : 'Internal server error'},
