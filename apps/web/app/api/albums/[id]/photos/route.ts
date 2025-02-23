@@ -45,7 +45,7 @@ export const GET = async (_: NextRequest, {params}: {params: Promise<{id: string
 	}
 }
 
-export const POST = async (req: NextRequest, {params}: {params: {id: string}}) => {
+export const POST = async (req: NextRequest, {params}: {params: Promise<{id: string}>}) => {
 	try {
 		const session = await auth.api.getSession({
 			headers: await headers()
@@ -57,9 +57,10 @@ export const POST = async (req: NextRequest, {params}: {params: {id: string}}) =
 		const {photoIds} = await req.json()
 
 		// Verify album ownership
+		const {id} = await params
 		const userAlbum = await db.query.album.findFirst({
 			where: (albums, {and, eq}) => and(
-				eq(albums.id, params.id),
+				eq(albums.id, id),
 				eq(albums.userId, session.user.id)
 			)
 		})
@@ -69,9 +70,10 @@ export const POST = async (req: NextRequest, {params}: {params: {id: string}}) =
 		}
 
 		// Add photos to album
+	
 		const photoAlbums = await db.insert(photosToAlbums)
 			.values(photoIds.map((photoId: string) => ({
-				albumId: params.id,
+				albumId: id,
 				photoId,
 				createdAt: new Date()
 			})))
@@ -86,7 +88,7 @@ export const POST = async (req: NextRequest, {params}: {params: {id: string}}) =
 	}
 }
 
-export const DELETE = async (req: NextRequest, {params}: {params: {id: string}}) => {
+export const DELETE = async (req: NextRequest, {params}: {params: Promise<{id: string}>}) => {
 	try {
 		const session = await auth.api.getSession({
 			headers: await headers()
@@ -98,9 +100,10 @@ export const DELETE = async (req: NextRequest, {params}: {params: {id: string}})
 		const {photoIds} = await req.json()
 
 		// Verify album ownership
+		const {id} = await params
 		const userAlbum = await db.query.album.findFirst({
 			where: (albums, {and, eq}) => and(
-				eq(albums.id, params.id),
+				eq(albums.id, id),
 				eq(albums.userId, session.user.id)
 			)
 		})
@@ -112,7 +115,7 @@ export const DELETE = async (req: NextRequest, {params}: {params: {id: string}})
 		// Remove photos from album
 		await db.delete(photosToAlbums)
 			.where(and(
-				eq(photosToAlbums.albumId, params.id),
+				eq(photosToAlbums.albumId, id),
 				eq(photosToAlbums.photoId, photoIds[0])
 			))
 
