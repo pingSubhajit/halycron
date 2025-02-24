@@ -4,8 +4,8 @@ export type Photo = {
 	s3Key: string
 	originalFilename: string
 	createdAt: Date | null
-	encryptedKey: string
-	keyIv: string
+	encryptedFileKey: string
+	fileKeyIv: string
 	mimeType: string
 	imageWidth: number | null
 	imageHeight: number | null

@@ -30,7 +30,7 @@ export const useDecryptedUrl = (photo: Photo) => {
 
 			// If not in cache, decrypt and cache
 			if (mounted) setDecryptedUrl(null) // Clear while loading
-			const url = await downloadAndDecryptFile(photo.url, photo.encryptedKey, photo.keyIv, photo.mimeType)
+			const url = await downloadAndDecryptFile(photo.url, photo.encryptedFileKey, photo.fileKeyIv, photo.mimeType)
 			if (mounted) {
 				setInCache(cacheKey, url)
 				setDecryptedUrl(url)
@@ -48,4 +48,4 @@ export const useDecryptedUrl = (photo: Photo) => {
 	}, [photo, getFromCache, setInCache])
 
 	return decryptedUrl
-} 
+}

@@ -4,6 +4,7 @@ import {headers} from 'next/headers'
 import {db} from '@/db/drizzle'
 import {photosToAlbums} from '@/db/schema'
 import {and, eq} from 'drizzle-orm'
+import {generatePresignedDownloadUrl} from '@/lib/s3-client'
 
 export const GET = async (_: NextRequest, {params}: {params: Promise<{id: string}>}) => {
 	try {
@@ -36,7 +37,23 @@ export const GET = async (_: NextRequest, {params}: {params: Promise<{id: string
 			}
 		})
 
-		return NextResponse.json(albumPhotos.map(ap => ap.photo))
+		const photosWithUrls = await Promise.all(albumPhotos.map(async (albumPhoto) => {
+			const photo = albumPhoto.photo
+			const url = await generatePresignedDownloadUrl(photo.s3Key)
+			return {
+				id: photo.id,
+				url,
+				originalFilename: photo.originalFilename,
+				createdAt: photo.createdAt,
+				encryptedFileKey: photo.encryptedFileKey,
+				fileKeyIv: photo.fileKeyIv,
+				mimeType: photo.mimeType,
+				imageWidth: photo.imageWidth,
+				imageHeight: photo.imageHeight
+			}
+		}))
+
+		return NextResponse.json(photosWithUrls)
 	} catch (error) {
 		return NextResponse.json(
 			{error: error instanceof Error ? error.message : 'Internal server error'},

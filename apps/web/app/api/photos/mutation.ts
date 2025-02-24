@@ -133,8 +133,8 @@ export const useRestorePhoto = (options?: MutationOptions<void, Error, Photo, De
 				s3Key: photo.s3Key,
 				originalFilename: photo.originalFilename,
 				createdAt: photo.createdAt,
-				encryptedKey: photo.encryptedKey,
-				keyIv: photo.keyIv,
+				encryptedFileKey: photo.encryptedFileKey,
+				fileKeyIv: photo.fileKeyIv,
 				mimeType: photo.mimeType,
 				imageWidth: photo.imageWidth,
 				imageHeight: photo.imageHeight

@@ -10,8 +10,8 @@ import {eq} from 'drizzle-orm'
 
 const photoMetadataSchema = z.object({
 	fileKey: z.string(),
-	encryptedKey: z.string(),
-	keyIv: z.string(),
+	encryptedFileKey: z.string(),
+	fileKeyIv: z.string(),
 	originalFilename: z.string(),
 	mimeType: z.string().regex(/^image\/(jpeg|png|jpg|heic|raw)$/),
 	imageWidth: z.number().optional(),
@@ -39,8 +39,8 @@ export const POST = async (req: NextRequest) => {
 
 		const {
 			fileKey,
-			encryptedKey,
-			keyIv,
+			encryptedFileKey,
+			fileKeyIv,
 			originalFilename,
 			mimeType,
 			imageWidth,
@@ -50,8 +50,8 @@ export const POST = async (req: NextRequest) => {
 		// Save photo metadata to database
 		const savedPhoto = await db.insert(photo).values({
 			userId: session.user.id,
-			encryptedFileKey: encryptedKey,
-			fileKeyIv: keyIv,
+			encryptedFileKey: encryptedFileKey,
+			fileKeyIv: fileKeyIv,
 			s3Key: fileKey,
 			originalFilename,
 			mimeType,
@@ -97,8 +97,8 @@ export const GET = async () => {
 				url,
 				originalFilename: photo.originalFilename,
 				createdAt: photo.createdAt,
-				encryptedKey: photo.encryptedFileKey,
-				keyIv: photo.fileKeyIv,
+				encryptedFileKey: photo.encryptedFileKey,
+				fileKeyIv: photo.fileKeyIv,
 				mimeType: photo.mimeType,
 				imageWidth: photo.imageWidth,
 				imageHeight: photo.imageHeight,
@@ -155,8 +155,8 @@ export const DELETE = async (req: NextRequest) => {
 			s3Key: photoToDelete.s3Key,
 			originalFilename: photoToDelete.originalFilename,
 			createdAt: photoToDelete.createdAt,
-			encryptedKey: photoToDelete.encryptedFileKey,
-			keyIv: photoToDelete.fileKeyIv,
+			encryptedFileKey: photoToDelete.encryptedFileKey,
+			fileKeyIv: photoToDelete.fileKeyIv,
 			mimeType: photoToDelete.mimeType,
 			imageWidth: photoToDelete.imageWidth,
 			imageHeight: photoToDelete.imageHeight
@@ -198,8 +198,8 @@ export const PATCH = async (req: NextRequest) => {
 		const restoredPhoto = await db.insert(photo).values({
 			id: photoData.id,
 			userId: session.user.id,
-			encryptedFileKey: photoData.encryptedKey,
-			fileKeyIv: photoData.keyIv,
+			encryptedFileKey: photoData.encryptedFileKey,
+			fileKeyIv: photoData.fileKeyIv,
 			s3Key: photoData.s3Key,
 			originalFilename: photoData.originalFilename,
 			mimeType: photoData.mimeType,

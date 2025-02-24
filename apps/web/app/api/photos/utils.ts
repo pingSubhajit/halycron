@@ -132,8 +132,8 @@ export const savePhotoToDB = async (
 ) => {
 	return await api.post('/api/photos', {
 		fileKey,
-		encryptedKey: key,
-		keyIv: iv,
+		encryptedFileKey: key,
+		fileKeyIv: iv,
 		originalFilename: name,
 		mimeType,
 		imageWidth,
