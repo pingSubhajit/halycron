@@ -1,15 +1,13 @@
 import {SingleAlbumView} from '@/app/app/albums/[id]/single-album-view'
 
-interface Props {
-	params: {
-		id: string
-	}
-}
+const AlbumPage = async ({params}: {params: Promise<{id: string}>}) => {
+	const {id} = await params
 
-const AlbumPage = ({params}: Props) => (
-	<div>
-		<SingleAlbumView albumId={params.id}/>
-	</div>
-)
+	return (
+		<div>
+			<SingleAlbumView albumId={id}/>
+		</div>
+	)
+}
 
 export default AlbumPage
