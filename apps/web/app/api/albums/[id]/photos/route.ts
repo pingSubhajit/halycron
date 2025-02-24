@@ -33,7 +33,15 @@ export const GET = async (_: NextRequest, {params}: {params: Promise<{id: string
 		const albumPhotos = await db.query.photosToAlbums.findMany({
 			where: eq(photosToAlbums.albumId, id),
 			with: {
-				photo: true
+				photo: {
+					with: {
+						albums: {
+							with: {
+								album: true
+							}
+						}
+					}
+				}
 			}
 		})
 
@@ -49,7 +57,8 @@ export const GET = async (_: NextRequest, {params}: {params: Promise<{id: string
 				fileKeyIv: photo.fileKeyIv,
 				mimeType: photo.mimeType,
 				imageWidth: photo.imageWidth,
-				imageHeight: photo.imageHeight
+				imageHeight: photo.imageHeight,
+				albums: photo.albums.map(photoAlbum => photoAlbum.album)
 			}
 		}))
 

@@ -7,6 +7,7 @@ import {useDecryptedUrl} from '@/hooks/use-decrypted-url'
 import Image from 'next/image'
 import {Image as ImageIcon} from 'lucide-react'
 import {useCallback, useRef, useState} from 'react'
+import Link from 'next/link'
 
 const PhotoLayer = ({
 	photo,
@@ -134,41 +135,43 @@ export const AlbumCard = ({album}: {album: Album}) => {
 	}
 
 	return (
-		<div className="w-full cursor-pointer">
-			<div
-				className="relative w-full aspect-[4/3] overflow-hidden"
-				onMouseEnter={startPhotoRotation}
-				onMouseLeave={stopPhotoRotation}
-			>
-				{photos && photos[0] && photos.map((photo, index) => {
-					const effectiveIndex = (index - topPhotoIndex + photos.length) % photos.length
-					const isTop = effectiveIndex === 0
-					const isStack = effectiveIndex > 0
+		<Link href={`/app/albums/${album.id}`}>
+			<div className="w-full cursor-pointer">
+				<div
+					className="relative w-full aspect-[4/3] overflow-hidden"
+					onMouseEnter={startPhotoRotation}
+					onMouseLeave={stopPhotoRotation}
+				>
+					{photos && photos[0] && photos.map((photo, index) => {
+						const effectiveIndex = (index - topPhotoIndex + photos.length) % photos.length
+						const isTop = effectiveIndex === 0
+						const isStack = effectiveIndex > 0
 
-					return (
-						<PhotoLayer
-							key={photo.id}
-							photo={photo}
-							zIndex={photos.length - effectiveIndex}
-							isTop={isTop}
-							isStack={isStack}
-							isAnimating={isAnimating}
-							style={{
-								transform: getRandomRotation(index)
-							}}
-						/>
-					)
-				})}
+						return (
+							<PhotoLayer
+								key={photo.id}
+								photo={photo}
+								zIndex={photos.length - effectiveIndex}
+								isTop={isTop}
+								isStack={isStack}
+								isAnimating={isAnimating}
+								style={{
+									transform: getRandomRotation(index)
+								}}
+							/>
+						)
+					})}
 
-				{photos && photos.length === 0 && <div>
-					<div className="absolute inset-0 flex items-center justify-center p-4">
-						<ImageIcon className="w-36 h-36 text-muted-foreground opacity-80" />
-					</div>
-				</div>}
+					{photos && photos.length === 0 && <div>
+						<div className="absolute inset-0 flex items-center justify-center p-4">
+							<ImageIcon className="w-36 h-36 text-muted-foreground opacity-80"/>
+						</div>
+					</div>}
+				</div>
+
+				<p className="text-center m-auto font-semibold text-muted-foreground">{album.name}</p>
 			</div>
-
-			<p className="text-center m-auto font-semibold text-muted-foreground">{album.name}</p>
-		</div>
+		</Link>
 	)
 }
 
