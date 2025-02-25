@@ -1,10 +1,9 @@
 import {ReactNode} from 'react'
-import {SiteNav} from '@/components/site-nav'
 
 const SiteLayout = ({children}: {children: ReactNode}) => {
 	return (
 		<div className="relative">
-			<SiteNav />
+			{/* <SiteNav />*/}
 			<main>{children}</main>
 		</div>
 	)
