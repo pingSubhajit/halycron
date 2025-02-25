@@ -18,7 +18,7 @@ export const AlbumView = () => {
 	}
 
 	return (
-		<div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 lg:gap-3 xl:gap-4">
+		<div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2 lg:gap-3 xl:gap-4">
 			{albums && albums.map(album => (
 				<AlbumCard key={album.id} album={album} />
 			))}

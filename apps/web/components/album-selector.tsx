@@ -116,8 +116,8 @@ interface AlbumSelectorProps {
 
 export const AlbumSelector = ({photo, variant = 'context-menu', className}: AlbumSelectorProps) => {
 	const {data: albums} = useAllAlbums()
-	const addToAlbum = useAddPhotosToAlbum()
-	const removeFromAlbum = useRemovePhotosFromAlbum()
+	const addToAlbum = useAddPhotosToAlbum(photo.albums?.map(album => album.id))
+	const removeFromAlbum = useRemovePhotosFromAlbum(photo.albums?.map(album => album.id))
 	const queryClient = useQueryClient()
 	const {updateCurrentPhoto} = useLightbox()
 

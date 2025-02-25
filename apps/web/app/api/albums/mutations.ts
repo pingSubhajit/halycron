@@ -86,7 +86,7 @@ export const useDeleteAlbum = (options?: MutationOptions<void, Error, string>) =
 	})
 }
 
-export const useAddPhotosToAlbum = (options?: MutationOptions<PhotoToAlbum[], Error, AddPhotosToAlbumInput, AddPhotosContext>) => {
+export const useAddPhotosToAlbum = (relatedAlbumIds?: string[], options?: MutationOptions<PhotoToAlbum[], Error, AddPhotosToAlbumInput, AddPhotosContext>) => {
 	const queryClient = useQueryClient()
 
 	return useMutation({
@@ -119,12 +119,19 @@ export const useAddPhotosToAlbum = (options?: MutationOptions<PhotoToAlbum[], Er
 		onSettled: (_, __, {albumId}) => {
 			queryClient.invalidateQueries({queryKey: albumQueryKeys.albumPhotos(albumId)})
 			queryClient.invalidateQueries({queryKey: albumQueryKeys.album(albumId)})
+
+			if (relatedAlbumIds) {
+				relatedAlbumIds.forEach(id => {
+					queryClient.invalidateQueries({queryKey: albumQueryKeys.albumPhotos(id)})
+					queryClient.invalidateQueries({queryKey: albumQueryKeys.album(id)})
+				})
+			}
 		},
 		...options
 	})
 }
 
-export const useRemovePhotosFromAlbum = (options?: MutationOptions<void, Error, RemovePhotosFromAlbumInput, AddPhotosContext>) => {
+export const useRemovePhotosFromAlbum = (relatedAlbumIds?: string[], options?: MutationOptions<void, Error, RemovePhotosFromAlbumInput, AddPhotosContext>) => {
 	const queryClient = useQueryClient()
 
 	return useMutation({
@@ -151,7 +158,14 @@ export const useRemovePhotosFromAlbum = (options?: MutationOptions<void, Error, 
 		onSettled: (_, __, {albumId}) => {
 			queryClient.invalidateQueries({queryKey: albumQueryKeys.albumPhotos(albumId)})
 			queryClient.invalidateQueries({queryKey: albumQueryKeys.album(albumId)})
+
+			if (relatedAlbumIds) {
+				relatedAlbumIds.forEach(id => {
+					queryClient.invalidateQueries({queryKey: albumQueryKeys.albumPhotos(id)})
+					queryClient.invalidateQueries({queryKey: albumQueryKeys.album(id)})
+				})
+			}
 		},
 		...options
 	})
-} 
+}

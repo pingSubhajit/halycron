@@ -59,7 +59,7 @@ const PhotoLayer = ({
 				transform: getTransform(),
 				transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
 			}}
-			className="absolute inset-0 flex items-center justify-center p-4"
+			className="absolute inset-0 flex items-center justify-center"
 		>
 			<div
 				className="relative w-full h-full flex items-center justify-center"
