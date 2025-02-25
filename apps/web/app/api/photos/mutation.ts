@@ -11,6 +11,7 @@ import {
 } from '@/app/api/photos/utils'
 import {photoQueryKeys} from '@/app/api/photos/keys'
 import {api} from '@/lib/data/api-client'
+import {albumQueryKeys} from '@/app/api/albums/keys'
 
 type DeletePhotoContext = {
 	previousPhotos: Photo[] | undefined
@@ -21,10 +22,9 @@ export const useDeletePhoto = (options?: MutationOptions<Photo, Error, Photo, De
 
 	return useMutation({
 		mutationFn: async (photo: Photo) => {
-			const response = await api.delete<Photo>('api/photos', {
+			return await api.delete<Photo>('/api/photos', {
 				body: {photoId: photo.id}
-			})
-			return response // Return the server response which includes full photo data
+			}) // Return the server response which includes full photo data
 		},
 		onMutate: async (photo): Promise<DeletePhotoContext> => {
 			// Cancel any outgoing re-fetches
@@ -43,6 +43,11 @@ export const useDeletePhoto = (options?: MutationOptions<Photo, Error, Photo, De
 
 			// Return a context object with the snapshot value
 			return {previousPhotos}
+		},
+		onSettled: (_, __, photo) => {
+			photo.albums?.forEach(album => {
+				queryClient.invalidateQueries({queryKey: albumQueryKeys.albumPhotos(album.id)})
+			})
 		},
 		onError: (err, photo, context) => {
 			// If the mutation fails, use the context returned from onMutate to roll back
@@ -140,7 +145,7 @@ export const useRestorePhoto = (options?: MutationOptions<void, Error, Photo, De
 				imageHeight: photo.imageHeight
 			}
 
-			await api.patch('api/photos', photoData)
+			await api.patch('/api/photos', photoData)
 
 			// Invalidate and refetch photos query to show the restored photo
 			await queryClient.invalidateQueries({queryKey: photoQueryKeys.allPhotos()})
