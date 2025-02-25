@@ -33,7 +33,7 @@ const Page = () => (
 				your storage, your photos remain yours—hidden, locked, and accessible only to you.
 			</p>
 
-			<GetStartedButton />
+			<GetStartedButton/>
 
 			<div className="mt-10 space-y-4">
 				<p className="font-medium text-base">What?</p>
@@ -68,8 +68,9 @@ const Page = () => (
 
 			<div className="mt-10 space-y-4">
 				<p className="font-medium text-base">Why?</p>
-				<p className="text-sm opacity-60 leading-normal">I believe that privacy is not a privilege—it’s a right.
-					In an age where our memories are scattered across the cloud, buried in algorithms, and vulnerable to
+				<p className="text-sm opacity-60 leading-normal">I believe that privacy is not a privilege — it’s a
+					right. In an age where our memories are scattered across the cloud, buried in algorithms, and
+					vulnerable to
 					prying eyes, we’ve lost control over what should be ours alone. Halycron was born from the
 					frustration of not having a truly private space for our most personal moments. Existing solutions
 					promise security but come with compromises: hidden terms, backdoors, or the uneasy feeling that your
