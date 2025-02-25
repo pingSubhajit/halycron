@@ -2,6 +2,7 @@ import Image from 'next/image'
 import logo from '@halycon/ui/media/logo.svg'
 import {Metadata} from 'next'
 import {GetStartedButton} from '@/app/(site)/get-started-button'
+import {ArrowUpRight} from 'lucide-react'
 
 export const metadata: Metadata = {
 	title: 'Halycron – The Ultimate Private & Secure Photo Vault',
@@ -33,7 +34,14 @@ const Page = () => (
 				your storage, your photos remain yours—hidden, locked, and accessible only to you.
 			</p>
 
-			<GetStartedButton/>
+			<div className="flex items-center gap-8">
+				<GetStartedButton />
+
+				<a href="https://github.com/pingSubhajit/halycon?tab=readme-ov-file" target="_blank" className="flex items-center gap-1 hover:underline underline-offset-8" rel="noreferrer">
+					<em className="font-serif font-medium">Github</em>
+					<ArrowUpRight className="w-4 h-4" />
+				</a>
+			</div>
 
 			<div className="mt-10 space-y-4">
 				<p className="font-medium text-base">What?</p>

@@ -12,7 +12,7 @@ export const GetStartedButton = ({className}: {className?: string}) => {
 			<TextScramble
 				speed={0.05}
 				trigger={primaryHover}
-				className="text-sm font-semibold uppercase underline underline-offset-8"
+				className="text-sm font-semibold uppercase underline underline-offset-8 text-primary"
 			>
 				Get Started
 			</TextScramble>
