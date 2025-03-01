@@ -64,6 +64,10 @@ const fetchApi = async <T>(url: string, options: RequestOptions = {}): Promise<T
 		throw new Error(error.error)
 	}
 
+	if (response.status === 204) {
+		return {} as T
+	}
+
 	return response.json()
 }
 

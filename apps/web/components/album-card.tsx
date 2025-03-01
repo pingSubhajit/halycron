@@ -5,9 +5,25 @@ import {useAlbumPhotos} from '@/app/api/albums/query'
 import {Photo} from '@/app/api/photos/types'
 import {useDecryptedUrl} from '@/hooks/use-decrypted-url'
 import Image from 'next/image'
-import {Image as ImageIcon} from 'lucide-react'
-import {useCallback, useRef, useState} from 'react'
+import {Image as ImageIcon, Trash2} from 'lucide-react'
+import {useCallback, useEffect, useRef, useState} from 'react'
 import Link from 'next/link'
+import {
+	ContextMenu,
+	ContextMenuContent,
+	ContextMenuItem,
+	ContextMenuSeparator,
+	ContextMenuTrigger
+} from '@halycon/ui/components/context-menu'
+import {format} from 'date-fns'
+import {useUpdateAlbum} from '@/app/api/albums/mutations'
+import {toast} from 'sonner'
+import {useForm} from 'react-hook-form'
+import {zodResolver} from '@hookform/resolvers/zod'
+import * as z from 'zod'
+import {Form, FormControl, FormField, FormItem, FormMessage} from '@halycon/ui/components/form'
+import {Input} from '@halycon/ui/components/input'
+import {useDebounce} from '@/hooks/use-debounce'
 
 const PhotoLayer = ({
 	photo,
@@ -86,12 +102,71 @@ const PhotoLayer = ({
 	)
 }
 
-export const AlbumCard = ({album}: {album: Album}) => {
+const updateAlbumSchema = z.object({
+	name: z.string().min(1, 'Album name is required').trim()
+})
+
+type UpdateAlbumFormValues = z.infer<typeof updateAlbumSchema>
+
+export const AlbumCard = ({album, onDelete}: {album: Album, onDelete: () => void}) => {
 	const {data: photos, isLoading, isError} = useAlbumPhotos(album.id)
 	const [topPhotoIndex, setTopPhotoIndex] = useState(0)
 	const [isAnimating, setIsAnimating] = useState(false)
+	const [isEditing, setIsEditing] = useState(false)
 	const hoverTimerRef = useRef<NodeJS.Timeout | null>(null)
 	const rotationsRef = useRef<{ [key: number]: number }>({})
+	const updateAlbum = useUpdateAlbum()
+	const containerRef = useRef<HTMLDivElement>(null)
+
+	const form = useForm<UpdateAlbumFormValues>({
+		resolver: zodResolver(updateAlbumSchema),
+		defaultValues: {
+			name: album.name
+		}
+	})
+
+	const handleUpdate = async (values: UpdateAlbumFormValues) => {
+		try {
+			await updateAlbum.mutateAsync({
+				...album,
+				name: values.name,
+				updatedAt: new Date()
+			})
+			toast.success('Album name updated successfully')
+		} catch (error) {
+			toast.error('Failed to update album name')
+			form.reset()
+		}
+	}
+
+	const debouncedUpdate = useDebounce(handleUpdate, 500)
+
+	useEffect(() => {
+		const handleClickOutside = (event: MouseEvent) => {
+			if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+				setIsEditing(false)
+				form.reset()
+			}
+		}
+
+		if (isEditing) {
+			document.addEventListener('mousedown', handleClickOutside)
+		}
+
+		return () => {
+			document.removeEventListener('mousedown', handleClickOutside)
+		}
+	}, [isEditing, form])
+
+	// Subscribe to form changes and trigger debounced update
+	useEffect(() => {
+		const subscription = form.watch((value, {name}) => {
+			if (name === 'name' && form.formState.isValid) {
+				debouncedUpdate(value as UpdateAlbumFormValues)
+			}
+		})
+		return () => subscription.unsubscribe()
+	}, [form, debouncedUpdate])
 
 	const hasMultiplePhotos = photos && photos.length > 1
 
@@ -135,43 +210,102 @@ export const AlbumCard = ({album}: {album: Album}) => {
 	}
 
 	return (
-		<Link href={`/app/albums/${album.id}`}>
-			<div className="w-full cursor-pointer">
-				<div
-					className="relative w-full aspect-[4/3] overflow-hidden"
-					onMouseEnter={startPhotoRotation}
-					onMouseLeave={stopPhotoRotation}
-				>
-					{photos && photos[0] && photos.map((photo, index) => {
-						const effectiveIndex = (index - topPhotoIndex + photos.length) % photos.length
-						const isTop = effectiveIndex === 0
-						const isStack = effectiveIndex > 0
+		<ContextMenu>
+			<Link href={`/app/albums/${album.id}`}>
+				<ContextMenuTrigger>
+					<div className="w-full cursor-pointer">
+						<div
+							className="relative w-full aspect-[4/3] overflow-hidden"
+							onMouseEnter={startPhotoRotation}
+							onMouseLeave={stopPhotoRotation}
+						>
+							{photos && photos[0] && photos.map((photo, index) => {
+								const effectiveIndex = (index - topPhotoIndex + photos.length) % photos.length
+								const isTop = effectiveIndex === 0
+								const isStack = effectiveIndex > 0
 
-						return (
-							<PhotoLayer
-								key={photo.id}
-								photo={photo}
-								zIndex={photos.length - effectiveIndex}
-								isTop={isTop}
-								isStack={isStack}
-								isAnimating={isAnimating}
-								style={{
-									transform: getRandomRotation(index)
-								}}
-							/>
-						)
-					})}
+								return (
+									<PhotoLayer
+										key={photo.id}
+										photo={photo}
+										zIndex={photos.length - effectiveIndex}
+										isTop={isTop}
+										isStack={isStack}
+										isAnimating={isAnimating}
+										style={{
+											transform: getRandomRotation(index)
+										}}
+									/>
+								)
+							})}
 
-					{photos && photos.length === 0 && <div>
-						<div className="absolute inset-0 flex items-center justify-center p-4">
-							<ImageIcon className="w-36 h-36 text-muted-foreground opacity-80"/>
+							{photos && photos.length === 0 && <div>
+								<div className="absolute inset-0 flex items-center justify-center p-4">
+									<ImageIcon className="w-36 h-36 text-muted-foreground opacity-80"/>
+								</div>
+							</div>}
 						</div>
-					</div>}
+
+						{isEditing ? (
+							<div ref={containerRef} className="mt-2" onClick={(e) => e.preventDefault()}>
+								<Form {...form}>
+									<form className="flex items-center justify-center">
+										<FormField
+											control={form.control}
+											name="name"
+											render={({field}) => (
+												<FormItem>
+													<FormControl>
+														<Input
+															{...field}
+															className="h-8 text-center"
+															placeholder="Album name"
+															autoFocus
+														/>
+													</FormControl>
+													<FormMessage />
+												</FormItem>
+											)}
+										/>
+									</form>
+								</Form>
+							</div>
+						) : (
+							<p className="text-center m-auto font-semibold text-muted-foreground">{album.name}</p>
+						)}
+					</div>
+				</ContextMenuTrigger>
+			</Link>
+			<ContextMenuContent className="w-56">
+				<div className="p-2">
+					<div className="flex items-center justify-between gap-2">
+						<p>{album.name}</p>
+						<p className="py-0.5 w-5 text-center rounded-full bg-primary text-neutral-950 text-xs aspect-square">{photos?.length || 0}</p>
+					</div>
+					<p className="text-xs opacity-80">Created on: {format(album.createdAt || new Date(), 'MMM dd, yyyy')}</p>
 				</div>
 
-				<p className="text-center m-auto font-semibold text-muted-foreground">{album.name}</p>
-			</div>
-		</Link>
+				<ContextMenuSeparator />
+
+				<Link href={`/app/albums/${album.id}`}>
+					<ContextMenuItem className="flex items-center justify-between">
+						<span>View album</span>
+						<ImageIcon className="h-4 w-4" />
+					</ContextMenuItem>
+				</Link>
+
+				<ContextMenuItem
+					className="flex items-center justify-between"
+					onSelect={(e) => {
+						e.preventDefault()
+						onDelete()
+					}}
+				>
+					<span>Delete album</span>
+					<Trash2 className="h-4 w-4" />
+				</ContextMenuItem>
+			</ContextMenuContent>
+		</ContextMenu>
 	)
 }
 
