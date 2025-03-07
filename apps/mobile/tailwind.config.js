@@ -1,4 +1,4 @@
-import baseConfig from '@halycon/ui/tailwind.config'
+import baseConfig from '@halycron/ui/tailwind.config'
 
 /** @type {import('tailwindcss').Config} */
 const config = {

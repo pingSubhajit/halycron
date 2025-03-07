@@ -1,4 +1,4 @@
 {
-  "extends": "@halycon/typescript-config/base.json"
+  "extends": "@halycron/typescript-config/base.json"
 }
 

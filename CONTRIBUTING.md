@@ -1,6 +1,6 @@
-# Contributing to Halycon
+# Contributing to Halycron
 
-Thank you for your interest in contributing to Halycon! We're excited to have you join our community in building a secure and private photo vault service. This document provides guidelines and instructions for contributing to the project.
+Thank you for your interest in contributing to Halycron! We're excited to have you join our community in building a secure and private photo vault service. This document provides guidelines and instructions for contributing to the project.
 
 ## 🎯 Code of Conduct
 
@@ -10,8 +10,8 @@ By participating in this project, you agree to abide by our Code of Conduct (to 
 
 1. **Fork and Clone**
    ```bash
-   git clone https://github.com/yourusername/halycon.git
-   cd halycon
+   git clone https://github.com/yourusername/halycron.git
+   cd halycron
    bun install
    ```
 
@@ -193,4 +193,4 @@ Contributors will be:
 - Mentioned in release notes
 - Recognized in project documentation
 
-Thank you for contributing to Halycon! Together, we're building a more secure and private photo management solution. 
+Thank you for contributing to Halycron! Together, we're building a more secure and private photo management solution. 

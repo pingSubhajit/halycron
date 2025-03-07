@@ -1,7 +1,7 @@
 'use client'
 
 import {useAllAlbums} from '@/app/api/albums/query'
-import {TextShimmer} from '@halycon/ui/components/text-shimmer'
+import {TextShimmer} from '@halycron/ui/components/text-shimmer'
 import AlbumCard from '@/components/album-card'
 import {useDeleteAlbum} from '@/app/api/albums/mutations'
 import {toast} from 'sonner'

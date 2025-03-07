@@ -1,1 +1,1 @@
-export * from "@halycon/ui/tailwind.config";
+export * from "@halycron/ui/tailwind.config";

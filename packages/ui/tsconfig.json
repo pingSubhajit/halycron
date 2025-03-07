@@ -1,10 +1,10 @@
 {
-  "extends": "@halycon/typescript-config/react-library.json",
+  "extends": "@halycron/typescript-config/react-library.json",
   "compilerOptions": {
     //"outDir": "dist"
     "baseUrl": ".",
     "paths": {
-      "@halycon/ui/*": ["./src/*"]
+      "@halycron/ui/*": ["./src/*"]
     }
   },
   "include": ["."],

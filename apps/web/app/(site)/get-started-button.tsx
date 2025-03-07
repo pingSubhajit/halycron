@@ -1,6 +1,6 @@
 'use client'
 
-import {TextScramble} from '@halycon/ui/components/text-scramble'
+import {TextScramble} from '@halycron/ui/components/text-scramble'
 import {useState} from 'react'
 import Link from 'next/link'
 

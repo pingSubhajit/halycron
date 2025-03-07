@@ -1,10 +1,10 @@
 {
-  "extends": "@halycon/typescript-config/nextjs.json",
+  "extends": "@halycron/typescript-config/nextjs.json",
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
       "@/*": ["./*"],
-      "@halycon/ui/*": ["../../packages/ui/src/*"]
+      "@halycron/ui/*": ["../../packages/ui/src/*"]
     },
     "plugins": [
       {

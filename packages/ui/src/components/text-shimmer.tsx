@@ -2,7 +2,7 @@
 
 import React, {type JSX, useMemo} from 'react'
 import {motion} from 'motion/react'
-import {cn} from '@halycon/ui/lib/utils'
+import {cn} from '@halycron/ui/lib/utils'
 
 export type TextShimmerProps = {
   children: string;

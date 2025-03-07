@@ -1,4 +1,4 @@
-# Halycon
+# Halycron
 
 A highly secure, private photo vault service that allows users to store and manage their photos with end-to-end encryption. Similar to Google Photos in functionality but with a primary focus on security and privacy. Users can store photos in their own S3 bucket or use the provided storage solution.
 
@@ -30,7 +30,7 @@ A highly secure, private photo vault service that allows users to store and mana
 ## 📦 Project Structure
 
 ```
-halycon/
+halycron/
 ├── apps/
 │   ├── web/          # Next.js 15 web application
 │   └── mobile/       # Expo v50 React Native application
@@ -55,8 +55,8 @@ halycon/
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/halycon.git
-cd halycon
+git clone https://github.com/yourusername/halycron.git
+cd halycron
 ```
 
 2. Install dependencies:

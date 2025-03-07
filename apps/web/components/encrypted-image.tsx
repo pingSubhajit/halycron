@@ -3,7 +3,7 @@
 import {Photo} from '@/app/api/photos/types'
 import Image from 'next/image'
 import {HTMLProps} from 'react'
-import {cn} from '@halycon/ui/lib/utils'
+import {cn} from '@halycron/ui/lib/utils'
 import {useLightbox} from './lightbox-context'
 import {useDecryptedUrl} from '@/hooks/use-decrypted-url'
 import {
@@ -12,7 +12,7 @@ import {
 	ContextMenuItem,
 	ContextMenuSeparator,
 	ContextMenuTrigger
-} from '@halycon/ui/components/context-menu'
+} from '@halycron/ui/components/context-menu'
 import {Download, Image as ImageIcon, Trash2} from 'lucide-react'
 import {format} from 'date-fns'
 import {AlbumSelector} from './album-selector'

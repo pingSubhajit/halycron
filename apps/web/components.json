@@ -14,7 +14,7 @@
     "components": "@/components",
     "hooks": "@/hooks",
     "lib": "@/lib",
-    "utils": "@halycon/ui/lib/utils",
-    "ui": "@halycon/ui/components"
+    "utils": "@halycron/ui/lib/utils",
+    "ui": "@halycron/ui/components"
   }
 }

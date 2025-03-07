@@ -1,5 +1,5 @@
 {
-  "name": "@halycon/mobile",
+  "name": "@halycron/mobile",
   "version": "1.0.0",
   "private": true,
   "main": "index.js",
@@ -13,7 +13,7 @@
     "lint:fix": "eslint . --fix"
   },
   "dependencies": {
-    "@halycon/ui": "workspace:*",
+    "@halycron/ui": "workspace:*",
     "expo": "^53.0.0-canary-20250219-4a5dade",
     "expo-constants": "18.0.0-canary-20250219-4a5dade",
     "expo-dev-client": "5.0.13-canary-20250219-4a5dade",
@@ -33,7 +33,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.23.7",
-    "@halycon/typescript-config": "workspace:*",
+    "@halycron/typescript-config": "workspace:*",
     "@types/react": "^19.0.10",
     "typescript": "~5.3.3"
   }

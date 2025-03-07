@@ -1,7 +1,7 @@
 import {Geist, Geist_Mono} from 'next/font/google'
 import localFont from 'next/font/local'
 
-import '@halycon/ui/globals.css'
+import '@halycron/ui/globals.css'
 import {Providers} from '@/components/providers'
 import {Metadata} from 'next'
 

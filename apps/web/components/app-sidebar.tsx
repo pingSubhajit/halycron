@@ -1,10 +1,10 @@
 'use client'
 
-import logo from '@halycon/ui/media/logo.svg'
+import logo from '@halycron/ui/media/logo.svg'
 import Image from 'next/image'
 import {Image as ImageIcon, Images} from 'lucide-react'
 import {usePathname} from 'next/navigation'
-import {Sidebar, SidebarContent, SidebarMenu, SidebarMenuButton, SidebarMenuItem} from '@halycon/ui/components/sidebar'
+import {Sidebar, SidebarContent, SidebarMenu, SidebarMenuButton, SidebarMenuItem} from '@halycron/ui/components/sidebar'
 import {PhotoUpload} from '@/components/photo-upload'
 import Link from 'next/link'
 

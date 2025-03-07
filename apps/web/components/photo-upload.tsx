@@ -1,10 +1,10 @@
 import {useCallback, useEffect, useRef, useState} from 'react'
 import {Upload} from 'lucide-react'
 import {useDropzone} from 'react-dropzone'
-import {cn} from '@halycon/ui/lib/utils'
+import {cn} from '@halycron/ui/lib/utils'
 import {UploadState} from '@/app/api/photos/types'
 import {useUploadPhoto} from '@/app/api/photos/mutation'
-import {TextShimmer} from '@halycon/ui/components/text-shimmer'
+import {TextShimmer} from '@halycron/ui/components/text-shimmer'
 import {useQueryClient} from '@tanstack/react-query'
 import {photoQueryKeys} from '@/app/api/photos/keys'
 

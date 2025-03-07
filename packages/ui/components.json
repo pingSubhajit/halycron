@@ -11,10 +11,10 @@
   },
   "iconLibrary": "lucide",
   "aliases": {
-    "components": "@halycon/ui/components",
-    "utils": "@halycon/ui/lib/utils",
-    "hooks": "@halycon/ui/hooks",
-    "lib": "@halycon/ui/lib",
-    "ui": "@halycon/ui/components"
+    "components": "@halycron/ui/components",
+    "utils": "@halycron/ui/lib/utils",
+    "hooks": "@halycron/ui/hooks",
+    "lib": "@halycron/ui/lib",
+    "ui": "@halycron/ui/components"
   }
 }

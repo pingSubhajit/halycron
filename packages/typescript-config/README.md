@@ -1,3 +1,3 @@
-# `@halycon/typescript-config`
+# `@halycron/typescript-config`
 
 Shared typescript configuration for the workspace.

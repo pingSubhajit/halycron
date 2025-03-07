@@ -7,23 +7,23 @@ import {albumQueryKeys} from '@/app/api/albums/keys'
 import {useForm} from 'react-hook-form'
 import {zodResolver} from '@hookform/resolvers/zod'
 import {CreateAlbumInput, createAlbumSchema} from '@/app/api/albums/types'
-import {Button} from '@halycon/ui/components/button'
-import {Input} from '@halycon/ui/components/input'
-import {cn} from '@halycon/ui/lib/utils'
+import {Button} from '@halycron/ui/components/button'
+import {Input} from '@halycron/ui/components/input'
+import {cn} from '@halycron/ui/lib/utils'
 import {
 	ContextMenuCheckboxItem,
 	ContextMenuSeparator,
 	ContextMenuSub,
 	ContextMenuSubContent,
 	ContextMenuSubTrigger
-} from '@halycon/ui/components/context-menu'
+} from '@halycron/ui/components/context-menu'
 import {
 	DropdownMenu,
 	DropdownMenuCheckboxItem,
 	DropdownMenuContent,
 	DropdownMenuSeparator,
 	DropdownMenuTrigger
-} from '@halycon/ui/components/dropdown-menu'
+} from '@halycron/ui/components/dropdown-menu'
 import {Image as ImageIcon} from 'lucide-react'
 import {useLightbox} from './lightbox-context'
 

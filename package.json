@@ -1,5 +1,5 @@
 {
-  "name": "halycon",
+  "name": "halycron",
   "version": "0.0.1",
   "private": true,
   "scripts": {
@@ -10,8 +10,8 @@
     "format": "prettier --write \"**/*.{ts,tsx,md}\""
   },
   "devDependencies": {
-    "@halycon/eslint-config": "workspace:*",
-    "@halycon/typescript-config": "workspace:*",
+    "@halycron/eslint-config": "workspace:*",
+    "@halycron/typescript-config": "workspace:*",
     "eslint": "^9.20.1",
     "prettier": "^3.2.5",
     "turbo": "^2.4.4",

@@ -5,7 +5,7 @@ import {Photo} from '@/app/api/photos/types'
 import {useAllPhotos} from '@/app/api/photos/query'
 import {useDeletePhoto, useRestorePhoto} from '@/app/api/photos/mutation'
 import dynamic from 'next/dynamic'
-import {TextShimmer} from '@halycon/ui/components/text-shimmer'
+import {TextShimmer} from '@halycron/ui/components/text-shimmer'
 import {api} from '@/lib/data/api-client'
 
 const Gallery = dynamic(() => import('@/components/gallery').then(mod => mod.Gallery), {ssr: false})

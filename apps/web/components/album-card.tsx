@@ -14,15 +14,15 @@ import {
 	ContextMenuItem,
 	ContextMenuSeparator,
 	ContextMenuTrigger
-} from '@halycon/ui/components/context-menu'
+} from '@halycron/ui/components/context-menu'
 import {format} from 'date-fns'
 import {useUpdateAlbum} from '@/app/api/albums/mutations'
 import {toast} from 'sonner'
 import {useForm} from 'react-hook-form'
 import {zodResolver} from '@hookform/resolvers/zod'
 import * as z from 'zod'
-import {Form, FormControl, FormField, FormItem, FormMessage} from '@halycon/ui/components/form'
-import {Input} from '@halycon/ui/components/input'
+import {Form, FormControl, FormField, FormItem, FormMessage} from '@halycron/ui/components/form'
+import {Input} from '@halycron/ui/components/input'
 import {useDebounce} from '@/hooks/use-debounce'
 
 const PhotoLayer = ({

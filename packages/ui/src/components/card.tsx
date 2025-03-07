@@ -1,6 +1,6 @@
 import * as React from 'react'
 
-import {cn} from '@halycon/ui/lib/utils'
+import {cn} from '@halycron/ui/lib/utils'
 
 const Card = React.forwardRef<
   HTMLDivElement,

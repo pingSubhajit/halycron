@@ -57,11 +57,8 @@ export const rateLimit = async (
 			remaining: Math.max(0, config.limit - currentRequests),
 			reset: Date.now() + config.window * 1000
 		}
-	} catch (error) {
+	} catch {
 		// Fail open - allow request in case of Redis error
-		if (error instanceof Error) {
-			process.stdout.write(`Error: ${error.message}\n`)
-		}
 
 		return {
 			success: true,

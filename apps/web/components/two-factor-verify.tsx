@@ -2,10 +2,10 @@ import {useState} from 'react'
 import {zodResolver} from '@hookform/resolvers/zod'
 import {useForm} from 'react-hook-form'
 import * as z from 'zod'
-import {Button} from '@halycon/ui/components/button'
-import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@halycon/ui/components/card'
-import {Form, FormControl, FormField, FormItem, FormMessage} from '@halycon/ui/components/form'
-import {InputOTP, InputOTPGroup, InputOTPSlot} from '@halycon/ui/components/input-otp'
+import {Button} from '@halycron/ui/components/button'
+import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@halycron/ui/components/card'
+import {Form, FormControl, FormField, FormItem, FormMessage} from '@halycron/ui/components/form'
+import {InputOTP, InputOTPGroup, InputOTPSlot} from '@halycron/ui/components/input-otp'
 
 const formSchema = z.object({
 	code: z.string().length(6, 'Please enter a valid 6-digit code')

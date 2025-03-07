@@ -1,5 +1,5 @@
 import Image from 'next/image'
-import logo from '@halycon/ui/media/logo.svg'
+import logo from '@halycron/ui/media/logo.svg'
 import {Metadata} from 'next'
 import {GetStartedButton} from '@/app/(site)/get-started-button'
 import {ArrowUpRight} from 'lucide-react'
@@ -37,7 +37,7 @@ const Page = () => (
 			<div className="flex items-center gap-8">
 				<GetStartedButton />
 
-				<a href="https://github.com/pingSubhajit/halycon?tab=readme-ov-file" target="_blank" className="flex items-center gap-1 hover:underline underline-offset-8" rel="noreferrer">
+				<a href="https://github.com/pingSubhajit/halycron?tab=readme-ov-file" target="_blank" className="flex items-center gap-1 hover:underline underline-offset-8" rel="noreferrer">
 					<em className="font-serif font-medium">Github</em>
 					<ArrowUpRight className="w-4 h-4" />
 				</a>

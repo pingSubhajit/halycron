@@ -7,7 +7,7 @@ import {twoFactor} from 'better-auth/plugins'
 import {twoFactorClient} from 'better-auth/client/plugins'
 
 export const auth = betterAuth({
-	appName: 'Halycon',
+	appName: 'Halycron',
 	database: drizzleAdapter(db, {
 		provider: 'pg', // or "mysql", "sqlite",
 		schema

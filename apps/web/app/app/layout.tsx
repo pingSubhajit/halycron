@@ -1,4 +1,4 @@
-import {SidebarProvider, SidebarTrigger} from '@halycon/ui/components/sidebar'
+import {SidebarProvider, SidebarTrigger} from '@halycron/ui/components/sidebar'
 import {AppSidebar} from '@/components/app-sidebar'
 import {ReactNode} from 'react'
 import {UserMenu} from '@/components/user-menu'

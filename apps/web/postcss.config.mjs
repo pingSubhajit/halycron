@@ -1,1 +1,1 @@
-export { default } from "@halycon/ui/postcss.config";
+export { default } from "@halycron/ui/postcss.config";

@@ -2,10 +2,10 @@
   "lockfileVersion": 1,
   "workspaces": {
     "": {
-      "name": "halycon",
+      "name": "halycron",
       "devDependencies": {
-        "@halycon/eslint-config": "workspace:*",
-        "@halycon/typescript-config": "workspace:*",
+        "@halycron/eslint-config": "workspace:*",
+        "@halycron/typescript-config": "workspace:*",
         "eslint": "^9.20.1",
         "prettier": "^3.2.5",
         "turbo": "^2.4.4",
@@ -13,10 +13,10 @@
       },
     },
     "apps/mobile": {
-      "name": "@halycon/mobile",
+      "name": "@halycron/mobile",
       "version": "1.0.0",
       "dependencies": {
-        "@halycon/ui": "workspace:*",
+        "@halycron/ui": "workspace:*",
         "expo": "^53.0.0-canary-20250219-4a5dade",
         "expo-constants": "18.0.0-canary-20250219-4a5dade",
         "expo-dev-client": "5.0.13-canary-20250219-4a5dade",
@@ -36,18 +36,18 @@
       },
       "devDependencies": {
         "@babel/core": "^7.23.7",
-        "@halycon/typescript-config": "workspace:*",
+        "@halycron/typescript-config": "workspace:*",
         "@types/react": "^19.0.10",
         "typescript": "~5.3.3",
       },
     },
     "apps/web": {
-      "name": "@halycon/web",
+      "name": "@halycron/web",
       "version": "0.0.1",
       "dependencies": {
         "@aws-sdk/client-s3": "^3.749.0",
         "@aws-sdk/s3-request-presigner": "^3.749.0",
-        "@halycon/ui": "workspace:*",
+        "@halycron/ui": "workspace:*",
         "@hookform/resolvers": "^4.1.0",
         "@neondatabase/serverless": "^0.10.4",
         "@radix-ui/react-avatar": "^1.1.3",
@@ -91,8 +91,8 @@
         "zustand": "^5.0.3",
       },
       "devDependencies": {
-        "@halycon/eslint-config": "workspace:^",
-        "@halycon/typescript-config": "workspace:*",
+        "@halycron/eslint-config": "workspace:^",
+        "@halycron/typescript-config": "workspace:*",
         "@types/node": "^20",
         "@types/qrcode": "^1.5.5",
         "@types/react": "^19.0.10",
@@ -104,7 +104,7 @@
       },
     },
     "packages/eslint-config": {
-      "name": "@halycon/eslint-config",
+      "name": "@halycron/eslint-config",
       "version": "0.0.0",
       "devDependencies": {
         "@next/eslint-plugin-next": "^15.1.0",
@@ -125,11 +125,11 @@
       },
     },
     "packages/typescript-config": {
-      "name": "@halycon/typescript-config",
+      "name": "@halycron/typescript-config",
       "version": "0.0.0",
     },
     "packages/ui": {
-      "name": "@halycon/ui",
+      "name": "@halycron/ui",
       "version": "0.0.0",
       "dependencies": {
         "@radix-ui/react-slot": "^1.1.1",
@@ -144,8 +144,8 @@
         "zod": "^3.23.8",
       },
       "devDependencies": {
-        "@halycon/eslint-config": "workspace:*",
-        "@halycon/typescript-config": "workspace:*",
+        "@halycron/eslint-config": "workspace:*",
+        "@halycron/typescript-config": "workspace:*",
         "@turbo/gen": "^2.2.3",
         "@types/node": "^22.9.0",
         "@types/react": "^19.0.10",
@@ -644,15 +644,15 @@
 
     "@floating-ui/utils": ["@floating-ui/utils@0.2.9", "", {}, "sha512-MDWhGtE+eHw5JW7lq4qhc5yRLS11ERl1c7Z6Xd0a58DozHES6EnNNwUWbMiG4J9Cgj053Bhk8zvlhFYKVhULwg=="],
 
-    "@halycon/eslint-config": ["@halycon/eslint-config@workspace:packages/eslint-config"],
+    "@halycron/eslint-config": ["@halycron/eslint-config@workspace:packages/eslint-config"],
 
-    "@halycon/mobile": ["@halycon/mobile@workspace:apps/mobile"],
+    "@halycron/mobile": ["@halycron/mobile@workspace:apps/mobile"],
 
-    "@halycon/typescript-config": ["@halycon/typescript-config@workspace:packages/typescript-config"],
+    "@halycron/typescript-config": ["@halycron/typescript-config@workspace:packages/typescript-config"],
 
-    "@halycon/ui": ["@halycon/ui@workspace:packages/ui"],
+    "@halycron/ui": ["@halycron/ui@workspace:packages/ui"],
 
-    "@halycon/web": ["@halycon/web@workspace:apps/web"],
+    "@halycron/web": ["@halycron/web@workspace:apps/web"],
 
     "@hexagon/base64": ["@hexagon/base64@1.1.28", "", {}, "sha512-lhqDEAvWixy3bZ+UOYbPwUbBkwBq5C1LAJ/xPC8Oi+lL54oyakv/npbA0aU2hgCsx/1NUd4IBvV03+aUBWxerw=="],
 
@@ -2922,17 +2922,17 @@
 
     "@expo/xcpretty/@babel/code-frame": ["@babel/code-frame@7.10.4", "", { "dependencies": { "@babel/highlight": "^7.10.4" } }, "sha512-vG6SvB6oYEhvgisZNFRmRCUkLz11c7rp+tbNTynGqc6mS1d5ATd/sGyV6W0KZZnXRKMTzZDRgQT3Ou9jhpAfUg=="],
 
-    "@halycon/eslint-config/typescript": ["typescript@5.7.3", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-84MVSjMEHP+FQRPy3pX9sTVV/INIex71s9TL2Gm5FG/WG1SqXeKyZ0k7/blY/4FdOzI12CBy1vGc4og/eus0fw=="],
+    "@halycron/eslint-config/typescript": ["typescript@5.7.3", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-84MVSjMEHP+FQRPy3pX9sTVV/INIex71s9TL2Gm5FG/WG1SqXeKyZ0k7/blY/4FdOzI12CBy1vGc4og/eus0fw=="],
 
-    "@halycon/mobile/typescript": ["typescript@5.3.3", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-pXWcraxM0uxAS+tN0AG/BF2TyqmHO014Z070UsJ+pFvYuRSq8KH8DmWpnbXe0pEPDHXZV3FcAbJkijJ5oNEnWw=="],
+    "@halycron/mobile/typescript": ["typescript@5.3.3", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-pXWcraxM0uxAS+tN0AG/BF2TyqmHO014Z070UsJ+pFvYuRSq8KH8DmWpnbXe0pEPDHXZV3FcAbJkijJ5oNEnWw=="],
 
-    "@halycon/ui/typescript": ["typescript@5.7.3", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-84MVSjMEHP+FQRPy3pX9sTVV/INIex71s9TL2Gm5FG/WG1SqXeKyZ0k7/blY/4FdOzI12CBy1vGc4og/eus0fw=="],
+    "@halycron/ui/typescript": ["typescript@5.7.3", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-84MVSjMEHP+FQRPy3pX9sTVV/INIex71s9TL2Gm5FG/WG1SqXeKyZ0k7/blY/4FdOzI12CBy1vGc4og/eus0fw=="],
 
-    "@halycon/web/@types/node": ["@types/node@20.17.19", "", { "dependencies": { "undici-types": "~6.19.2" } }, "sha512-LEwC7o1ifqg/6r2gn9Dns0f1rhK+fPFDoMiceTJ6kWmVk6bgXBI/9IOWfVan4WiAavK9pIVWdX0/e3J+eEUh5A=="],
+    "@halycron/web/@types/node": ["@types/node@20.17.19", "", { "dependencies": { "undici-types": "~6.19.2" } }, "sha512-LEwC7o1ifqg/6r2gn9Dns0f1rhK+fPFDoMiceTJ6kWmVk6bgXBI/9IOWfVan4WiAavK9pIVWdX0/e3J+eEUh5A=="],
 
-    "@halycon/web/lucide-react": ["lucide-react@0.475.0", "", { "peerDependencies": { "react": "^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0" } }, "sha512-NJzvVu1HwFVeZ+Gwq2q00KygM1aBhy/ZrhY9FsAgJtpB+E4R7uxRk9M2iKvHa6/vNxZydIB59htha4c2vvwvVg=="],
+    "@halycron/web/lucide-react": ["lucide-react@0.475.0", "", { "peerDependencies": { "react": "^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0" } }, "sha512-NJzvVu1HwFVeZ+Gwq2q00KygM1aBhy/ZrhY9FsAgJtpB+E4R7uxRk9M2iKvHa6/vNxZydIB59htha4c2vvwvVg=="],
 
-    "@halycon/web/typescript": ["typescript@5.7.3", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-84MVSjMEHP+FQRPy3pX9sTVV/INIex71s9TL2Gm5FG/WG1SqXeKyZ0k7/blY/4FdOzI12CBy1vGc4og/eus0fw=="],
+    "@halycron/web/typescript": ["typescript@5.7.3", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-84MVSjMEHP+FQRPy3pX9sTVV/INIex71s9TL2Gm5FG/WG1SqXeKyZ0k7/blY/4FdOzI12CBy1vGc4og/eus0fw=="],
 
     "@humanfs/node/@humanwhocodes/retry": ["@humanwhocodes/retry@0.3.1", "", {}, "sha512-JBxkERygn7Bv/GbN5Rv8Ul6LVknS+5Bp6RgDC/O8gEBU/yeH5Ui5C/OlWrTb6qct7LjjfT6Re2NxB0ln0yYybA=="],
 
@@ -3300,7 +3300,7 @@
 
     "@expo/package-manager/js-yaml/argparse": ["argparse@1.0.10", "", { "dependencies": { "sprintf-js": "~1.0.2" } }, "sha512-o5Roy6tNG4SL/FOkCAN6RzjiakZS25RLYFrcMttJqbdd8BWrnA+fGz57iN5Pb06pvBGvl5gQ0B48dJlslXvoTg=="],
 
-    "@halycon/web/@types/node/undici-types": ["undici-types@6.19.8", "", {}, "sha512-ve2KP6f/JnbPBFyobGHuerC9g1FYGn/F8n1LWTwNxCEzd6IfqTwUQcNXgEtmmQ6DlRrC1hrSrBnCZPokRrDHjw=="],
+    "@halycron/web/@types/node/undici-types": ["undici-types@6.19.8", "", {}, "sha512-ve2KP6f/JnbPBFyobGHuerC9g1FYGn/F8n1LWTwNxCEzd6IfqTwUQcNXgEtmmQ6DlRrC1hrSrBnCZPokRrDHjw=="],
 
     "@isaacs/cliui/string-width/emoji-regex": ["emoji-regex@9.2.2", "", {}, "sha512-L18DaJsXSUk2+42pv8mLs5jJT2hqFkFE4j21wOmgbUqsZ2hL72NsUU785g9RXgo3s0ZNgVl42TiHp3ZtOv/Vyg=="],
 

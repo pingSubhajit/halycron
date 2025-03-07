@@ -1,10 +1,10 @@
 'use client'
 
 import {useEffect, useState} from 'react'
-import {cn} from '@halycon/ui/lib/utils'
+import {cn} from '@halycron/ui/lib/utils'
 import {ChevronLeft, ChevronRight, X, ZoomIn, ZoomOut} from 'lucide-react'
-import {Button} from '@halycon/ui/components/button'
-import {Carousel, CarouselApi, CarouselContent, CarouselItem} from '@halycon/ui/components/carousel'
+import {Button} from '@halycron/ui/components/button'
+import {Carousel, CarouselApi, CarouselContent, CarouselItem} from '@halycron/ui/components/carousel'
 import {AnimatePresence, motion} from 'motion/react'
 
 interface LightboxProps {

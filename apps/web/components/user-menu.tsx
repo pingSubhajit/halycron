@@ -8,10 +8,10 @@ import {
 	DropdownMenuLabel,
 	DropdownMenuSeparator,
 	DropdownMenuTrigger
-} from '@halycon/ui/components/dropdown-menu'
-import {Button} from '@halycon/ui/components/button'
+} from '@halycron/ui/components/dropdown-menu'
+import {Button} from '@halycron/ui/components/button'
 import {useLogout} from '@/lib/auth/use-logout'
-import {Avatar, AvatarFallback, AvatarImage} from '@halycon/ui/components/avatar'
+import {Avatar, AvatarFallback, AvatarImage} from '@halycron/ui/components/avatar'
 import {createAuthClient} from 'better-auth/react'
 import Link from 'next/link'
 

@@ -5,7 +5,7 @@ import {Photo} from '@/app/api/photos/types'
 import Image from 'next/image'
 import {ChevronLeft, ChevronRight, Minus, Plus, Trash2, X} from 'lucide-react'
 import {AnimatePresence, motion} from 'framer-motion'
-import {Button} from '@halycon/ui/components/button'
+import {Button} from '@halycron/ui/components/button'
 import {useDecryptedUrl} from '@/hooks/use-decrypted-url'
 import {AlbumSelector} from './album-selector'
 

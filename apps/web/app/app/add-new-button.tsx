@@ -1,8 +1,8 @@
 'use client'
 
 import {Upload} from 'lucide-react'
-import {TextScramble} from '@halycon/ui/components/text-scramble'
-import {Button} from '@halycon/ui/components/button'
+import {TextScramble} from '@halycron/ui/components/text-scramble'
+import {Button} from '@halycron/ui/components/button'
 import {useState} from 'react'
 
 export const AddNewButton = () => {

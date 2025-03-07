@@ -1,4 +1,4 @@
-import {config} from '@halycon/eslint-config/base'
+import {config} from '@halycron/eslint-config/base'
 
 /** @type {import("eslint").Linter.Config} */
 export default config

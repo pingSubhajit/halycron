@@ -1,6 +1,6 @@
 import Image from 'next/image'
-import logo from '@halycon/ui/media/logo.svg'
-import {cn} from '@halycon/ui/lib/utils'
+import logo from '@halycron/ui/media/logo.svg'
+import {cn} from '@halycron/ui/lib/utils'
 import Link from 'next/link'
 
 export const SiteNav = ({className}: {className?: string}) => {

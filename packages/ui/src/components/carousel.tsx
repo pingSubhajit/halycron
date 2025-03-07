@@ -3,8 +3,8 @@
 import * as React from 'react'
 import useEmblaCarousel, {type UseEmblaCarouselType} from 'embla-carousel-react'
 import {ArrowLeft, ArrowRight} from 'lucide-react'
-import {cn} from '@halycon/ui/lib/utils'
-import {Button} from '@halycon/ui/components/button'
+import {cn} from '@halycron/ui/lib/utils'
+import {Button} from '@halycron/ui/components/button'
 
 type CarouselApi = UseEmblaCarouselType[1]
 type UseCarouselParameters = Parameters<typeof useEmblaCarousel>
