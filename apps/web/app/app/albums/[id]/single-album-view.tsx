@@ -96,7 +96,7 @@ const AlbumManager = ({album, onDelete}: {album: Album, onDelete: () => void}) =
 				</Form>
 			) : (
 				<div className="flex items-center gap-2 w-full justify-between">
-					<h1 className="text-2xl font-semibold" onClick={() => setIsEditing(true)}>{album.name}</h1>
+					<h1 className="text-xl font-semibold" onClick={() => setIsEditing(true)}>{album.name}</h1>
 
 					<Button variant="ghost" size="icon" className="opacity-80" onClick={onDelete}>
 						<Trash2 className="h-4 w-4" />
@@ -204,13 +204,17 @@ export const SingleAlbumView = ({albumId}: Props) => {
 	}
 
 	if (isLoadingAlbum || isLoadingPhotos) {
-		return <TextShimmer duration={1}>
-			Loading album...
-		</TextShimmer>
+		return <div className="flex flex-col items-center justify-center h-96">
+			<TextShimmer duration={1}>
+				Loading album . . .
+			</TextShimmer>
+		</div>
 	}
 
 	if (isAlbumError || isPhotosError || !album || !photos) {
-		return <div>Error loading album</div>
+		return <div className="flex flex-col items-center justify-center h-96">
+			<p>Error loading album</p>
+		</div>
 	}
 
 	return (
@@ -222,8 +226,8 @@ export const SingleAlbumView = ({albumId}: Props) => {
 
 			{/* Overlay Drop Zone */}
 			<div className={cn(
-				"z-50 absolute w-screen h-screen top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2",
-				isDragging ? "pointer-events-auto" : "pointer-events-none"
+				'z-50 absolute w-screen h-screen top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2',
+				isDragging ? 'pointer-events-auto' : 'pointer-events-none'
 			)}>
 				<PhotoUpload onPhotoUploaded={(photo) => {
 					// Add the uploaded photo to the album

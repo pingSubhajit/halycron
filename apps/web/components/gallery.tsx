@@ -62,6 +62,15 @@ export const Gallery = ({photos, onDelete}: Props) => {
 		return `${removesCount.current}-${addsCount.current}`
 	}, [photos.length, prevItemsCount])
 
+	if (!photos.length) {
+		return (
+			<div className="flex flex-col items-center justify-center h-96">
+				<p className="text-lg text-neutral-300">No photos here</p>
+				<p className="text-sm text-neutral-500">Drag your photos here to upload</p>
+			</div>
+		)
+	}
+
 	return (
 		<Masonry
 			key={`gallery-${gridKeyPostfix}`}

@@ -54,13 +54,24 @@ export const AlbumView = () => {
 	})
 
 	if (isLoading) {
-		return <TextShimmer duration={1}>
-			Collecting and decrypting . . .
-		</TextShimmer>
+		return <div className="flex flex-col items-center justify-center h-96">
+			<TextShimmer duration={1}>
+				Collecting and decrypting . . .
+			</TextShimmer>
+		</div>
 	}
 
 	if (isError) {
-		return <div>Error loading albums</div>
+		return <div className="flex flex-col items-center justify-center h-96">
+			<p>Error loading albums</p>
+		</div>
+	}
+
+	if (albums && albums.length === 0) {
+		return <div className="flex flex-col items-center justify-center h-96">
+			<p className="text-lg text-neutral-300">No albums here</p>
+			<p className="text-sm text-neutral-500">Right click on a photo and add it to an album after creating one there itself</p>
+		</div>
 	}
 
 	return (

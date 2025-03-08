@@ -86,13 +86,17 @@ export const PhotoView = () => {
 	}
 
 	if (isLoading) {
-		return <TextShimmer duration={1}>
-			Collecting and decrypting . . .
-		</TextShimmer>
+		return <div className="flex flex-col items-center justify-center h-96">
+			<TextShimmer duration={1}>
+				Collecting and decrypting . . .
+			</TextShimmer>
+		</div>
 	}
 
 	if (isError) {
-		return <div>Error loading photos</div>
+		return <div className="flex flex-col items-center justify-center h-96">
+			<p>Error loading photos</p>
+		</div>
 	}
 
 	return (
@@ -104,8 +108,8 @@ export const PhotoView = () => {
 
 			{/* Overlay Drop Zone */}
 			<div className={cn(
-				"z-50 absolute w-screen h-screen top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2",
-				isDragging ? "pointer-events-auto" : "pointer-events-none"
+				'z-50 absolute w-screen h-screen top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2',
+				isDragging ? 'pointer-events-auto' : 'pointer-events-none'
 			)}>
 				<PhotoUpload />
 			</div>
