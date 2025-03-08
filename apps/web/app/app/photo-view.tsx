@@ -96,7 +96,7 @@ export const PhotoView = () => {
 	}
 
 	return (
-		<div className="relative w-full h-full">
+		<div className="w-full h-full">
 			{/* Gallery */}
 			<div className="w-full h-full">
 				<Gallery photos={photos!} onDelete={onDelete} />
@@ -104,7 +104,7 @@ export const PhotoView = () => {
 
 			{/* Overlay Drop Zone */}
 			<div className={cn(
-				"absolute inset-0",
+				"z-50 absolute w-screen h-screen top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2",
 				isDragging ? "pointer-events-auto" : "pointer-events-none"
 			)}>
 				<PhotoUpload />

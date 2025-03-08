@@ -2,7 +2,7 @@ import {useCallback, useEffect, useRef, useState} from 'react'
 import {Upload} from 'lucide-react'
 import {useDropzone} from 'react-dropzone'
 import {cn} from '@halycron/ui/lib/utils'
-import {UploadState} from '@/app/api/photos/types'
+import {Photo, UploadState} from '@/app/api/photos/types'
 import {useUploadPhoto} from '@/app/api/photos/mutation'
 import {TextShimmer} from '@halycron/ui/components/text-shimmer'
 import {useQueryClient} from '@tanstack/react-query'
@@ -10,10 +10,18 @@ import {photoQueryKeys} from '@/app/api/photos/keys'
 import {AnimatePresence} from 'framer-motion'
 import {motion} from 'motion/react'
 
-export const PhotoUpload = () => {
+type Props = {
+	onPhotoUploaded?: (photo: Photo) => void
+}
+
+export const PhotoUpload = ({onPhotoUploaded}: Props) => {
 	const [uploadStates, setUploadStates] = useState<Record<string, UploadState>>({})
 	const [showProgress, setShowProgress] = useState(false)
-	const {mutate: uploadFile} = useUploadPhoto(setUploadStates)
+	const {mutate: uploadFile} = useUploadPhoto(setUploadStates, {
+		onSuccess: (photo) => {
+			onPhotoUploaded?.(photo)
+		}
+	})
 	const uploadQueue = useRef<File[]>([])
 	const processingFiles = useRef<Set<string>>(new Set())
 	const queryClient = useQueryClient()
@@ -138,15 +146,7 @@ export const PhotoUpload = () => {
 				<div className={cn(
 					'transition-opacity duration-200',
 					isDragActive ? 'opacity-100' : 'opacity-0'
-				)}>
-					<Upload className="mx-auto h-12 w-12 text-primary" />
-					<p className="mt-2 text-sm text-primary font-medium">
-						Drop your photos here...
-					</p>
-					<p className="text-xs text-primary/80 mt-1">
-						Supported formats: JPG, JPEG, PNG, HEIC, RAW (Max: 50MB)
-					</p>
-				</div>
+				)} />
 			</div>
 		</div>
 	)
