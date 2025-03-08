@@ -31,7 +31,7 @@ const LoginPage = () => {
 			<div className="flex items-center justify-center p-8">
 				<div className="mx-auto w-full max-w-md space-y-6">
 					<div className="flex flex-col text-center items-center">
-						<Link href="/app"><Image src={logo} alt="Halycron Logo" className="w-32" /></Link>
+						<Link href="/"><Image src={logo} alt="Halycron Logo" className="w-32" /></Link>
 
 						<h1 className="mt-8 text-2xl font-semibold tracking-tight">Welcome back</h1>
 						<p className="mt-2 text-sm text-muted-foreground">
