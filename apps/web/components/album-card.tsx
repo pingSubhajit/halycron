@@ -2,10 +2,10 @@
 
 import {Album} from '@/app/api/albums/types'
 import {useAlbumPhotos} from '@/app/api/albums/query'
-import {Photo} from '@/app/api/photos/types'
+import {Photo, UploadState} from '@/app/api/photos/types'
 import {useDecryptedUrl} from '@/hooks/use-decrypted-url'
 import Image from 'next/image'
-import {Image as ImageIcon, Trash2} from 'lucide-react'
+import {Image as ImageIcon, Trash2, Upload} from 'lucide-react'
 import {useCallback, useEffect, useRef, useState} from 'react'
 import Link from 'next/link'
 import {
@@ -16,7 +16,7 @@ import {
 	ContextMenuTrigger
 } from '@halycron/ui/components/context-menu'
 import {format} from 'date-fns'
-import {useUpdateAlbum} from '@/app/api/albums/mutations'
+import {useUpdateAlbum, useAddPhotosToAlbum} from '@/app/api/albums/mutations'
 import {toast} from 'sonner'
 import {useForm} from 'react-hook-form'
 import {zodResolver} from '@hookform/resolvers/zod'
@@ -24,6 +24,9 @@ import * as z from 'zod'
 import {Form, FormControl, FormField, FormItem, FormMessage} from '@halycron/ui/components/form'
 import {Input} from '@halycron/ui/components/input'
 import {useDebounce} from '@/hooks/use-debounce'
+import {useDropzone} from 'react-dropzone'
+import {cn} from '@halycron/ui/lib/utils'
+import {useUploadPhoto} from '@/app/api/photos/mutation'
 
 const PhotoLayer = ({
 	photo,
@@ -113,10 +116,46 @@ export const AlbumCard = ({album, onDelete}: {album: Album, onDelete: () => void
 	const [topPhotoIndex, setTopPhotoIndex] = useState(0)
 	const [isAnimating, setIsAnimating] = useState(false)
 	const [isEditing, setIsEditing] = useState(false)
+	const [uploadStates, setUploadStates] = useState<Record<string, UploadState>>({})
 	const hoverTimerRef = useRef<NodeJS.Timeout | null>(null)
 	const rotationsRef = useRef<{ [key: number]: number }>({})
 	const updateAlbum = useUpdateAlbum()
 	const containerRef = useRef<HTMLDivElement>(null)
+	const [isDraggingOver, setIsDraggingOver] = useState(false)
+
+	const {mutate: uploadFile} = useUploadPhoto(setUploadStates, {
+		onSuccess: (photo) => {
+			// Add the uploaded photo to the album
+			addPhotosToAlbum({
+				albumId: album.id,
+				photoIds: [photo.id]
+			})
+		}
+	})
+
+	const {mutate: addPhotosToAlbum} = useAddPhotosToAlbum(undefined, {
+		onError: (error) => {
+			toast.error(error.message)
+		},
+		onSuccess: () => {
+			toast.success('Photo added to album')
+		}
+	})
+
+	const onDrop = useCallback((acceptedFiles: File[]) => {
+		acceptedFiles.forEach(file => {
+			uploadFile(file)
+		})
+	}, [uploadFile])
+
+	const {getRootProps, getInputProps, isDragActive} = useDropzone({
+		onDrop,
+		accept: {
+			'image/*': ['.jpg', '.jpeg', '.png', '.heic', '.raw']
+		},
+		maxSize: 50 * 1024 * 1024, // 50MB
+		noClick: true, // Disable click to open file dialog
+	})
 
 	const form = useForm<UpdateAlbumFormValues>({
 		resolver: zodResolver(updateAlbumSchema),
@@ -213,9 +252,13 @@ export const AlbumCard = ({album, onDelete}: {album: Album, onDelete: () => void
 		<ContextMenu>
 			<Link href={`/app/albums/${album.id}`}>
 				<ContextMenuTrigger>
-					<div className="w-full cursor-pointer">
+					<div className="w-full cursor-pointer" {...getRootProps()}>
+						<input {...getInputProps()} />
 						<div
-							className="relative w-full aspect-[4/3] overflow-hidden"
+							className={cn(
+								"relative w-full aspect-[4/3] overflow-hidden transition-all duration-200",
+								isDragActive && "ring-2 ring-primary ring-offset-2 backdrop-blur-sm"
+							)}
 							onMouseEnter={startPhotoRotation}
 							onMouseLeave={stopPhotoRotation}
 						>
@@ -244,6 +287,11 @@ export const AlbumCard = ({album, onDelete}: {album: Album, onDelete: () => void
 									<ImageIcon className="w-36 h-36 text-muted-foreground opacity-80"/>
 								</div>
 							</div>}
+
+							{/* Drag overlay */}
+							{isDragActive && (
+								<div className="absolute inset-0 flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm" />
+							)}
 						</div>
 
 						{isEditing ? (
