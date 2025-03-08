@@ -31,7 +31,7 @@ export const UserMenu = () => {
 					variant="outline"
 					className="h-10 w-10 rounded-none"
 				>
-					<Avatar className="h-10 w-10 rounded-none">
+					<Avatar className="h-9 w-10 rounded-none">
 						<AvatarImage src={
 							session?.user?.email
 								? `https://api.dicebear.com/7.x/thumbs/svg?seed=${encodeURIComponent(session?.user.email)}`

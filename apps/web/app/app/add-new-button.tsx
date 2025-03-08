@@ -9,7 +9,7 @@ export const AddNewButton = () => {
 	const [primaryHover, setPrimaryHover] = useState(false)
 
 	return (
-		<Button className="uppercase w-36 justify-between" onMouseEnter={() => setPrimaryHover(true)} onMouseLeave={() => setPrimaryHover(false)}>
+		<Button size="sm" className="uppercase w-32 justify-between" onMouseEnter={() => setPrimaryHover(true)} onMouseLeave={() => setPrimaryHover(false)}>
 			<Upload className="size-4" />
 			<TextScramble
 				speed={0.05}
