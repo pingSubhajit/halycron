@@ -14,7 +14,7 @@ const formSchema = z.object({
 
 export const TwoFactorVerify = ({onVerify, onCancel}: { onVerify: (code: string) => Promise<void>, onCancel: () => void }) => {
 	const [isLoading, setIsLoading] = useState(false)
-	const containerRef = useRef<HTMLDivElement>(null);
+	const containerRef = useRef<HTMLDivElement>(null)
 
 	const form = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
@@ -26,18 +26,18 @@ export const TwoFactorVerify = ({onVerify, onCancel}: { onVerify: (code: string)
 	useEffect(() => {
 		// Focus the first input element inside the OTP container
 		const focusInput = () => {
-			const input = containerRef.current?.querySelector('input');
+			const input = containerRef.current?.querySelector('input')
 			if (input) {
-				input.focus();
+				input.focus()
 			}
-		};
+		}
 
 		// Try focusing immediately and also after a short delay
-		focusInput();
-		const timer = setTimeout(focusInput, 100);
-		
-		return () => clearTimeout(timer);
-	}, []);
+		focusInput()
+		const timer = setTimeout(focusInput, 100)
+
+		return () => clearTimeout(timer)
+	}, [])
 
 	const onSubmit = async (values: z.infer<typeof formSchema>) => {
 		try {
@@ -55,8 +55,8 @@ export const TwoFactorVerify = ({onVerify, onCancel}: { onVerify: (code: string)
 	return (
 		<Card className="w-full max-w-md mx-auto">
 			<CardHeader>
-				<CardTitle>Two-Factor Authentication</CardTitle>
-				<CardDescription>
+				<CardTitle className="text-center">Two-Factor Authentication</CardTitle>
+				<CardDescription className="text-center">
 					Enter the verification code from your authenticator app
 				</CardDescription>
 			</CardHeader>
@@ -76,13 +76,13 @@ export const TwoFactorVerify = ({onVerify, onCancel}: { onVerify: (code: string)
 												onChange={field.onChange}
 												autoFocus
 											>
-												<InputOTPGroup className="w-full justify-between">
-													<InputOTPSlot index={0} className="w-12 h-12" />
-													<InputOTPSlot index={1} className="w-12 h-12" />
-													<InputOTPSlot index={2} className="w-12 h-12" />
-													<InputOTPSlot index={3} className="w-12 h-12" />
-													<InputOTPSlot index={4} className="w-12 h-12" />
-													<InputOTPSlot index={5} className="w-12 h-12" />
+												<InputOTPGroup className="w-full justify-center">
+													<InputOTPSlot index={0} className="w-full h-14" />
+													<InputOTPSlot index={1} className="w-full h-14" />
+													<InputOTPSlot index={2} className="w-full h-14" />
+													<InputOTPSlot index={3} className="w-full h-14" />
+													<InputOTPSlot index={4} className="w-full h-14" />
+													<InputOTPSlot index={5} className="w-full h-14" />
 												</InputOTPGroup>
 											</InputOTP>
 										</div>

@@ -4,6 +4,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import {Suspense} from 'react'
 import {Metadata} from 'next'
+import logo from '@halycron/ui/media/logo.svg'
 
 export const metadata: Metadata = {
 	title: 'Halycron Sign Up – Create Your Secure Photo Vault Account',
@@ -30,9 +31,11 @@ const RegisterPage = () => {
 			</div>
 			<div className="flex items-center justify-center p-8">
 				<div className="mx-auto w-full max-w-md space-y-6">
-					<div className="flex flex-col space-y-2 text-center">
-						<h1 className="text-2xl font-semibold tracking-tight">Create an account</h1>
-						<p className="text-sm text-muted-foreground">
+					<div className="flex flex-col text-center items-center">
+						<Link href="/app"><Image src={logo} alt="Halycron Logo" className="w-32" /></Link>
+
+						<h1 className="mt-8 text-2xl font-semibold tracking-tight">Create an account</h1>
+						<p className=" mt-2 text-sm text-muted-foreground">
 							Enter your details below to create your account
 						</p>
 					</div>

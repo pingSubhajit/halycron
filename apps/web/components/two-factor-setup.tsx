@@ -26,7 +26,7 @@ export const TwoFactorSetup = ({onComplete}: { onComplete: () => void }) => {
 	const [error, setError] = useState('')
 	const [isLoading, setIsLoading] = useState(false)
 	const [step, setStep] = useState<'password' | 'qr' | 'verify'>('password')
-	const containerRef = useRef<HTMLDivElement>(null);
+	const containerRef = useRef<HTMLDivElement>(null)
 
 	const passwordForm = useForm<z.infer<typeof passwordFormSchema>>({
 		resolver: zodResolver(passwordFormSchema),
@@ -46,19 +46,19 @@ export const TwoFactorSetup = ({onComplete}: { onComplete: () => void }) => {
 		if (step === 'verify') {
 			// Focus the first input element inside the OTP container
 			const focusInput = () => {
-				const input = containerRef.current?.querySelector('input');
+				const input = containerRef.current?.querySelector('input')
 				if (input) {
-					input.focus();
+					input.focus()
 				}
-			};
+			}
 
 			// Try focusing immediately and also after a short delay
-			focusInput();
-			const timer = setTimeout(focusInput, 100);
-			
-			return () => clearTimeout(timer);
+			focusInput()
+			const timer = setTimeout(focusInput, 100)
+
+			return () => clearTimeout(timer)
 		}
-	}, [step]);
+	}, [step])
 
 	const initiate2FA = async (values: z.infer<typeof passwordFormSchema>) => {
 		try {
@@ -110,8 +110,8 @@ export const TwoFactorSetup = ({onComplete}: { onComplete: () => void }) => {
 	return (
 		<Card className="w-full max-w-md mx-auto">
 			<CardHeader>
-				<CardTitle className="text-xl">Set Up Two-Factor Authentication</CardTitle>
-				<CardDescription>
+				<CardTitle className="text-center">Set Up Two-Factor Authentication</CardTitle>
+				<CardDescription className="text-center">
 					Secure your account with two-factor authentication
 				</CardDescription>
 			</CardHeader>
@@ -214,13 +214,13 @@ export const TwoFactorSetup = ({onComplete}: { onComplete: () => void }) => {
 													onChange={field.onChange}
 													autoFocus
 												>
-													<InputOTPGroup className="w-full justify-between">
-														<InputOTPSlot index={0} className="w-12 h-12" />
-														<InputOTPSlot index={1} className="w-12 h-12" />
-														<InputOTPSlot index={2} className="w-12 h-12" />
-														<InputOTPSlot index={3} className="w-12 h-12" />
-														<InputOTPSlot index={4} className="w-12 h-12" />
-														<InputOTPSlot index={5} className="w-12 h-12" />
+													<InputOTPGroup className="w-full justify-center">
+														<InputOTPSlot index={0} className="w-full h-14" />
+														<InputOTPSlot index={1} className="w-full h-14" />
+														<InputOTPSlot index={2} className="w-full h-14" />
+														<InputOTPSlot index={3} className="w-full h-14" />
+														<InputOTPSlot index={4} className="w-full h-14" />
+														<InputOTPSlot index={5} className="w-full h-14" />
 													</InputOTPGroup>
 												</InputOTP>
 											</div>
