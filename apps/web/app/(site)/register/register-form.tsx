@@ -20,8 +20,8 @@ const formSchema = z.object({
 		.string()
 		.min(12, 'Password must be at least 12 characters')
 		.regex(
-			/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/,
-			'Password must include uppercase, lowercase, numbers, and special characters'
+			/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z\d])[A-Za-z\d\W_]+$/,
+			'Password must include uppercase, lowercase, numbers, and at least one special character'
 		),
 	name: z.string().min(2, 'Name must be at least 2 characters')
 })
