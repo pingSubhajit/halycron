@@ -152,7 +152,7 @@ export const AlbumCard = ({album, onDelete}: {album: Album, onDelete: () => void
 		onDrop: (acceptedFiles: File[], rejectedFiles: FileRejection[]) => onDrop(acceptedFiles, rejectedFiles),
 		accept: ACCEPTED_IMAGE_FORMATS,
 		maxSize: MAX_IMAGE_SIZE,
-		noClick: true, // Disable click to open file dialog
+		noClick: true // Disable click to open file dialog
 	})
 
 	const form = useForm<UpdateAlbumFormValues>({
@@ -210,17 +210,17 @@ export const AlbumCard = ({album, onDelete}: {album: Album, onDelete: () => void
 		fileRejections.forEach(({file, errors}) => {
 			const errorMessages = errors.map(error => {
 				switch (error.code) {
-					case 'file-too-large':
-						return `File is too large. Max size is ${formatFileSize(MAX_IMAGE_SIZE)}`
-					case 'file-invalid-type':
-						return `Invalid file type. Accepted formats: ${Object.values(ACCEPTED_IMAGE_FORMATS)
-							.flat()
-							.join(', ')}`
-					default:
-						return error.message
+				case 'file-too-large':
+					return `File is too large. Max size is ${formatFileSize(MAX_IMAGE_SIZE)}`
+				case 'file-invalid-type':
+					return `Invalid file type. Accepted formats: ${Object.values(ACCEPTED_IMAGE_FORMATS)
+						.flat()
+						.join(', ')}`
+				default:
+					return error.message
 				}
 			})
-			
+
 			toast.error(`Error with ${file.name}: ${errorMessages.join(', ')}`, {
 				icon: <AlertCircle className="h-5 w-5" />
 			})
@@ -318,8 +318,8 @@ export const AlbumCard = ({album, onDelete}: {album: Album, onDelete: () => void
 
 						<div
 							className={cn(
-								"relative w-full aspect-[4/3] overflow-hidden transition-all duration-200",
-								isDragActive && "ring-2 ring-primary ring-offset-2 backdrop-blur-sm"
+								'relative w-full aspect-[4/3] overflow-hidden transition-all duration-200',
+								isDragActive && 'ring-2 ring-primary ring-offset-2 backdrop-blur-sm'
 							)}
 							onMouseEnter={startPhotoRotation}
 							onMouseLeave={stopPhotoRotation}
@@ -381,7 +381,12 @@ export const AlbumCard = ({album, onDelete}: {album: Album, onDelete: () => void
 								</Form>
 							</div>
 						) : (
-							<p className="text-center m-auto font-semibold text-muted-foreground">{album.name}</p>
+							<div className="flex items-center justify-center gap-2 mt-2">
+								<p className="text-center font-semibold text-muted-foreground">{album.name}</p>
+								<span className="py-0.5 w-5 text-center rounded-full bg-muted text-xs aspect-square">
+									{photos?.length || 0}
+								</span>
+							</div>
 						)}
 					</div>
 				</ContextMenuTrigger>

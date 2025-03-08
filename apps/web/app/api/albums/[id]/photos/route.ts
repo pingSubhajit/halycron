@@ -3,7 +3,7 @@ import {auth} from '@/lib/auth/config'
 import {headers} from 'next/headers'
 import {db} from '@/db/drizzle'
 import {photosToAlbums} from '@/db/schema'
-import {and, eq} from 'drizzle-orm'
+import {and, eq, desc} from 'drizzle-orm'
 import {generatePresignedDownloadUrl} from '@/lib/s3-client'
 
 export const GET = async (_: NextRequest, {params}: {params: Promise<{id: string}>}) => {
@@ -42,7 +42,8 @@ export const GET = async (_: NextRequest, {params}: {params: Promise<{id: string
 						}
 					}
 				}
-			}
+			},
+			orderBy: (photosToAlbums) => [desc(photosToAlbums.createdAt)]
 		})
 
 		const photosWithUrls = await Promise.all(albumPhotos.map(async (albumPhoto) => {
