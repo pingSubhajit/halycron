@@ -27,6 +27,9 @@ import {useDebounce} from '@/hooks/use-debounce'
 import {useDropzone} from 'react-dropzone'
 import {cn} from '@halycron/ui/lib/utils'
 import {useUploadPhoto} from '@/app/api/photos/mutation'
+import {AnimatePresence} from 'framer-motion'
+import {motion} from 'framer-motion'
+import {TextShimmer} from '@halycron/ui/components/text-shimmer'
 
 const PhotoLayer = ({
 	photo,
@@ -117,11 +120,13 @@ export const AlbumCard = ({album, onDelete}: {album: Album, onDelete: () => void
 	const [isAnimating, setIsAnimating] = useState(false)
 	const [isEditing, setIsEditing] = useState(false)
 	const [uploadStates, setUploadStates] = useState<Record<string, UploadState>>({})
+	const [showProgress, setShowProgress] = useState(false)
 	const hoverTimerRef = useRef<NodeJS.Timeout | null>(null)
 	const rotationsRef = useRef<{ [key: number]: number }>({})
 	const updateAlbum = useUpdateAlbum()
 	const containerRef = useRef<HTMLDivElement>(null)
 	const [isDraggingOver, setIsDraggingOver] = useState(false)
+	const hideProgressTimeout = useRef<NodeJS.Timeout | null>(null)
 
 	const {mutate: uploadFile} = useUploadPhoto(setUploadStates, {
 		onSuccess: (photo) => {
@@ -143,6 +148,11 @@ export const AlbumCard = ({album, onDelete}: {album: Album, onDelete: () => void
 	})
 
 	const onDrop = useCallback((acceptedFiles: File[]) => {
+		setShowProgress(true)
+		// Clear any existing hide timeout
+		if (hideProgressTimeout.current) {
+			clearTimeout(hideProgressTimeout.current)
+		}
 		acceptedFiles.forEach(file => {
 			uploadFile(file)
 		})
@@ -207,6 +217,21 @@ export const AlbumCard = ({album, onDelete}: {album: Album, onDelete: () => void
 		return () => subscription.unsubscribe()
 	}, [form, debouncedUpdate])
 
+	// Hide progress window after all uploads are complete
+	useEffect(() => {
+		if (showProgress && !Object.entries(uploadStates).find(([_, state]) => state.status !== 'uploaded' && state.status !== 'error')) {
+			hideProgressTimeout.current = setTimeout(() => {
+				setShowProgress(false)
+			}, 3000)
+		}
+
+		return () => {
+			if (hideProgressTimeout.current) {
+				clearTimeout(hideProgressTimeout.current)
+			}
+		}
+	}, [uploadStates, showProgress])
+
 	const hasMultiplePhotos = photos && photos.length > 1
 
 	const getRandomRotation = (index: number) => {
@@ -252,8 +277,49 @@ export const AlbumCard = ({album, onDelete}: {album: Album, onDelete: () => void
 		<ContextMenu>
 			<Link href={`/app/albums/${album.id}`}>
 				<ContextMenuTrigger>
-					<div className="w-full cursor-pointer" {...getRootProps()}>
+					<div className="w-full cursor-pointer relative" {...getRootProps()}>
 						<input {...getInputProps()} />
+
+						{/* Upload Progress */}
+						<AnimatePresence>
+							{Object.entries(uploadStates).length > 0 && showProgress && (
+								<motion.div
+									initial={{opacity: 0, scale: 0.8}}
+									animate={{opacity: 1, scale: 1}}
+									exit={{opacity: 0, scale: 0.8}}
+									className="absolute top-2 right-2 w-64 max-h-[160px] flex flex-col-reverse overflow-y-auto gap-2 bg-background/80 backdrop-blur-sm p-3 rounded-lg shadow-lg z-50"
+								>
+									{Object.entries(uploadStates).map(([fileName, state]) => (
+										<div
+											key={fileName}
+											className={cn(
+												'w-full text-sm flex items-center justify-between gap-2 px-2 py-1 bg-accent rounded-sm',
+												state.status !== 'uploaded' && state.status !== 'error' && 'animate-pulse'
+											)}
+										>
+											<p className="truncate opacity-80">{fileName}</p>
+
+											{(state.status === 'uploaded' || state.status === 'error') && (
+												<div className={cn(
+													'text-yellow-300 flex items-center gap-1',
+													state.status === 'uploaded' && 'text-primary',
+													state.status === 'error' && 'text-red-500'
+												)}>
+													<span>{state.status}</span>
+												</div>
+											)}
+
+											{state.status !== 'uploaded' && state.status !== 'error' && (
+												<TextShimmer duration={1}>
+													{state.status}
+												</TextShimmer>
+											)}
+										</div>
+									))}
+								</motion.div>
+							)}
+						</AnimatePresence>
+
 						<div
 							className={cn(
 								"relative w-full aspect-[4/3] overflow-hidden transition-all duration-200",
