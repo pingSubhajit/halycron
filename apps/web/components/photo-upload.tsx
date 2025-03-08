@@ -40,17 +40,17 @@ export const PhotoUpload = ({onPhotoUploaded}: Props) => {
 		fileRejections.forEach(({file, errors}) => {
 			const errorMessages = errors.map(error => {
 				switch (error.code) {
-					case 'file-too-large':
-						return `File is too large. Max size is ${formatFileSize(MAX_IMAGE_SIZE)}`
-					case 'file-invalid-type':
-						return `Invalid file type. Accepted formats: ${Object.values(ACCEPTED_IMAGE_FORMATS)
-							.flat()
-							.join(', ')}`
-					default:
-						return error.message
+				case 'file-too-large':
+					return `File is too large. Max size is ${formatFileSize(MAX_IMAGE_SIZE)}`
+				case 'file-invalid-type':
+					return `Invalid file type. Accepted formats: ${Object.values(ACCEPTED_IMAGE_FORMATS)
+						.flat()
+						.join(', ')}`
+				default:
+					return error.message
 				}
 			})
-			
+
 			toast.error(`Error with ${file.name}: ${errorMessages.join(', ')}`, {
 				icon: <AlertCircle className="h-5 w-5" />
 			})
