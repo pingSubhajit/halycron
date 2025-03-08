@@ -2,10 +2,10 @@
 
 import {Album} from '@/app/api/albums/types'
 import {useAlbumPhotos} from '@/app/api/albums/query'
-import {Photo, UploadState} from '@/app/api/photos/types'
+import {Photo} from '@/app/api/photos/types'
 import {useDecryptedUrl} from '@/hooks/use-decrypted-url'
 import Image from 'next/image'
-import {Image as ImageIcon, Trash2, Upload} from 'lucide-react'
+import {Image as ImageIcon, Trash2, AlertCircle} from 'lucide-react'
 import {useCallback, useEffect, useRef, useState} from 'react'
 import Link from 'next/link'
 import {
@@ -26,10 +26,12 @@ import {Input} from '@halycron/ui/components/input'
 import {useDebounce} from '@/hooks/use-debounce'
 import {useDropzone} from 'react-dropzone'
 import {cn} from '@halycron/ui/lib/utils'
-import {useUploadPhoto} from '@/app/api/photos/mutation'
+import {usePhotoUpload} from '@/hooks/use-photo-upload'
 import {AnimatePresence} from 'framer-motion'
 import {motion} from 'framer-motion'
 import {TextShimmer} from '@halycron/ui/components/text-shimmer'
+import {ACCEPTED_IMAGE_FORMATS, MAX_IMAGE_SIZE} from '@/lib/constants'
+import {FileRejection} from 'react-dropzone'
 
 const PhotoLayer = ({
 	photo,
@@ -49,11 +51,6 @@ const PhotoLayer = ({
 	const decryptedUrl = useDecryptedUrl(photo)
 
 	if (!decryptedUrl) {
-		// return <div
-		// 	className="relative overflow-hidden bg-accent animate-pulse w-full h-full min-h-48"
-		// 	style={{aspectRatio: (photo.imageWidth || 800) / (photo.imageHeight || 600)}}
-		// />
-
 		return <></>
 	}
 
@@ -114,29 +111,24 @@ const updateAlbumSchema = z.object({
 
 type UpdateAlbumFormValues = z.infer<typeof updateAlbumSchema>
 
+const formatFileSize = (bytes: number) => {
+	if (bytes === 0) return '0 Bytes'
+	const k = 1024
+	const sizes = ['Bytes', 'KB', 'MB', 'GB']
+	const i = Math.floor(Math.log(bytes) / Math.log(k))
+	return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
+}
+
 export const AlbumCard = ({album, onDelete}: {album: Album, onDelete: () => void}) => {
 	const {data: photos, isLoading, isError} = useAlbumPhotos(album.id)
 	const [topPhotoIndex, setTopPhotoIndex] = useState(0)
 	const [isAnimating, setIsAnimating] = useState(false)
 	const [isEditing, setIsEditing] = useState(false)
-	const [uploadStates, setUploadStates] = useState<Record<string, UploadState>>({})
-	const [showProgress, setShowProgress] = useState(false)
 	const hoverTimerRef = useRef<NodeJS.Timeout | null>(null)
 	const rotationsRef = useRef<{ [key: number]: number }>({})
 	const updateAlbum = useUpdateAlbum()
 	const containerRef = useRef<HTMLDivElement>(null)
 	const [isDraggingOver, setIsDraggingOver] = useState(false)
-	const hideProgressTimeout = useRef<NodeJS.Timeout | null>(null)
-
-	const {mutate: uploadFile} = useUploadPhoto(setUploadStates, {
-		onSuccess: (photo) => {
-			// Add the uploaded photo to the album
-			addPhotosToAlbum({
-				albumId: album.id,
-				photoIds: [photo.id]
-			})
-		}
-	})
 
 	const {mutate: addPhotosToAlbum} = useAddPhotosToAlbum(undefined, {
 		onError: (error) => {
@@ -147,23 +139,19 @@ export const AlbumCard = ({album, onDelete}: {album: Album, onDelete: () => void
 		}
 	})
 
-	const onDrop = useCallback((acceptedFiles: File[]) => {
-		setShowProgress(true)
-		// Clear any existing hide timeout
-		if (hideProgressTimeout.current) {
-			clearTimeout(hideProgressTimeout.current)
+	const {uploadStates, showProgress, onDrop, fileRejections} = usePhotoUpload({
+		onPhotoUploaded: (photo) => {
+			addPhotosToAlbum({
+				albumId: album.id,
+				photoIds: [photo.id]
+			})
 		}
-		acceptedFiles.forEach(file => {
-			uploadFile(file)
-		})
-	}, [uploadFile])
+	})
 
 	const {getRootProps, getInputProps, isDragActive} = useDropzone({
-		onDrop,
-		accept: {
-			'image/*': ['.jpg', '.jpeg', '.png', '.heic', '.raw']
-		},
-		maxSize: 50 * 1024 * 1024, // 50MB
+		onDrop: (acceptedFiles: File[], rejectedFiles: FileRejection[]) => onDrop(acceptedFiles, rejectedFiles),
+		accept: ACCEPTED_IMAGE_FORMATS,
+		maxSize: MAX_IMAGE_SIZE,
 		noClick: true, // Disable click to open file dialog
 	})
 
@@ -217,20 +205,27 @@ export const AlbumCard = ({album, onDelete}: {album: Album, onDelete: () => void
 		return () => subscription.unsubscribe()
 	}, [form, debouncedUpdate])
 
-	// Hide progress window after all uploads are complete
+	// Handle file rejections
 	useEffect(() => {
-		if (showProgress && !Object.entries(uploadStates).find(([_, state]) => state.status !== 'uploaded' && state.status !== 'error')) {
-			hideProgressTimeout.current = setTimeout(() => {
-				setShowProgress(false)
-			}, 3000)
-		}
-
-		return () => {
-			if (hideProgressTimeout.current) {
-				clearTimeout(hideProgressTimeout.current)
-			}
-		}
-	}, [uploadStates, showProgress])
+		fileRejections.forEach(({file, errors}) => {
+			const errorMessages = errors.map(error => {
+				switch (error.code) {
+					case 'file-too-large':
+						return `File is too large. Max size is ${formatFileSize(MAX_IMAGE_SIZE)}`
+					case 'file-invalid-type':
+						return `Invalid file type. Accepted formats: ${Object.values(ACCEPTED_IMAGE_FORMATS)
+							.flat()
+							.join(', ')}`
+					default:
+						return error.message
+				}
+			})
+			
+			toast.error(`Error with ${file.name}: ${errorMessages.join(', ')}`, {
+				icon: <AlertCircle className="h-5 w-5" />
+			})
+		})
+	}, [fileRejections])
 
 	const hasMultiplePhotos = photos && photos.length > 1
 
@@ -306,6 +301,7 @@ export const AlbumCard = ({album, onDelete}: {album: Album, onDelete: () => void
 													state.status === 'error' && 'text-red-500'
 												)}>
 													<span>{state.status}</span>
+													{state.status === 'error' && <AlertCircle className="h-4 w-4" />}
 												</div>
 											)}
 

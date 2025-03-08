@@ -13,7 +13,10 @@ const photoMetadataSchema = z.object({
 	encryptedFileKey: z.string(),
 	fileKeyIv: z.string(),
 	originalFilename: z.string(),
-	mimeType: z.string().regex(/^image\/(jpeg|png|jpg|heic|raw)$/),
+	mimeType: z.string().regex(
+		/^(image\/(jpeg|png|jpg|heic|heif|avif|avis|webp|raw|arw|cr2|nef|orf|rw2)|application\/octet-stream)$/,
+		'Unsupported image format'
+	),
 	imageWidth: z.number().optional(),
 	imageHeight: z.number().optional()
 })

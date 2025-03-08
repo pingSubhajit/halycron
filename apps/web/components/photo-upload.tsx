@@ -1,102 +1,61 @@
-import {useCallback, useEffect, useRef, useState} from 'react'
-import {Upload} from 'lucide-react'
+import {useCallback, useEffect} from 'react'
+import {Upload, AlertCircle} from 'lucide-react'
 import {useDropzone} from 'react-dropzone'
 import {cn} from '@halycron/ui/lib/utils'
-import {Photo, UploadState} from '@/app/api/photos/types'
-import {useUploadPhoto} from '@/app/api/photos/mutation'
+import {Photo} from '@/app/api/photos/types'
 import {TextShimmer} from '@halycron/ui/components/text-shimmer'
-import {useQueryClient} from '@tanstack/react-query'
-import {photoQueryKeys} from '@/app/api/photos/keys'
 import {AnimatePresence} from 'framer-motion'
 import {motion} from 'motion/react'
+import {usePhotoUpload} from '@/hooks/use-photo-upload'
+import {ACCEPTED_IMAGE_FORMATS, MAX_IMAGE_SIZE} from '@/lib/constants'
+import {toast} from 'sonner'
 
 type Props = {
 	onPhotoUploaded?: (photo: Photo) => void
 }
 
+const formatFileSize = (bytes: number) => {
+	if (bytes === 0) return '0 Bytes'
+	const k = 1024
+	const sizes = ['Bytes', 'KB', 'MB', 'GB']
+	const i = Math.floor(Math.log(bytes) / Math.log(k))
+	return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
+}
+
 export const PhotoUpload = ({onPhotoUploaded}: Props) => {
-	const [uploadStates, setUploadStates] = useState<Record<string, UploadState>>({})
-	const [showProgress, setShowProgress] = useState(false)
-	const {mutate: uploadFile} = useUploadPhoto(setUploadStates, {
-		onSuccess: (photo) => {
-			onPhotoUploaded?.(photo)
-		}
+	const {uploadStates, showProgress, onDrop} = usePhotoUpload({
+		onPhotoUploaded
 	})
-	const uploadQueue = useRef<File[]>([])
-	const processingFiles = useRef<Set<string>>(new Set())
-	const queryClient = useQueryClient()
-	const hasSuccessfulUploads = useRef(false)
 
-	const checkAndInvalidateQueries = useCallback(() => {
-		// Only invalidate if there are no more processing files, and we had at least one successful upload
-		if (processingFiles.current.size === 0 && hasSuccessfulUploads.current) {
-			queryClient.invalidateQueries({queryKey: photoQueryKeys.allPhotos()})
-			hasSuccessfulUploads.current = false // Reset for next batch
-		}
-	}, [queryClient])
-
-	const processQueue = useCallback(() => {
-		if (!showProgress) setShowProgress(true)
-
-		const availableSlots = 10 - processingFiles.current.size
-		if (availableSlots <= 0 || uploadQueue.current.length === 0) return
-
-		const filesToProcess = uploadQueue.current.slice(0, availableSlots)
-		uploadQueue.current = uploadQueue.current.slice(availableSlots)
-
-		filesToProcess.forEach(file => {
-			processingFiles.current.add(file.name)
-			uploadFile(file)
-			setUploadStates(prev => ({
-				...prev,
-				[file.name]: {progress: 0, status: 'idle'}
-			}))
-		})
-	}, [uploadFile])
-
-	useEffect(() => {
-		const completedFiles = Object.entries(uploadStates).filter(
-			([_, state]) => state.status === 'uploaded' || state.status === 'error'
-		)
-
-		if (completedFiles.length > 0) {
-			completedFiles.forEach(([fileName, state]) => {
-				processingFiles.current.delete(fileName)
-				if (state.status === 'uploaded') {
-					hasSuccessfulUploads.current = true
-				}
-			})
-
-			checkAndInvalidateQueries()
-		}
-
-		if (uploadQueue.current.length > 0) {
-			processQueue()
-		}
-	}, [uploadStates, processQueue, checkAndInvalidateQueries])
-
-	const onDrop = useCallback((acceptedFiles: File[]) => {
-		uploadQueue.current.push(...acceptedFiles)
-		processQueue()
-	}, [processQueue])
-
-	const {getRootProps, getInputProps, isDragActive} = useDropzone({
+	const {getRootProps, getInputProps, isDragActive, fileRejections} = useDropzone({
 		onDrop,
-		accept: {
-			'image/*': ['.jpg', '.jpeg', '.png', '.heic', '.raw']
-		},
-		maxSize: 50 * 1024 * 1024, // 50MB
+		accept: ACCEPTED_IMAGE_FORMATS,
+		maxSize: MAX_IMAGE_SIZE,
 		noClick: true, // Disable click to open file dialog since we're using it as an overlay
 		preventDropOnDocument: true // Prevent drops outside our zone from opening files in the browser
 	})
 
+	// Handle file rejections
 	useEffect(() => {
-		if (showProgress && !Object.entries(uploadStates).find(([_, state]) => state.status !== 'uploaded' && state.status !== 'error')) {
-			setTimeout(() => {
-				setShowProgress(false)
-			}, 3000)
-		}
-	}, [uploadStates, showProgress])
+		fileRejections.forEach(({file, errors}) => {
+			const errorMessages = errors.map(error => {
+				switch (error.code) {
+					case 'file-too-large':
+						return `File is too large. Max size is ${formatFileSize(MAX_IMAGE_SIZE)}`
+					case 'file-invalid-type':
+						return `Invalid file type. Accepted formats: ${Object.values(ACCEPTED_IMAGE_FORMATS)
+							.flat()
+							.join(', ')}`
+					default:
+						return error.message
+				}
+			})
+			
+			toast.error(`Error with ${file.name}: ${errorMessages.join(', ')}`, {
+				icon: <AlertCircle className="h-5 w-5" />
+			})
+		})
+	}, [fileRejections])
 
 	return (
 		<div className="w-full h-full">
@@ -124,6 +83,7 @@ export const PhotoUpload = ({onPhotoUploaded}: Props) => {
 								state.status === 'error' && 'text-red-500'
 							)}>
 								<span>{state.status}</span>
+								{state.status === 'error' && <AlertCircle className="h-4 w-4" />}
 							</div>}
 
 							{state.status !== 'uploaded' && state.status !== 'error' && <TextShimmer duration={1}>

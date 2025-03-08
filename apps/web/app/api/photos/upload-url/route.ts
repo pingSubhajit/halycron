@@ -6,7 +6,10 @@ import {headers} from 'next/headers'
 
 const requestSchema = z.object({
 	fileName: z.string(),
-	contentType: z.string().regex(/^image\/(jpeg|png|jpg|heic|raw)$/)
+	contentType: z.string().regex(
+		/^(image\/(jpeg|png|jpg|heic|heif|avif|avis|webp|raw|arw|cr2|nef|orf|rw2)|application\/octet-stream)$/,
+		'Unsupported image format'
+	)
 })
 
 export const POST = async (req: NextRequest) => {
