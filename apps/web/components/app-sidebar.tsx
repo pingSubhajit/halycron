@@ -43,8 +43,6 @@ export const AppSidebar = () => {
 						))}
 					</SidebarMenu>
 				</div>
-
-				<PhotoUpload />
 			</SidebarContent>
 		</Sidebar>
 	)

@@ -7,11 +7,15 @@ import {useDeletePhoto, useRestorePhoto} from '@/app/api/photos/mutation'
 import dynamic from 'next/dynamic'
 import {TextShimmer} from '@halycron/ui/components/text-shimmer'
 import {api} from '@/lib/data/api-client'
+import {PhotoUpload} from '@/components/photo-upload'
+import {useState, useEffect} from 'react'
+import {cn} from '@halycron/ui/lib/utils'
 
 const Gallery = dynamic(() => import('@/components/gallery').then(mod => mod.Gallery), {ssr: false})
 
 export const PhotoView = () => {
 	const {data: photos, isLoading, isError} = useAllPhotos()
+	const [isDragging, setIsDragging] = useState(false)
 	const {mutate: restorePhoto} = useRestorePhoto({
 		onSuccess: () => {
 			toast.success('Photo restored successfully')
@@ -20,6 +24,36 @@ export const PhotoView = () => {
 			toast.error(error.message)
 		}
 	})
+
+	// Enable pointer events when dragging starts anywhere in the window
+	useEffect(() => {
+		const handleDragEnter = (e: DragEvent) => {
+			if (e.dataTransfer?.types.includes('Files')) {
+				setIsDragging(true)
+			}
+		}
+
+		const handleDragLeave = (e: DragEvent) => {
+			// Only consider it a leave if we're leaving the window
+			if (e.relatedTarget === null) {
+				setIsDragging(false)
+			}
+		}
+
+		const handleDrop = () => {
+			setIsDragging(false)
+		}
+
+		window.addEventListener('dragenter', handleDragEnter)
+		window.addEventListener('dragleave', handleDragLeave)
+		window.addEventListener('drop', handleDrop)
+
+		return () => {
+			window.removeEventListener('dragenter', handleDragEnter)
+			window.removeEventListener('dragleave', handleDragLeave)
+			window.removeEventListener('drop', handleDrop)
+		}
+	}, [])
 
 	const cleanupS3 = async (s3Key: string) => {
 		try {
@@ -62,8 +96,19 @@ export const PhotoView = () => {
 	}
 
 	return (
-		<div>
-			<Gallery photos={photos!} onDelete={onDelete} />
+		<div className="relative w-full h-full">
+			{/* Gallery */}
+			<div className="w-full h-full">
+				<Gallery photos={photos!} onDelete={onDelete} />
+			</div>
+
+			{/* Overlay Drop Zone */}
+			<div className={cn(
+				"absolute inset-0",
+				isDragging ? "pointer-events-auto" : "pointer-events-none"
+			)}>
+				<PhotoUpload />
+			</div>
 		</div>
 	)
 }
