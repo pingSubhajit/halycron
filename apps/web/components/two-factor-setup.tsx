@@ -10,6 +10,7 @@ import {authClient} from '@/lib/auth/auth-client'
 import QRCode from 'qrcode'
 import {InputOTP, InputOTPGroup, InputOTPSlot} from '@halycron/ui/components/input-otp'
 import {Input} from '@halycron/ui/components/input'
+import {useEffect, useRef} from 'react'
 
 const passwordFormSchema = z.object({
 	password: z.string().min(1, 'Password is required')
@@ -25,6 +26,7 @@ export const TwoFactorSetup = ({onComplete}: { onComplete: () => void }) => {
 	const [error, setError] = useState('')
 	const [isLoading, setIsLoading] = useState(false)
 	const [step, setStep] = useState<'password' | 'qr' | 'verify'>('password')
+	const containerRef = useRef<HTMLDivElement>(null);
 
 	const passwordForm = useForm<z.infer<typeof passwordFormSchema>>({
 		resolver: zodResolver(passwordFormSchema),
@@ -39,6 +41,24 @@ export const TwoFactorSetup = ({onComplete}: { onComplete: () => void }) => {
 			code: ''
 		}
 	})
+
+	useEffect(() => {
+		if (step === 'verify') {
+			// Focus the first input element inside the OTP container
+			const focusInput = () => {
+				const input = containerRef.current?.querySelector('input');
+				if (input) {
+					input.focus();
+				}
+			};
+
+			// Try focusing immediately and also after a short delay
+			focusInput();
+			const timer = setTimeout(focusInput, 100);
+			
+			return () => clearTimeout(timer);
+		}
+	}, [step]);
 
 	const initiate2FA = async (values: z.infer<typeof passwordFormSchema>) => {
 		try {
@@ -187,20 +207,23 @@ export const TwoFactorSetup = ({onComplete}: { onComplete: () => void }) => {
 								render={({field}) => (
 									<FormItem>
 										<FormControl>
-											<InputOTP
-												maxLength={6}
-												value={field.value}
-												onChange={field.onChange}
-											>
-												<InputOTPGroup className="w-full justify-between">
-													<InputOTPSlot index={0} className="w-12 h-12" />
-													<InputOTPSlot index={1} className="w-12 h-12" />
-													<InputOTPSlot index={2} className="w-12 h-12" />
-													<InputOTPSlot index={3} className="w-12 h-12" />
-													<InputOTPSlot index={4} className="w-12 h-12" />
-													<InputOTPSlot index={5} className="w-12 h-12" />
-												</InputOTPGroup>
-											</InputOTP>
+											<div ref={containerRef}>
+												<InputOTP
+													maxLength={6}
+													value={field.value}
+													onChange={field.onChange}
+													autoFocus
+												>
+													<InputOTPGroup className="w-full justify-between">
+														<InputOTPSlot index={0} className="w-12 h-12" />
+														<InputOTPSlot index={1} className="w-12 h-12" />
+														<InputOTPSlot index={2} className="w-12 h-12" />
+														<InputOTPSlot index={3} className="w-12 h-12" />
+														<InputOTPSlot index={4} className="w-12 h-12" />
+														<InputOTPSlot index={5} className="w-12 h-12" />
+													</InputOTPGroup>
+												</InputOTP>
+											</div>
 										</FormControl>
 										<FormMessage />
 									</FormItem>

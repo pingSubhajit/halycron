@@ -6,6 +6,7 @@ import {Button} from '@halycron/ui/components/button'
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@halycron/ui/components/card'
 import {Form, FormControl, FormField, FormItem, FormMessage} from '@halycron/ui/components/form'
 import {InputOTP, InputOTPGroup, InputOTPSlot} from '@halycron/ui/components/input-otp'
+import {useEffect, useRef} from 'react'
 
 const formSchema = z.object({
 	code: z.string().length(6, 'Please enter a valid 6-digit code')
@@ -13,6 +14,7 @@ const formSchema = z.object({
 
 export const TwoFactorVerify = ({onVerify, onCancel}: { onVerify: (code: string) => Promise<void>, onCancel: () => void }) => {
 	const [isLoading, setIsLoading] = useState(false)
+	const containerRef = useRef<HTMLDivElement>(null);
 
 	const form = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
@@ -20,6 +22,22 @@ export const TwoFactorVerify = ({onVerify, onCancel}: { onVerify: (code: string)
 			code: ''
 		}
 	})
+
+	useEffect(() => {
+		// Focus the first input element inside the OTP container
+		const focusInput = () => {
+			const input = containerRef.current?.querySelector('input');
+			if (input) {
+				input.focus();
+			}
+		};
+
+		// Try focusing immediately and also after a short delay
+		focusInput();
+		const timer = setTimeout(focusInput, 100);
+		
+		return () => clearTimeout(timer);
+	}, []);
 
 	const onSubmit = async (values: z.infer<typeof formSchema>) => {
 		try {
@@ -51,20 +69,23 @@ export const TwoFactorVerify = ({onVerify, onCancel}: { onVerify: (code: string)
 							render={({field}) => (
 								<FormItem>
 									<FormControl>
-										<InputOTP
-											maxLength={6}
-											value={field.value}
-											onChange={field.onChange}
-										>
-											<InputOTPGroup className="w-full justify-between">
-												<InputOTPSlot index={0} className="w-12 h-12" />
-												<InputOTPSlot index={1} className="w-12 h-12" />
-												<InputOTPSlot index={2} className="w-12 h-12" />
-												<InputOTPSlot index={3} className="w-12 h-12" />
-												<InputOTPSlot index={4} className="w-12 h-12" />
-												<InputOTPSlot index={5} className="w-12 h-12" />
-											</InputOTPGroup>
-										</InputOTP>
+										<div ref={containerRef}>
+											<InputOTP
+												maxLength={6}
+												value={field.value}
+												onChange={field.onChange}
+												autoFocus
+											>
+												<InputOTPGroup className="w-full justify-between">
+													<InputOTPSlot index={0} className="w-12 h-12" />
+													<InputOTPSlot index={1} className="w-12 h-12" />
+													<InputOTPSlot index={2} className="w-12 h-12" />
+													<InputOTPSlot index={3} className="w-12 h-12" />
+													<InputOTPSlot index={4} className="w-12 h-12" />
+													<InputOTPSlot index={5} className="w-12 h-12" />
+												</InputOTPGroup>
+											</InputOTP>
+										</div>
 									</FormControl>
 									<FormMessage />
 								</FormItem>
