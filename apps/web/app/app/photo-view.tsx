@@ -108,7 +108,7 @@ export const PhotoView = () => {
 
 			{/* Overlay Drop Zone */}
 			<div className={cn(
-				'z-50 absolute w-screen h-screen top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2',
+				'z-50 fixed w-screen h-screen top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2',
 				isDragging ? 'pointer-events-auto' : 'pointer-events-none'
 			)}>
 				<PhotoUpload />
