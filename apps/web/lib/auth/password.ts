@@ -6,9 +6,9 @@ import * as bcrypt from 'bcryptjs'
  * @returns The hashed PIN
  */
 export const hashPin = async (pin: string): Promise<string> => {
-  // Use a salt rounds of 10 for a good balance of security and performance
-  const salt = await bcrypt.genSalt(10)
-  return bcrypt.hash(pin, salt)
+	// Use a salt rounds of 10 for a good balance of security and performance
+	const salt = await bcrypt.genSalt(10)
+	return bcrypt.hash(pin, salt)
 }
 
 /**
@@ -18,8 +18,8 @@ export const hashPin = async (pin: string): Promise<string> => {
  * @returns Whether the PIN is valid
  */
 export const verifyPin = async (pin: string, hashedPin: string | null): Promise<boolean> => {
-  if (!hashedPin) return false
-  return bcrypt.compare(pin, hashedPin)
+	if (!hashedPin) return false
+	return bcrypt.compare(pin, hashedPin)
 }
 
 /**
@@ -28,6 +28,6 @@ export const verifyPin = async (pin: string, hashedPin: string | null): Promise<
  * @returns Whether the PIN is valid
  */
 export const validatePin = (pin: string): boolean => {
-  const pinRegex = /^\d{4}$/
-  return pinRegex.test(pin)
-} 
+	const pinRegex = /^\d{4}$/
+	return pinRegex.test(pin)
+}

@@ -342,14 +342,9 @@ export const SingleAlbumView = ({albumId}: Props) => {
 			// Set states to show PIN dialog
 			setIsAccessDenied(true)
 			setIsPinVerificationOpen(true)
-			
-			// Invalidate the album photo queries
-			queryClient.invalidateQueries({queryKey: albumQueryKeys.albumPhotos(albumId)})
-			toast.success('Album locked successfully')
-			router.replace('/app/albums')
+
 			window.location.reload()
 		} catch (error) {
-			console.error('Failed to lock album:', error)
 			toast.error('Failed to lock album')
 		}
 	}, [albumId, queryClient])

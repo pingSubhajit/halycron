@@ -126,7 +126,7 @@ const CreateAlbumForm = ({photoId, variant}: {photoId: string, variant?: 'contex
 			{errors.name && (
 				<p className="text-xs text-destructive">{errors.name.message}</p>
 			)}
-            
+
 			<div className="flex flex-col gap-2">
 				<div className="flex items-center justify-between">
 					<div className="flex items-center gap-2">
@@ -135,13 +135,13 @@ const CreateAlbumForm = ({photoId, variant}: {photoId: string, variant?: 'contex
 							Sensitive Content
 						</Label>
 					</div>
-					<Switch 
-						id="sensitive-toggle" 
+					<Switch
+						id="sensitive-toggle"
 						{...register('isSensitive')}
 						onCheckedChange={(checked) => setValue('isSensitive', checked)}
 					/>
 				</div>
-				
+
 				<div className="flex items-center justify-between">
 					<div className="flex items-center gap-2">
 						<Lock className="h-3 w-3 text-muted-foreground" />
@@ -149,14 +149,14 @@ const CreateAlbumForm = ({photoId, variant}: {photoId: string, variant?: 'contex
 							PIN Protection
 						</Label>
 					</div>
-					<Switch 
-						id="protected-toggle" 
+					<Switch
+						id="protected-toggle"
 						{...register('isProtected')}
 						onCheckedChange={(checked) => setValue('isProtected', checked)}
 					/>
 				</div>
 			</div>
-			
+
 			{isProtected && (
 				<div className="mt-1">
 					<Label htmlFor="pin-input" className="text-xs mb-1 block">

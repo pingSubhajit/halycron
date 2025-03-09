@@ -41,8 +41,8 @@ export const GET = async (request: NextRequest, {params}: Props) => {
 	// For protected albums, check verification before returning full details
 	if (result.isProtected) {
 		// Get the verification cookie
-		const verificationCookie = cookies().get(`album-access-${id}`)?.value
-		
+		const verificationCookie = (await cookies()).get(`album-access-${id}`)?.value
+
 		if (!verificationCookie) {
 			// For protected albums without verification, return limited info
 			return NextResponse.json({
@@ -53,10 +53,10 @@ export const GET = async (request: NextRequest, {params}: Props) => {
 				createdAt: result.createdAt,
 				updatedAt: result.updatedAt,
 				requiresPin: true,
-				_count: { photos: result._count?.photos || 0 }
+				_count: {photos: result._count?.photos || 0}
 			})
 		}
-		
+
 		try {
 			// Verify the token
 			const decoded = jwt.verify(verificationCookie, JWT_SECRET) as {
@@ -65,7 +65,7 @@ export const GET = async (request: NextRequest, {params}: Props) => {
 				tokenType: string;
 				exp: number;
 			}
-			
+
 			// Check token validity
 			if (
 				decoded.albumId !== id ||
@@ -82,7 +82,7 @@ export const GET = async (request: NextRequest, {params}: Props) => {
 					createdAt: result.createdAt,
 					updatedAt: result.updatedAt,
 					requiresPin: true,
-					_count: { photos: result._count?.photos || 0 }
+					_count: {photos: result._count?.photos || 0}
 				})
 			}
 		} catch (error) {
@@ -95,7 +95,7 @@ export const GET = async (request: NextRequest, {params}: Props) => {
 				createdAt: result.createdAt,
 				updatedAt: result.updatedAt,
 				requiresPin: true,
-				_count: { photos: result._count?.photos || 0 }
+				_count: {photos: result._count?.photos || 0}
 			})
 		}
 	}
@@ -131,7 +131,7 @@ export const PATCH = async (request: NextRequest, {params}: Props) => {
 	if (name) updateData.name = name
 	if (typeof isSensitive !== 'undefined') updateData.isSensitive = isSensitive
 	if (typeof isProtected !== 'undefined') updateData.isProtected = isProtected
-	
+
 	// Handle PIN updates with secure hashing
 	if (pin) {
 		updateData.pinHash = await secureHashPin(pin)

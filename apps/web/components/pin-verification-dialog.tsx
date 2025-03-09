@@ -6,7 +6,7 @@ import {
 	DialogContent,
 	DialogDescription,
 	DialogHeader,
-	DialogTitle,
+	DialogTitle
 } from '@halycron/ui/components/dialog'
 import {Button} from '@halycron/ui/components/button'
 import {api} from '@/lib/data/api-client'
@@ -54,24 +54,26 @@ export function PinVerificationDialog({
 		try {
 			// Call API to verify PIN
 			const response = await api.post<VerifyPinResponse>(
-				`/api/albums/${albumId}/verify-pin`, 
-				{ pin }
+				`/api/albums/${albumId}/verify-pin`,
+				{pin}
 			)
-			
+
 			// Check verification status
 			if (response && response.verified === true) {
 				// Success! Close dialog and notify parent
 				toast.success('Album unlocked successfully')
-				
-				// Important: First close dialog, then notify parent with a slight delay
-				// This prevents the "Invalid PIN" message from flickering
+
+				/*
+				 * Important: First close dialog, then notify parent with a slight delay
+				 * This prevents the "Invalid PIN" message from flickering
+				 */
 				onClose()
 				setTimeout(() => {
 					onVerified()
 				}, 150)
 				return
 			}
-			
+
 			// If we get here but verification isn't true, it's an unexpected response
 			setError('Verification failed. Please try again.')
 			setPin('')
@@ -82,7 +84,7 @@ export function PinVerificationDialog({
 			setError(errorMessage)
 			setPin('')
 			setAttempts(prev => prev + 1)
-			
+
 			// If too many failed attempts, show a stronger message
 			if (attempts >= 4) {
 				toast.error('Too many incorrect attempts. Please try again later.')
@@ -115,7 +117,7 @@ export function PinVerificationDialog({
 								<InputOTPSlot index={3} />
 							</InputOTPGroup>
 						</InputOTP>
-						
+
 						{attempts > 2 && (
 							<div className="absolute -right-8 top-1/2 -translate-y-1/2 text-amber-500">
 								<KeyRound className="h-5 w-5" />

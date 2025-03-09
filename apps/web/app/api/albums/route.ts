@@ -4,7 +4,7 @@ import {headers} from 'next/headers'
 import {db} from '@/db/drizzle'
 import {album, photosToAlbums} from '@/db/schema'
 import {createAlbumSchema} from './types'
-import {and, eq} from 'drizzle-orm'
+import {and, eq, count, sql} from 'drizzle-orm'
 import {hashPin as secureHashPin} from '@/lib/auth/password'
 
 export const GET = async () => {
@@ -16,12 +16,32 @@ export const GET = async () => {
 			return NextResponse.json({error: 'Unauthorized'}, {status: 401})
 		}
 
+		// Get all albums for the user
 		const albums = await db.query.album.findMany({
 			where: (albums, {eq}) => eq(albums.userId, session.user.id),
 			orderBy: (albums, {desc}) => [desc(albums.createdAt)]
 		})
 
-		return NextResponse.json(albums)
+		// For each album, count the number of photos
+		const albumsWithCounts = await Promise.all(
+			albums.map(async (album) => {
+				const photoCount = await db.select({
+					count: count()
+				})
+					.from(photosToAlbums)
+					.where(eq(photosToAlbums.albumId, album.id))
+					.then(result => result[0]?.count || 0)
+
+				return {
+					...album,
+					_count: {
+						photos: photoCount
+					}
+				}
+			})
+		)
+
+		return NextResponse.json(albumsWithCounts)
 	} catch (error) {
 		return NextResponse.json(
 			{error: error instanceof Error ? error.message : 'Internal server error'},
@@ -52,9 +72,9 @@ export const POST = async (req: NextRequest) => {
 		const {name, isSensitive = false, isProtected = false, pin} = result.data
 
 		// Hash the PIN if provided
-		let pinHash = null;
+		let pinHash = null
 		if (isProtected && pin) {
-			pinHash = await secureHashPin(pin);
+			pinHash = await secureHashPin(pin)
 		}
 
 		// Save album to database

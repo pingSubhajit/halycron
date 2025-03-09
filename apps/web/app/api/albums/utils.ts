@@ -39,11 +39,11 @@ export const verifyAlbumPin = async (albumId: string, pin: string): Promise<bool
 	})
 
 	if (!result?.pinHash) return false
-	
+
 	// First try bcrypt verification
 	const bcryptMatch = await verifyPin(pin, result.pinHash)
 	if (bcryptMatch) return true
-	
+
 	// Fall back to SHA-256 for backward compatibility
 	return result.pinHash === hashPin(pin)
 }

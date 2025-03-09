@@ -68,9 +68,9 @@ export const POST = async (request: NextRequest, {params}: Props) => {
 				albumId: id,
 				userId: session.user.id,
 				tokenType: 'album-access'
-			}, 
-			JWT_SECRET, 
-			{ expiresIn: TOKEN_EXPIRY }
+			},
+			JWT_SECRET,
+			{expiresIn: TOKEN_EXPIRY}
 		)
 
 		// Set expiry time for 1 hour from now

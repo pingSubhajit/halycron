@@ -23,7 +23,7 @@ export const POST = async (request: NextRequest, {params}: Props) => {
 
 		const {id} = await params
 		const hasAccess = await checkAlbumAccess(id, session.user.id)
-		
+
 		if (!hasAccess) {
 			return NextResponse.json({
 				error: 'Album not found'
@@ -54,4 +54,4 @@ export const POST = async (request: NextRequest, {params}: Props) => {
 			error: error instanceof Error ? error.message : 'Internal server error'
 		}, {status: 500})
 	}
-} 
+}

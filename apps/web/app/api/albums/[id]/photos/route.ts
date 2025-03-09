@@ -38,7 +38,7 @@ export const GET = async (request: NextRequest, {params}: {params: Promise<{id: 
 		if (userAlbum.isProtected) {
 			// Get the verification cookie
 			const verificationCookie = request.cookies.get(`album-access-${id}`)?.value
-			
+
 			if (!verificationCookie) {
 				// No verification token found
 				return NextResponse.json(
@@ -46,7 +46,7 @@ export const GET = async (request: NextRequest, {params}: {params: Promise<{id: 
 					{status: 403}
 				)
 			}
-			
+
 			try {
 				// Verify the token
 				const decoded = jwt.verify(verificationCookie, JWT_SECRET) as {
@@ -56,7 +56,7 @@ export const GET = async (request: NextRequest, {params}: {params: Promise<{id: 
 					exp: number;
 					iat: number;
 				}
-				
+
 				// Check if the token is for this album and user
 				if (
 					decoded.albumId !== id ||
@@ -65,15 +65,15 @@ export const GET = async (request: NextRequest, {params}: {params: Promise<{id: 
 				) {
 					throw new Error('Invalid token')
 				}
-				
+
 				// Check if the token is too old (more than 5 minutes)
 				const tokenAge = Math.floor(Date.now() / 1000) - decoded.iat
-				const maxTokenAge = 5 * 60; // 5 minutes in seconds
-				
+				const maxTokenAge = 5 * 60 // 5 minutes in seconds
+
 				if (tokenAge > maxTokenAge) {
 					throw new Error('Token expired (too old)')
 				}
-				
+
 				// Check if the token has expired based on its exp field
 				if (decoded.exp < Math.floor(Date.now() / 1000)) {
 					throw new Error('Token expired')
@@ -84,14 +84,14 @@ export const GET = async (request: NextRequest, {params}: {params: Promise<{id: 
 					{error: 'PIN verification has expired or is invalid.', requiresPin: true},
 					{status: 403}
 				)
-				
+
 				// Clear the invalid cookie
 				response.cookies.set({
 					name: `album-access-${id}`,
 					value: '',
 					maxAge: 0
 				})
-				
+
 				return response
 			}
 		}

@@ -365,7 +365,7 @@ export const AlbumCard = ({album, onDelete}: {album: Album, onDelete: () => void
 							<div className="flex items-center justify-center gap-2 mt-2">
 								<p className="text-center font-semibold text-muted-foreground">{album.name}</p>
 								<span className="py-0.5 w-5 text-center rounded-full bg-muted text-xs aspect-square">
-									{photos?.length || 0}
+									{album._count?.photos || 0}
 								</span>
 							</div>
 						)}
@@ -376,7 +376,7 @@ export const AlbumCard = ({album, onDelete}: {album: Album, onDelete: () => void
 				<div className="p-2">
 					<div className="flex items-center justify-between gap-2">
 						<p>{album.name}</p>
-						<p className="py-0.5 w-5 text-center rounded-full bg-primary text-neutral-950 text-xs aspect-square">{photos?.length || 0}</p>
+						<p className="py-0.5 w-5 text-center rounded-full bg-primary text-neutral-950 text-xs aspect-square">{album._count?.photos || 0}</p>
 					</div>
 					<p className="text-xs opacity-80">Created on: {format(album.createdAt || new Date(), 'MMM dd, yyyy')}</p>
 				</div>
