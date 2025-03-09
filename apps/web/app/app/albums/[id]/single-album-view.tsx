@@ -13,7 +13,7 @@ import {Button} from '@halycron/ui/components/button'
 import {Input} from '@halycron/ui/components/input'
 import {useState, useEffect, useCallback} from 'react'
 import {useRouter} from 'next/navigation'
-import {Trash2, EyeOff, Lock, CircleHelp} from 'lucide-react'
+import {Trash2, EyeOff, Lock, CircleHelp, Loader2} from 'lucide-react'
 import {useForm} from 'react-hook-form'
 import {zodResolver} from '@hookform/resolvers/zod'
 import * as z from 'zod'
@@ -58,6 +58,20 @@ const AlbumManager = ({album, onDelete, isAccessDenied, handleLockAlbum}: AlbumM
 			isProtected: album.isProtected
 		}
 	})
+
+	// Handle escape key to cancel editing
+	useEffect(() => {
+		const handleEscapeKey = (e: KeyboardEvent) => {
+			if (e.key === 'Escape' && isEditing) {
+				form.reset()
+				setPin('')
+				setIsEditing(false)
+			}
+		}
+
+		document.addEventListener('keydown', handleEscapeKey)
+		return () => document.removeEventListener('keydown', handleEscapeKey)
+	}, [isEditing, form])
 
 	const isProtected = form.watch('isProtected')
 
@@ -208,8 +222,18 @@ const AlbumManager = ({album, onDelete, isAccessDenied, handleLockAlbum}: AlbumM
 						</div>
 
 						<div className="flex gap-2">
-							<Button type="submit" disabled={!form.formState.isDirty}>
-								Save
+							<Button 
+								type="submit" 
+								disabled={!form.formState.isDirty || form.formState.isSubmitting}
+							>
+								{form.formState.isSubmitting ? (
+									<>
+										<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+										Saving
+									</>
+								) : (
+									'Save'
+								)}
 							</Button>
 							<Button
 								variant="outline"
@@ -218,6 +242,7 @@ const AlbumManager = ({album, onDelete, isAccessDenied, handleLockAlbum}: AlbumM
 									setPin('')
 									setIsEditing(false)
 								}}
+								disabled={form.formState.isSubmitting}
 							>
 								Cancel
 							</Button>
