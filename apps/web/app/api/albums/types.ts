@@ -7,10 +7,10 @@ export const createAlbumSchema = z.object({
 	pin: z.string().length(4).regex(/^\d+$/).optional()
 }).refine(data => {
 	// If isProtected is true, pin must be provided
-	return !data.isProtected || (data.isProtected && !!data.pin);
+	return !data.isProtected || (data.isProtected && !!data.pin)
 }, {
-	message: "PIN is required when album is protected",
-	path: ["pin"]
+	message: 'PIN is required when album is protected',
+	path: ['pin']
 })
 
 export const updateAlbumSchema = z.object({
@@ -20,10 +20,10 @@ export const updateAlbumSchema = z.object({
 	pin: z.string().length(4).regex(/^\d+$/).optional()
 }).refine(data => {
 	// If isProtected is being set to true, pin must be provided
-	return !data.isProtected || (data.isProtected && !!data.pin);
+	return !data.isProtected || (data.isProtected && !!data.pin)
 }, {
-	message: "PIN is required when album is protected",
-	path: ["pin"]
+	message: 'PIN is required when album is protected',
+	path: ['pin']
 })
 
 export const verifyPinSchema = z.object({

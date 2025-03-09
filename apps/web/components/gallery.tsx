@@ -76,7 +76,7 @@ export const Gallery = ({photos, onDelete}: Props) => {
 			key={`gallery-${gridKeyPostfix}`}
 			className="outline-0"
 			items={photos}
-			columnCount={breakpoint >= breakpoints.xl ? 4 : breakpoint >= breakpoints.lg ? 3 : 2}
+			columnCount={breakpoint >= breakpoints['2xl'] ? 5 : breakpoint >= breakpoints.xl ? 4 : breakpoint >= breakpoints.lg ? 3 : 2}
 			columnGutter={breakpoint >= breakpoints.xl ? 16 : breakpoint >= breakpoints.lg ? 10 : 8}
 			itemKey={(_, index) => photos[index]!.id}
 			render={

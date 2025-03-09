@@ -222,8 +222,8 @@ const AlbumManager = ({album, onDelete, isAccessDenied, handleLockAlbum}: AlbumM
 						</div>
 
 						<div className="flex gap-2">
-							<Button 
-								type="submit" 
+							<Button
+								type="submit"
 								disabled={!form.formState.isDirty || form.formState.isSubmitting}
 							>
 								{form.formState.isSubmitting ? (

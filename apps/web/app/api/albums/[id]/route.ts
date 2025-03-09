@@ -136,7 +136,7 @@ export const PATCH = async (request: NextRequest, {params}: Props) => {
 				pinHash: true
 			}
 		})
-		
+
 		// If no existing PIN hash and no new PIN provided, return error
 		if (!existingAlbum?.pinHash) {
 			return NextResponse.json({
