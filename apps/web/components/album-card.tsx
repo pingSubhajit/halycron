@@ -34,6 +34,8 @@ import {ACCEPTED_IMAGE_FORMATS, MAX_IMAGE_SIZE} from '@/lib/constants'
 import {FileRejection} from 'react-dropzone'
 import {Portal} from '@radix-ui/react-portal'
 import {UploadProgress} from './upload-progress'
+import {useQueryClient} from '@tanstack/react-query'
+import {albumQueryKeys} from '@/app/api/albums/keys'
 
 const PhotoLayer = ({
 	photo,
@@ -122,7 +124,8 @@ const formatFileSize = (bytes: number) => {
 }
 
 export const AlbumCard = ({album, onDelete}: {album: Album, onDelete: () => void}) => {
-	const {data: photos, isLoading, isError} = useAlbumPhotos(album.id)
+	const queryClient = useQueryClient()
+	const {data: photos, isLoading, isError, refetch: refetchPhotos} = useAlbumPhotos(album.id, {}, !album.isProtected && !album.isSensitive)
 	const [topPhotoIndex, setTopPhotoIndex] = useState(0)
 	const [isAnimating, setIsAnimating] = useState(false)
 	const [isEditing, setIsEditing] = useState(false)
@@ -131,12 +134,26 @@ export const AlbumCard = ({album, onDelete}: {album: Album, onDelete: () => void
 	const updateAlbum = useUpdateAlbum()
 	const containerRef = useRef<HTMLDivElement>(null)
 
+	useEffect(() => {
+		if (photos && photos.length > 0) {
+			photos.forEach((_, index: number) => {
+				if (rotationsRef.current[index] === undefined) {
+					rotationsRef.current[index] = Math.random() * 10 - 5
+				}
+			})
+		}
+	}, [photos])
+
 	const {mutate: addPhotosToAlbum} = useAddPhotosToAlbum(undefined, {
-		onError: (error) => {
+		onError: (error: Error) => {
 			toast.error(error.message)
 		},
 		onSuccess: () => {
 			toast.success('Photo added to album')
+			queryClient.invalidateQueries({queryKey: albumQueryKeys.albumPhotos(album.id)})
+			setTimeout(() => {
+				refetchPhotos()
+			}, 100)
 		}
 	})
 
@@ -153,7 +170,7 @@ export const AlbumCard = ({album, onDelete}: {album: Album, onDelete: () => void
 		onDrop: (acceptedFiles: File[], rejectedFiles: FileRejection[]) => onDrop(acceptedFiles, rejectedFiles),
 		accept: ACCEPTED_IMAGE_FORMATS,
 		maxSize: MAX_IMAGE_SIZE,
-		noClick: true // Disable click to open file dialog
+		noClick: true
 	})
 
 	const form = useForm<UpdateAlbumFormValues>({
@@ -196,7 +213,6 @@ export const AlbumCard = ({album, onDelete}: {album: Album, onDelete: () => void
 		}
 	}, [isEditing, form])
 
-	// Subscribe to form changes and trigger debounced update
 	useEffect(() => {
 		const subscription = form.watch((value, {name}) => {
 			if (name === 'name' && form.formState.isValid) {
@@ -206,7 +222,6 @@ export const AlbumCard = ({album, onDelete}: {album: Album, onDelete: () => void
 		return () => subscription.unsubscribe()
 	}, [form, debouncedUpdate])
 
-	// Handle file rejections
 	useEffect(() => {
 		fileRejections.forEach(({file, errors}) => {
 			const errorMessages = errors.map(error => {
@@ -276,7 +291,6 @@ export const AlbumCard = ({album, onDelete}: {album: Album, onDelete: () => void
 					<div className="w-full cursor-pointer relative" {...getRootProps()}>
 						<input {...getInputProps()} />
 
-						{/* Upload Progress */}
 						<UploadProgress
 							uploadStates={uploadStates}
 							showProgress={showProgress}
@@ -292,7 +306,7 @@ export const AlbumCard = ({album, onDelete}: {album: Album, onDelete: () => void
 							onMouseEnter={startPhotoRotation}
 							onMouseLeave={stopPhotoRotation}
 						>
-							{!album.isSensitive && !album.isProtected && photos && photos[0] && photos.map((photo, index) => {
+							{photos && photos.length > 0 && photos.map((photo, index) => {
 								const effectiveIndex = (index - topPhotoIndex + photos.length) % photos.length
 								const isTop = effectiveIndex === 0
 								const isStack = effectiveIndex > 0
@@ -318,7 +332,6 @@ export const AlbumCard = ({album, onDelete}: {album: Album, onDelete: () => void
 								</div>
 							</div>}
 
-							{/* Drag overlay */}
 							{isDragActive && (
 								<div className="absolute inset-0 flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm" />
 							)}

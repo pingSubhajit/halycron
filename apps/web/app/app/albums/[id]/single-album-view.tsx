@@ -78,12 +78,12 @@ const AlbumManager = ({album, onDelete}: {album: Album, onDelete: () => void}) =
 				isProtected: values.isProtected ?? album.isProtected,
 				updatedAt: new Date()
 			}
-			
+
 			// Include pin only if it's provided
 			if (values.pin) {
 				updateData.pin = values.pin
 			}
-			
+
 			await updateAlbum.mutateAsync(updateData as Album)
 			setIsEditing(false)
 			toast.success('Album updated successfully')
@@ -114,10 +114,10 @@ const AlbumManager = ({album, onDelete}: {album: Album, onDelete: () => void}) =
 									</FormItem>
 								)}
 							/>
-							
+
 							<div className="flex flex-col gap-2 border rounded-md p-3">
 								<p className="text-sm font-medium mb-2">Album Security</p>
-								
+
 								<div className="flex items-center justify-between">
 									<div className="flex items-center gap-2">
 										<EyeOff className="h-4 w-4 text-muted-foreground" />
@@ -131,7 +131,7 @@ const AlbumManager = ({album, onDelete}: {album: Album, onDelete: () => void}) =
 										render={({field}) => (
 											<FormItem>
 												<FormControl>
-													<Switch 
+													<Switch
 														id="sensitive-toggle"
 														checked={field.value}
 														onCheckedChange={field.onChange}
@@ -141,7 +141,7 @@ const AlbumManager = ({album, onDelete}: {album: Album, onDelete: () => void}) =
 										)}
 									/>
 								</div>
-								
+
 								<div className="flex items-center justify-between">
 									<div className="flex items-center gap-2">
 										<Lock className="h-4 w-4 text-muted-foreground" />
@@ -155,7 +155,7 @@ const AlbumManager = ({album, onDelete}: {album: Album, onDelete: () => void}) =
 										render={({field}) => (
 											<FormItem>
 												<FormControl>
-													<Switch 
+													<Switch
 														id="protected-toggle"
 														checked={field.value}
 														onCheckedChange={field.onChange}
@@ -165,7 +165,7 @@ const AlbumManager = ({album, onDelete}: {album: Album, onDelete: () => void}) =
 										)}
 									/>
 								</div>
-								
+
 								{isProtected && (
 									<div className="mt-2 p-3 border rounded-md">
 										<Label htmlFor="pin-input" className="text-sm mb-2 block">
@@ -186,7 +186,7 @@ const AlbumManager = ({album, onDelete}: {album: Album, onDelete: () => void}) =
 								)}
 							</div>
 						</div>
-						
+
 						<div className="flex gap-2">
 							<Button type="submit" disabled={!form.formState.isDirty}>
 								Save
@@ -226,8 +226,8 @@ export const SingleAlbumView = ({albumId}: Props) => {
 	const router = useRouter()
 	const queryClient = useQueryClient()
 	const {data: album, isLoading: albumLoading, isError: albumError} = useAlbum(albumId)
-	const {data: photos, isLoading: photosLoading, isError: photosError, refetch: refetchPhotos} = useAlbumPhotos(albumId)
-	
+	const {data: photos, isLoading: photosLoading, isError: photosError, refetch: refetchPhotos} = useAlbumPhotos(albumId, {}, false)
+
 	const deletePhoto = useDeletePhoto()
 	const restorePhoto = useRestorePhoto()
 	const deleteAlbum = useDeleteAlbum()
@@ -243,19 +243,19 @@ export const SingleAlbumView = ({albumId}: Props) => {
 	const handlePinVerified = useCallback(() => {
 		setIsAccessDenied(false)
 		setShouldFetchPhotos(true) // Enable photo fetching after PIN verification
-		
+
 		// Use a small delay to ensure the pin dialog is fully closed
 		setTimeout(() => {
 			// Invalidate both album and photos queries
 			queryClient.invalidateQueries({queryKey: albumQueryKeys.album(albumId)})
 			queryClient.invalidateQueries({queryKey: albumQueryKeys.albumPhotos(albumId)})
-			
+
 			// Explicitly fetch photos after PIN verification
 			refetchPhotos().catch(error => {
 				toast.error('Could not load photos. Please try again.')
 			})
 		}, 200)
-	}, [albumId, queryClient, refetchPhotos]);
+	}, [albumId, queryClient, refetchPhotos])
 
 	useEffect(() => {
 		if (album) {
@@ -268,9 +268,11 @@ export const SingleAlbumView = ({albumId}: Props) => {
 				setIsProtected(album.isProtected)
 				setIsAccessDenied(false) // Clear access denied state for non-protected albums
 				setShouldFetchPhotos(true) // Enable photo fetching for non-protected albums
-				
-				// For non-protected albums or already unlocked protected albums,
-				// trigger fetching photos immediately
+
+				/*
+				 * For non-protected albums or already unlocked protected albums,
+				 * trigger fetching photos immediately
+				 */
 				refetchPhotos().catch((error: any) => {
 					// If we get a 403 error requiring PIN, show the PIN dialog
 					if (error.response?.status === 403 && error.response?.data?.requiresPin) {
@@ -336,17 +338,21 @@ export const SingleAlbumView = ({albumId}: Props) => {
 		try {
 			// Call an API endpoint to clear the verification cookie
 			await api.post(`/api/albums/${albumId}/lock`)
-			
+
 			// Set states to show PIN dialog
 			setIsAccessDenied(true)
 			setIsPinVerificationOpen(true)
 			
+			// Invalidate the album photo queries
+			queryClient.invalidateQueries({queryKey: albumQueryKeys.albumPhotos(albumId)})
 			toast.success('Album locked successfully')
+			router.replace('/app/albums')
+			window.location.reload()
 		} catch (error) {
 			console.error('Failed to lock album:', error)
 			toast.error('Failed to lock album')
 		}
-	}, [albumId]);
+	}, [albumId, queryClient])
 
 	if (albumLoading) {
 		return (
@@ -411,9 +417,9 @@ export const SingleAlbumView = ({albumId}: Props) => {
 						<div className="flex items-center gap-2 mb-4 text-sm text-amber-500">
 							<Lock className="h-4 w-4" />
 							<span>This album is PIN-protected</span>
-							<Button 
-								variant="outline" 
-								size="sm" 
+							<Button
+								variant="outline"
+								size="sm"
 								onClick={handleLockAlbum}
 								className="ml-2 h-7 px-2 text-xs"
 							>
@@ -423,7 +429,7 @@ export const SingleAlbumView = ({albumId}: Props) => {
 						</div>
 					)}
 				</div>
-				
+
 				{photosLoading ? (
 					<div className="w-full h-[50vh] flex items-center justify-center">
 						<div className="text-muted-foreground">
@@ -458,7 +464,7 @@ export const SingleAlbumView = ({albumId}: Props) => {
 					}
 				}} />
 			</div>
-			
+
 			{/* PIN Verification Dialog */}
 			<PinVerificationDialog
 				albumId={albumId}
