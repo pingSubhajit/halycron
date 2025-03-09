@@ -130,7 +130,6 @@ export const AlbumCard = ({album, onDelete}: {album: Album, onDelete: () => void
 	const rotationsRef = useRef<{ [key: number]: number }>({})
 	const updateAlbum = useUpdateAlbum()
 	const containerRef = useRef<HTMLDivElement>(null)
-	const [isDraggingOver, setIsDraggingOver] = useState(false)
 
 	const {mutate: addPhotosToAlbum} = useAddPhotosToAlbum(undefined, {
 		onError: (error) => {

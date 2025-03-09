@@ -11,7 +11,7 @@ import {TextShimmer} from '@halycron/ui/components/text-shimmer'
 import {api} from '@/lib/data/api-client'
 import {Button} from '@halycron/ui/components/button'
 import {Input} from '@halycron/ui/components/input'
-import {useState, useEffect} from 'react'
+import {useState, useEffect, useCallback} from 'react'
 import {useRouter} from 'next/navigation'
 import {Trash2, EyeOff, Lock} from 'lucide-react'
 import {useForm} from 'react-hook-form'
@@ -24,6 +24,8 @@ import {PinVerificationDialog} from '@/components/pin-verification-dialog'
 import {Switch} from '@halycron/ui/components/switch'
 import {Label} from '@halycron/ui/components/label'
 import {InputOTP, InputOTPGroup, InputOTPSlot} from '@halycron/ui/components/input-otp'
+import {useQueryClient, UseQueryOptions} from '@tanstack/react-query'
+import {albumQueryKeys} from '@/app/api/albums/keys'
 
 const Gallery = dynamic(() => import('@/components/gallery').then(mod => mod.Gallery), {ssr: false})
 
@@ -222,8 +224,10 @@ const AlbumManager = ({album, onDelete}: {album: Album, onDelete: () => void}) =
 
 export const SingleAlbumView = ({albumId}: Props) => {
 	const router = useRouter()
+	const queryClient = useQueryClient()
 	const {data: album, isLoading: albumLoading, isError: albumError} = useAlbum(albumId)
 	const {data: photos, isLoading: photosLoading, isError: photosError, refetch: refetchPhotos} = useAlbumPhotos(albumId)
+	
 	const deletePhoto = useDeletePhoto()
 	const restorePhoto = useRestorePhoto()
 	const deleteAlbum = useDeleteAlbum()
@@ -232,28 +236,50 @@ export const SingleAlbumView = ({albumId}: Props) => {
 	const [isPinVerificationOpen, setIsPinVerificationOpen] = useState(false)
 	const [isAccessDenied, setIsAccessDenied] = useState(false)
 	const [isProtected, setIsProtected] = useState(false)
+	// Flag to track if we should fetch photos
+	const [shouldFetchPhotos, setShouldFetchPhotos] = useState(false)
+
+	// Create a memoized handler for PIN verification using useCallback
+	const handlePinVerified = useCallback(() => {
+		setIsAccessDenied(false)
+		setShouldFetchPhotos(true) // Enable photo fetching after PIN verification
+		
+		// Use a small delay to ensure the pin dialog is fully closed
+		setTimeout(() => {
+			// Invalidate both album and photos queries
+			queryClient.invalidateQueries({queryKey: albumQueryKeys.album(albumId)})
+			queryClient.invalidateQueries({queryKey: albumQueryKeys.albumPhotos(albumId)})
+			
+			// Explicitly fetch photos after PIN verification
+			refetchPhotos().catch(error => {
+				toast.error('Could not load photos. Please try again.')
+			})
+		}, 200)
+	}, [albumId, queryClient, refetchPhotos]);
 
 	useEffect(() => {
 		if (album) {
-			setIsProtected(album.isProtected)
-		}
-	}, [album])
-
-	useEffect(() => {
-		const fetchPhotos = async () => {
-			try {
-				await refetchPhotos()
-			} catch (error: any) {
-				// If the album requires PIN verification
-				if (error.response?.status === 403 && error.response?.data?.requiresPin) {
-					setIsAccessDenied(true)
-					setIsPinVerificationOpen(true)
-				}
+			// Check if the album is protected and requires PIN
+			if (album.isProtected && (album as any).requiresPin) {
+				setIsAccessDenied(true)
+				setIsPinVerificationOpen(true)
+				setShouldFetchPhotos(false) // Disable photo fetching for protected albums
+			} else {
+				setIsProtected(album.isProtected)
+				setIsAccessDenied(false) // Clear access denied state for non-protected albums
+				setShouldFetchPhotos(true) // Enable photo fetching for non-protected albums
+				
+				// For non-protected albums or already unlocked protected albums,
+				// trigger fetching photos immediately
+				refetchPhotos().catch((error: any) => {
+					// If we get a 403 error requiring PIN, show the PIN dialog
+					if (error.response?.status === 403 && error.response?.data?.requiresPin) {
+						setIsAccessDenied(true)
+						setIsPinVerificationOpen(true)
+						setShouldFetchPhotos(false)
+					}
+				})
 			}
-		}
-		
-		if (album && album.isProtected) {
-			fetchPhotos()
 		}
 	}, [album, refetchPhotos])
 
@@ -305,6 +331,23 @@ export const SingleAlbumView = ({albumId}: Props) => {
 		router.push('/app/albums')
 	}
 
+	// Add a function to lock the album by clearing the verification
+	const handleLockAlbum = useCallback(async () => {
+		try {
+			// Call an API endpoint to clear the verification cookie
+			await api.post(`/api/albums/${albumId}/lock`)
+			
+			// Set states to show PIN dialog
+			setIsAccessDenied(true)
+			setIsPinVerificationOpen(true)
+			
+			toast.success('Album locked successfully')
+		} catch (error) {
+			console.error('Failed to lock album:', error)
+			toast.error('Failed to lock album')
+		}
+	}, [albumId]);
+
 	if (albumLoading) {
 		return (
 			<div className="w-full h-full flex items-center justify-center">
@@ -347,10 +390,7 @@ export const SingleAlbumView = ({albumId}: Props) => {
 					albumId={albumId}
 					isOpen={isPinVerificationOpen}
 					onClose={() => setIsPinVerificationOpen(false)}
-					onVerified={() => {
-						setIsAccessDenied(false)
-						refetchPhotos()
-					}}
+					onVerified={handlePinVerified}
 				/>
 			</div>
 		)
@@ -367,10 +407,19 @@ export const SingleAlbumView = ({albumId}: Props) => {
 							<span>This album contains sensitive content</span>
 						</div>
 					)}
-					{album.isProtected && (
+					{album && album.isProtected && !isAccessDenied && (
 						<div className="flex items-center gap-2 mb-4 text-sm text-amber-500">
 							<Lock className="h-4 w-4" />
 							<span>This album is PIN-protected</span>
+							<Button 
+								variant="outline" 
+								size="sm" 
+								onClick={handleLockAlbum}
+								className="ml-2 h-7 px-2 text-xs"
+							>
+								<Lock className="h-3 w-3 mr-1" />
+								Lock Album
+							</Button>
 						</div>
 					)}
 				</div>
@@ -415,10 +464,7 @@ export const SingleAlbumView = ({albumId}: Props) => {
 				albumId={albumId}
 				isOpen={isPinVerificationOpen}
 				onClose={() => setIsPinVerificationOpen(false)}
-				onVerified={() => {
-					setIsAccessDenied(false)
-					refetchPhotos()
-				}}
+				onVerified={handlePinVerified}
 			/>
 		</div>
 	)

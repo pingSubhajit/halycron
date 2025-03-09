@@ -34,40 +34,65 @@ export const GET = async (request: NextRequest, {params}: {params: Promise<{id: 
 			return NextResponse.json({error: 'Album not found'}, {status: 404})
 		}
 
-		// Check if album is protected and verify access token
+		// Check if album is protected
 		if (userAlbum.isProtected) {
-			// Get the album access token from cookies
-			const accessToken = cookies().get(`album-access-${id}`)?.value
-
-			// If no token, require verification
-			if (!accessToken) {
+			// Get the verification cookie
+			const verificationCookie = request.cookies.get(`album-access-${id}`)?.value
+			
+			if (!verificationCookie) {
+				// No verification token found
 				return NextResponse.json(
-					{error: 'Protected album requires PIN verification', requiresPin: true}, 
+					{error: 'This album is protected. PIN verification required.', requiresPin: true},
 					{status: 403}
 				)
 			}
-
-			// Verify the token
+			
 			try {
-				const decoded = jwt.verify(accessToken, JWT_SECRET) as {
+				// Verify the token
+				const decoded = jwt.verify(verificationCookie, JWT_SECRET) as {
 					albumId: string;
 					userId: string;
 					tokenType: string;
+					exp: number;
+					iat: number;
 				}
-
-				// Check if token is valid for this album and user
-				if (decoded.albumId !== id || decoded.userId !== session.user.id || decoded.tokenType !== 'album-access') {
-					return NextResponse.json(
-						{error: 'Invalid access token', requiresPin: true}, 
-						{status: 403}
-					)
+				
+				// Check if the token is for this album and user
+				if (
+					decoded.albumId !== id ||
+					decoded.userId !== session.user.id ||
+					decoded.tokenType !== 'album-access'
+				) {
+					throw new Error('Invalid token')
+				}
+				
+				// Check if the token is too old (more than 5 minutes)
+				const tokenAge = Math.floor(Date.now() / 1000) - decoded.iat
+				const maxTokenAge = 5 * 60; // 5 minutes in seconds
+				
+				if (tokenAge > maxTokenAge) {
+					throw new Error('Token expired (too old)')
+				}
+				
+				// Check if the token has expired based on its exp field
+				if (decoded.exp < Math.floor(Date.now() / 1000)) {
+					throw new Error('Token expired')
 				}
 			} catch (error) {
-				// Token is invalid or expired
-				return NextResponse.json(
-					{error: 'Access token expired', requiresPin: true}, 
+				// Clear the invalid cookie by setting a new response with a cleared cookie
+				const response = NextResponse.json(
+					{error: 'PIN verification has expired or is invalid.', requiresPin: true},
 					{status: 403}
 				)
+				
+				// Clear the invalid cookie
+				response.cookies.set({
+					name: `album-access-${id}`,
+					value: '',
+					maxAge: 0
+				})
+				
+				return response
 			}
 		}
 

@@ -12,6 +12,13 @@ type ApiError = {
 	error: string
 }
 
+// Add a type for the verification response
+export type VerifyPinResponse = {
+	verified: boolean;
+	accessToken: string;
+	expiresAt: string;
+};
+
 const buildUrlWithParams = (
 	url: string,
 	params?: RequestOptions['params']
