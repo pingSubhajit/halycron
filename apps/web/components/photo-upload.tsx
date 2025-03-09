@@ -21,7 +21,7 @@ const formatFileSize = (bytes: number) => {
 }
 
 export const PhotoUpload = ({onPhotoUploaded}: Props) => {
-	const {uploadStates, showProgress, onDrop} = usePhotoUpload({
+	const {uploadStates, showProgress, onDrop, onProgressHoverChange} = usePhotoUpload({
 		onPhotoUploaded
 	})
 
@@ -61,6 +61,7 @@ export const PhotoUpload = ({onPhotoUploaded}: Props) => {
 				uploadStates={uploadStates}
 				showProgress={showProgress}
 				className="w-80 max-h-[250px]"
+				onHoverChange={onProgressHoverChange}
 			/>
 
 			<div

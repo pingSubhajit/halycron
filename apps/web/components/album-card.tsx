@@ -141,7 +141,7 @@ export const AlbumCard = ({album, onDelete}: {album: Album, onDelete: () => void
 		}
 	})
 
-	const {uploadStates, showProgress, onDrop, fileRejections} = usePhotoUpload({
+	const {uploadStates, showProgress, onDrop, fileRejections, onProgressHoverChange} = usePhotoUpload({
 		onPhotoUploaded: (photo) => {
 			addPhotosToAlbum({
 				albumId: album.id,
@@ -282,6 +282,7 @@ export const AlbumCard = ({album, onDelete}: {album: Album, onDelete: () => void
 							uploadStates={uploadStates}
 							showProgress={showProgress}
 							className="w-80 max-h-[250px]"
+							onHoverChange={onProgressHoverChange}
 						/>
 
 						<div

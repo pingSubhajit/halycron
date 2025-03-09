@@ -16,6 +16,7 @@ interface UsePhotoUploadResult {
   setShowProgress: (show: boolean) => void
   onDrop: (acceptedFiles: File[], rejectedFiles: FileRejection[]) => void
   fileRejections: FileRejection[]
+  onProgressHoverChange: (isHovering: boolean) => void
 }
 
 export const usePhotoUpload = ({
@@ -25,8 +26,10 @@ export const usePhotoUpload = ({
   const [uploadStates, setUploadStates] = useState<Record<string, UploadState>>({})
   const [showProgress, setShowProgress] = useState(showProgressInitially)
   const [fileRejections, setFileRejections] = useState<FileRejection[]>([])
+  const [isHovering, setIsHovering] = useState(false)
   const uploadQueue = useRef<File[]>([])
   const processingFiles = useRef<Set<string>>(new Set())
+  const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const queryClient = useQueryClient()
   const hasSuccessfulUploads = useRef(false)
 
@@ -83,14 +86,36 @@ export const usePhotoUpload = ({
     }
   }, [uploadStates, processQueue, checkAndInvalidateQueries])
 
+  // Handle progress window visibility
   useEffect(() => {
-    if (showProgress && !Object.entries(uploadStates).find(([_, state]) => state.status !== 'uploaded' && state.status !== 'error')) {
-      const timeout = setTimeout(() => {
+    // Clear any existing timeout
+    if (hideTimeoutRef.current) {
+      clearTimeout(hideTimeoutRef.current)
+      hideTimeoutRef.current = null
+    }
+
+    // Only start the hide timeout if:
+    // 1. The progress window is shown
+    // 2. We're not hovering over it
+    // 3. All uploads are complete (either success or error)
+    if (
+      showProgress &&
+      !isHovering &&
+      !Object.entries(uploadStates).find(
+        ([_, state]) => state.status !== 'uploaded' && state.status !== 'error'
+      )
+    ) {
+      hideTimeoutRef.current = setTimeout(() => {
         setShowProgress(false)
       }, 3000)
-      return () => clearTimeout(timeout)
     }
-  }, [uploadStates, showProgress])
+
+    return () => {
+      if (hideTimeoutRef.current) {
+        clearTimeout(hideTimeoutRef.current)
+      }
+    }
+  }, [uploadStates, showProgress, isHovering])
 
   const onDrop = useCallback((acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
     setFileRejections(rejectedFiles)
@@ -98,11 +123,16 @@ export const usePhotoUpload = ({
     processQueue()
   }, [processQueue])
 
+  const onProgressHoverChange = useCallback((isHovering: boolean) => {
+    setIsHovering(isHovering)
+  }, [])
+
   return {
     uploadStates,
     showProgress,
     setShowProgress,
     onDrop,
-    fileRejections
+    fileRejections,
+    onProgressHoverChange
   }
 } 

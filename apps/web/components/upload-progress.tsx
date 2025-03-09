@@ -12,9 +12,10 @@ type Props = {
     uploadStates: Record<string, UploadState>
     showProgress: boolean
     className?: string
+    onHoverChange?: (isHovering: boolean) => void
 }
 
-export const UploadProgress = ({uploadStates, showProgress, className}: Props) => {
+export const UploadProgress = ({uploadStates, showProgress, className, onHoverChange}: Props) => {
     return (
         <AnimatePresence>
             {Object.entries(uploadStates).length > 0 && showProgress && (
@@ -27,6 +28,8 @@ export const UploadProgress = ({uploadStates, showProgress, className}: Props) =
                             'fixed bottom-4 right-4 flex flex-col gap-2 bg-background/80 backdrop-blur-sm p-4 rounded-lg shadow-lg z-[100]',
                             className
                         )}
+                        onMouseEnter={() => onHoverChange?.(true)}
+                        onMouseLeave={() => onHoverChange?.(false)}
                     >
                         <div className="overflow-y-auto flex flex-col gap-2">
                             {Object.entries(uploadStates).map(([fileName, state]) => (
