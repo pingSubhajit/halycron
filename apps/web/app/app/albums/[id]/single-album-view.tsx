@@ -227,12 +227,9 @@ const AlbumManager = ({album, onDelete, isAccessDenied, handleLockAlbum}: AlbumM
 								disabled={!form.formState.isDirty || form.formState.isSubmitting}
 							>
 								{form.formState.isSubmitting ? (
-									<>
-										<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-										Saving
-									</>
+									<p>Saving</p>
 								) : (
-									'Save'
+									<p>Save</p>
 								)}
 							</Button>
 							<Button
