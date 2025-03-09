@@ -4,8 +4,9 @@ import {db} from '@/db/drizzle'
 import {album} from '@/db/schema'
 import {eq} from 'drizzle-orm'
 import {updateAlbumSchema} from '../types'
-import {checkAlbumAccess, getAlbumWithPhotoCount, hashPin} from '../utils'
+import {checkAlbumAccess, getAlbumWithPhotoCount} from '../utils'
 import {headers} from 'next/headers'
+import {hashPin as secureHashPin} from '@/lib/auth/password'
 
 interface Props {
   params: Promise<{
@@ -62,7 +63,16 @@ export const PATCH = async (request: NextRequest, {params}: Props) => {
 	if (name) updateData.name = name
 	if (typeof isSensitive !== 'undefined') updateData.isSensitive = isSensitive
 	if (typeof isProtected !== 'undefined') updateData.isProtected = isProtected
-	if (pin) updateData.pinHash = hashPin(pin)
+	
+	// Handle PIN updates with secure hashing
+	if (pin) {
+		updateData.pinHash = await secureHashPin(pin)
+	}
+
+	// If isProtected is being set to false, clear the pinHash
+	if (isProtected === false) {
+		updateData.pinHash = null
+	}
 
 	const updatedAlbum = await db.update(album)
 		.set(updateData)

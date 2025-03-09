@@ -5,6 +5,7 @@ import {db} from '@/db/drizzle'
 import {album, photosToAlbums} from '@/db/schema'
 import {createAlbumSchema} from './types'
 import {and, eq} from 'drizzle-orm'
+import {hashPin as secureHashPin} from '@/lib/auth/password'
 
 export const GET = async () => {
 	try {
@@ -50,13 +51,19 @@ export const POST = async (req: NextRequest) => {
 
 		const {name, isSensitive = false, isProtected = false, pin} = result.data
 
+		// Hash the PIN if provided
+		let pinHash = null;
+		if (isProtected && pin) {
+			pinHash = await secureHashPin(pin);
+		}
+
 		// Save album to database
 		const savedAlbum = await db.insert(album).values({
 			userId: session.user.id,
 			name,
 			isSensitive,
 			isProtected,
-			pinHash: pin // TODO: Hash the PIN if provided
+			pinHash
 		}).returning()
 
 		return NextResponse.json(savedAlbum[0])

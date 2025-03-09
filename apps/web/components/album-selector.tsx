@@ -26,15 +26,36 @@ import {
 } from '@halycron/ui/components/dropdown-menu'
 import {Image as ImageIcon} from 'lucide-react'
 import {useLightbox} from './lightbox-context'
+import {Switch} from '@halycron/ui/components/switch'
+import {Label} from '@halycron/ui/components/label'
+import {EyeOff, Lock} from 'lucide-react'
+import {InputOTP, InputOTPGroup, InputOTPSlot} from '@halycron/ui/components/input-otp'
+import {useEffect, useState} from 'react'
 
 const CreateAlbumForm = ({photoId, variant}: {photoId: string, variant?: 'context-menu' | 'dropdown'}) => {
-	const {register, handleSubmit, formState: {errors, isSubmitting}, reset} = useForm<CreateAlbumInput>({
-		resolver: zodResolver(createAlbumSchema)
+	const {register, handleSubmit, formState: {errors, isSubmitting}, reset, watch, setValue} = useForm<CreateAlbumInput>({
+		resolver: zodResolver(createAlbumSchema),
+		defaultValues: {
+			name: '',
+			isSensitive: false,
+			isProtected: false
+		}
 	})
 	const createAlbum = useCreateAlbum()
 	const addToAlbum = useAddPhotosToAlbum()
 	const queryClient = useQueryClient()
 	const {updateCurrentPhoto} = useLightbox()
+	const isProtected = watch('isProtected')
+	const [pin, setPin] = useState('')
+
+	// Update the form value when PIN changes
+	useEffect(() => {
+		if (pin.length === 4) {
+			setValue('pin', pin)
+		} else {
+			setValue('pin', undefined)
+		}
+	}, [pin, setValue])
 
 	const onSubmit = async (data: CreateAlbumInput) => {
 		try {
@@ -70,6 +91,7 @@ const CreateAlbumForm = ({photoId, variant}: {photoId: string, variant?: 'contex
 			// Add the current photo to the newly created album
 			await addToAlbum.mutateAsync({albumId: album.id, photoIds: [photoId]})
 			reset()
+			setPin('')
 		} catch (error) {
 			// If anything fails, invalidate both queries to get the correct state
 			await Promise.all([
@@ -88,7 +110,7 @@ const CreateAlbumForm = ({photoId, variant}: {photoId: string, variant?: 'contex
 	}
 
 	return (
-		<form onSubmit={handleSubmit(onSubmit)} className="p-2 flex flex-col gap-2">
+		<form onSubmit={handleSubmit(onSubmit)} className="p-2 flex flex-col gap-3">
 			<div className="flex gap-1">
 				<Input
 					{...register('name')}
@@ -103,6 +125,55 @@ const CreateAlbumForm = ({photoId, variant}: {photoId: string, variant?: 'contex
 
 			{errors.name && (
 				<p className="text-xs text-destructive">{errors.name.message}</p>
+			)}
+            
+			<div className="flex flex-col gap-2">
+				<div className="flex items-center justify-between">
+					<div className="flex items-center gap-2">
+						<EyeOff className="h-3 w-3 text-muted-foreground" />
+						<Label htmlFor="sensitive-toggle" className="text-xs">
+							Sensitive Content
+						</Label>
+					</div>
+					<Switch 
+						id="sensitive-toggle" 
+						{...register('isSensitive')}
+						onCheckedChange={(checked) => setValue('isSensitive', checked)}
+					/>
+				</div>
+				
+				<div className="flex items-center justify-between">
+					<div className="flex items-center gap-2">
+						<Lock className="h-3 w-3 text-muted-foreground" />
+						<Label htmlFor="protected-toggle" className="text-xs">
+							PIN Protection
+						</Label>
+					</div>
+					<Switch 
+						id="protected-toggle" 
+						{...register('isProtected')}
+						onCheckedChange={(checked) => setValue('isProtected', checked)}
+					/>
+				</div>
+			</div>
+			
+			{isProtected && (
+				<div className="mt-1">
+					<Label htmlFor="pin-input" className="text-xs mb-1 block">
+						Enter 4-digit PIN
+					</Label>
+					<InputOTP maxLength={4} value={pin} onChange={setPin}>
+						<InputOTPGroup className="justify-center">
+							<InputOTPSlot index={0} />
+							<InputOTPSlot index={1} />
+							<InputOTPSlot index={2} />
+							<InputOTPSlot index={3} />
+						</InputOTPGroup>
+					</InputOTP>
+					{errors.pin && (
+						<p className="text-xs text-destructive mt-1">{errors.pin.message}</p>
+					)}
+				</div>
 			)}
 		</form>
 	)

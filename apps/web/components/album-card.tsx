@@ -293,7 +293,7 @@ export const AlbumCard = ({album, onDelete}: {album: Album, onDelete: () => void
 							onMouseEnter={startPhotoRotation}
 							onMouseLeave={stopPhotoRotation}
 						>
-							{photos && photos[0] && photos.map((photo, index) => {
+							{!album.isSensitive && !album.isProtected && photos && photos[0] && photos.map((photo, index) => {
 								const effectiveIndex = (index - topPhotoIndex + photos.length) % photos.length
 								const isTop = effectiveIndex === 0
 								const isStack = effectiveIndex > 0
