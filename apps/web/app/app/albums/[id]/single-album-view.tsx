@@ -63,12 +63,14 @@ const AlbumManager = ({album, onDelete, isAccessDenied, handleLockAlbum}: AlbumM
 
 	// Update the form value when PIN changes
 	useEffect(() => {
-		if (pin.length === 4) {
-			form.setValue('pin', pin)
-		} else if (pin.length === 0) {
-			form.setValue('pin', '')
+		if (!album.isProtected) {
+			if (pin.length === 4) {
+				form.setValue('pin', pin)
+			} else if (pin.length === 0) {
+				form.setValue('pin', '')
+			}
 		}
-	}, [pin, form])
+	}, [pin, form, album.isProtected])
 
 	const handleUpdate = async (values: UpdateAlbumFormValues) => {
 		try {
@@ -81,8 +83,11 @@ const AlbumManager = ({album, onDelete, isAccessDenied, handleLockAlbum}: AlbumM
 				updatedAt: new Date()
 			}
 
-			// Include pin only if it's provided
-			if (values.pin) {
+			/*
+			 * Include pin only if it's provided and the album is not already protected
+			 * For already protected albums, keep the existing pin
+			 */
+			if (values.pin && !album.isProtected) {
 				updateData.pin = values.pin
 			}
 
@@ -147,9 +152,16 @@ const AlbumManager = ({album, onDelete, isAccessDenied, handleLockAlbum}: AlbumM
 								<div className="flex items-center justify-between">
 									<div className="flex items-center gap-2">
 										<Lock className="h-4 w-4 text-muted-foreground" />
-										<Label htmlFor="protected-toggle" className="text-sm">
-											PIN Protection
-										</Label>
+										<div>
+											<Label htmlFor="protected-toggle" className="text-sm">
+												PIN Protection
+											</Label>
+											{album.isProtected && (
+												<p className="text-xs text-muted-foreground mt-1">
+													PIN cannot be changed once set
+												</p>
+											)}
+										</div>
 									</div>
 									<FormField
 										control={form.control}
@@ -170,19 +182,25 @@ const AlbumManager = ({album, onDelete, isAccessDenied, handleLockAlbum}: AlbumM
 
 								{isProtected && (
 									<div className="mt-2 p-3 border rounded-md">
-										<Label htmlFor="pin-input" className="text-sm mb-2 block">
-											{album.isProtected ? 'Change PIN (leave empty to keep current)' : 'Set 4-digit PIN'}
+										<Label htmlFor="pin-input" className="text-sm block">
+											{album.isProtected
+												? 'PIN is already set and cannot be changed'
+												: 'Set 4-digit PIN'}
 										</Label>
-										<InputOTP maxLength={4} value={pin} onChange={setPin}>
-											<InputOTPGroup className="justify-center gap-2">
-												<InputOTPSlot index={0} />
-												<InputOTPSlot index={1} />
-												<InputOTPSlot index={2} />
-												<InputOTPSlot index={3} />
-											</InputOTPGroup>
-										</InputOTP>
-										{form.formState.errors.pin && (
-											<p className="text-xs text-destructive mt-1">{form.formState.errors.pin.message}</p>
+										{!album.isProtected && (
+											<div className="mt-2">
+												<InputOTP maxLength={4} value={pin} onChange={setPin}>
+													<InputOTPGroup className="justify-center">
+														<InputOTPSlot index={0} />
+														<InputOTPSlot index={1} />
+														<InputOTPSlot index={2} />
+														<InputOTPSlot index={3} />
+													</InputOTPGroup>
+												</InputOTP>
+												{form.formState.errors.pin && (
+													<p className="text-xs text-destructive mt-1">{form.formState.errors.pin.message}</p>
+												)}
+											</div>
 										)}
 									</div>
 								)}
