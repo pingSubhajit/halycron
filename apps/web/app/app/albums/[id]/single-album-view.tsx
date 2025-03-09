@@ -315,14 +315,6 @@ export const SingleAlbumView = ({albumId}: Props) => {
 		}
 	}, [])
 
-	const cleanupS3 = async (s3Key: string) => {
-		try {
-			await api.post('api/photos/cleanup', {s3Key})
-		} catch (error) {
-			toast.error(error instanceof Error ? `Failed to cleanup S3: ${error.message}` : 'Failed to cleanup S3')
-		}
-	}
-
 	const onDelete = (photo: Photo) => {
 		deletePhoto.mutate(photo)
 	}

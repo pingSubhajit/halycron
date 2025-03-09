@@ -5,7 +5,7 @@ import {useAlbumPhotos} from '@/app/api/albums/query'
 import {Photo} from '@/app/api/photos/types'
 import {useDecryptedUrl} from '@/hooks/use-decrypted-url'
 import Image from 'next/image'
-import {Image as ImageIcon, Trash2, AlertCircle} from 'lucide-react'
+import {Image as ImageIcon, Trash2, AlertCircle, LockIcon, EyeOffIcon} from 'lucide-react'
 import {useCallback, useEffect, useRef, useState} from 'react'
 import Link from 'next/link'
 import {
@@ -326,9 +326,32 @@ export const AlbumCard = ({album, onDelete}: {album: Album, onDelete: () => void
 								)
 							})}
 
-							{photos && photos.length === 0 && <div>
+							{(!photos || photos.length === 0) && <div>
 								<div className="absolute inset-0 flex items-center justify-center p-4">
-									<ImageIcon className="w-36 h-36 text-muted-foreground opacity-80"/>
+									{album.isProtected || album.isSensitive ? (
+										<div className="flex flex-col items-center justify-center gap-2 text-muted-foreground">
+											{album.isProtected && !album.isSensitive && (
+												<div className="flex flex-col items-center">
+													<LockIcon className="w-10 h-10 opacity-80" />
+												</div>
+											)}
+											{album.isSensitive && !album.isProtected && (
+												<div className="flex flex-col items-center">
+													<EyeOffIcon className="w-10 h-10 opacity-80" />
+												</div>
+											)}
+											{album.isProtected && album.isSensitive && (
+												<div className="flex flex-col items-center mt-2">
+													<div className="flex items-center gap-2">
+														<EyeOffIcon className="w-10 h-10 opacity-80" />
+														<LockIcon className="w-10 h-10 opacity-80" />
+													</div>
+												</div>
+											)}
+										</div>
+									) : (
+										<ImageIcon className="w-36 h-36 text-muted-foreground opacity-80"/>
+									)}
 								</div>
 							</div>}
 
