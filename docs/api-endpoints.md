@@ -127,8 +127,9 @@ Creates a new album
 Request:
 {
     name: string,
-    encryptedKey: string,
-    keyIv: string,
+    isSensitive: boolean,
+    isProtected: boolean,
+    pin?: string,    // 4-digit PIN code (required if isProtected is true)
     photoIds?: string[]
 }
 
@@ -136,8 +137,51 @@ Response:
 {
     id: string,
     name: string,
+    isSensitive: boolean,
+    isProtected: boolean,
     photoCount: number,
     createdAt: string
+}
+```
+
+#### PUT /api/albums/:id
+
+Updates an album
+
+```ts
+Request:
+{
+    name?: string,
+    isSensitive?: boolean,
+    isProtected?: boolean,
+    pin?: string     // 4-digit PIN code (required when enabling protection)
+}
+
+Response:
+{
+    id: string,
+    name: string,
+    isSensitive: boolean,
+    isProtected: boolean,
+    updatedAt: string
+}
+```
+
+#### POST /api/albums/:id/verify-pin
+
+Verifies PIN for a protected album
+
+```ts
+Request:
+{
+    pin: string      // 4-digit PIN code
+}
+
+Response:
+{
+    verified: boolean,
+    accessToken: string,  // Token to use for subsequent requests to this album
+    expiresAt: string     // When the verification expires
 }
 ```
 
