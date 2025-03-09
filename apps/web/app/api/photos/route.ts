@@ -92,10 +92,23 @@ export const GET = async () => {
 			}
 		})
 
-		// Filter out photos that belong to at least one sensitive album
+		// Filter out photos that:
+		// 1. Belong to at least one sensitive album
+		// 2. Only belong to protected albums (all albums the photo belongs to are protected)
 		const filteredPhotos = photos.filter(photo => {
 			// Check if the photo belongs to any sensitive album
-			return !photo.albums?.some(pa => pa.album.isSensitive);
+			if (photo.albums?.some(pa => pa.album.isSensitive)) {
+				return false;
+			}
+			
+			// If the photo has no albums, include it
+			if (!photo.albums || photo.albums.length === 0) {
+				return true;
+			}
+			
+			// Check if the photo belongs to at least one non-protected album
+			// If all albums are protected, filter it out
+			return photo.albums.some(pa => !pa.album.isProtected);
 		});
 
 		// Generate pre-signed URLs for each photo

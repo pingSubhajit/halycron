@@ -13,7 +13,7 @@ import {Button} from '@halycron/ui/components/button'
 import {Input} from '@halycron/ui/components/input'
 import {useState, useEffect, useCallback} from 'react'
 import {useRouter} from 'next/navigation'
-import {Trash2, EyeOff, Lock} from 'lucide-react'
+import {Trash2, EyeOff, Lock, CircleHelp} from 'lucide-react'
 import {useForm} from 'react-hook-form'
 import {zodResolver} from '@hookform/resolvers/zod'
 import * as z from 'zod'
@@ -26,6 +26,7 @@ import {Label} from '@halycron/ui/components/label'
 import {InputOTP, InputOTPGroup, InputOTPSlot} from '@halycron/ui/components/input-otp'
 import {useQueryClient, UseQueryOptions} from '@tanstack/react-query'
 import {albumQueryKeys} from '@/app/api/albums/keys'
+import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from '@halycron/ui/components/tooltip'
 
 const Gallery = dynamic(() => import('@/components/gallery').then(mod => mod.Gallery), {ssr: false})
 
@@ -42,11 +43,12 @@ interface Props {
 	albumId: string
 }
 
-const AlbumManager = ({album, onDelete}: {album: Album, onDelete: () => void}) => {
+interface AlbumManagerProps {album: Album, onDelete: () => void, isAccessDenied: boolean, handleLockAlbum: () => void}
+
+const AlbumManager = ({album, onDelete, isAccessDenied, handleLockAlbum}: AlbumManagerProps) => {
 	const [isEditing, setIsEditing] = useState(false)
 	const [pin, setPin] = useState('')
 	const updateAlbum = useUpdateAlbum()
-	const [isAdvancedSettingsOpen, setIsAdvancedSettingsOpen] = useState(false)
 
 	const form = useForm<UpdateAlbumFormValues>({
 		resolver: zodResolver(updateAlbumSchema),
@@ -206,7 +208,48 @@ const AlbumManager = ({album, onDelete}: {album: Album, onDelete: () => void}) =
 				</Form>
 			) : (
 				<div className="flex items-center gap-2 w-full justify-between">
-					<h1 className="text-xl font-semibold" onClick={() => setIsEditing(true)}>{album.name}</h1>
+					<div className="flex items-center gap-4">
+						<h1 className="text-xl font-semibold" onClick={() => setIsEditing(true)}>{album.name}</h1>
+
+						<div className="flex items-center gap-2">
+							{album.isSensitive && (
+								<div className="flex items-center text-sm text-amber-500">
+									<TooltipProvider>
+										<Tooltip>
+											<TooltipTrigger>
+												<EyeOff className="h-4 w-4" />
+											</TooltipTrigger>
+											<TooltipContent>
+												<p>This album contains sensitive content</p>
+											</TooltipContent>
+										</Tooltip>
+									</TooltipProvider>
+								</div>
+							)}
+							{album && album.isProtected && !isAccessDenied && (
+								<div className="flex items-center gap-1 text-sm text-amber-500">
+									<TooltipProvider>
+										<Tooltip>
+											<TooltipTrigger>
+												<Lock className="h-4 w-4" />
+											</TooltipTrigger>
+											<TooltipContent>
+												<p>This album is protected with a PIN.</p>
+											</TooltipContent>
+										</Tooltip>
+									</TooltipProvider>
+									<Button
+										variant="outline"
+										size="sm"
+										onClick={handleLockAlbum}
+										className="ml-2 h-7 px-2 text-xs"
+									>
+										Lock Album
+									</Button>
+								</div>
+							)}
+						</div>
+					</div>
 
 					<div className="flex items-center gap-2">
 						<Button variant="ghost" size="icon" className="opacity-80" onClick={onDelete}>
@@ -393,28 +436,12 @@ export const SingleAlbumView = ({albumId}: Props) => {
 		<div className="w-full h-full">
 			<div className="w-full h-full">
 				<div className="flex flex-col gap-1 mb-6">
-					<AlbumManager album={album} onDelete={handleAlbumDelete} />
-					{album.isSensitive && (
-						<div className="flex items-center gap-2 mb-4 text-sm text-amber-500">
-							<EyeOff className="h-4 w-4" />
-							<span>This album contains sensitive content</span>
-						</div>
-					)}
-					{album && album.isProtected && !isAccessDenied && (
-						<div className="flex items-center gap-2 mb-4 text-sm text-amber-500">
-							<Lock className="h-4 w-4" />
-							<span>This album is PIN-protected</span>
-							<Button
-								variant="outline"
-								size="sm"
-								onClick={handleLockAlbum}
-								className="ml-2 h-7 px-2 text-xs"
-							>
-								<Lock className="h-3 w-3 mr-1" />
-								Lock Album
-							</Button>
-						</div>
-					)}
+					<AlbumManager
+						album={album}
+						onDelete={handleAlbumDelete}
+						isAccessDenied={isAccessDenied}
+						handleLockAlbum={handleLockAlbum}
+					/>
 				</div>
 
 				{photosLoading ? (

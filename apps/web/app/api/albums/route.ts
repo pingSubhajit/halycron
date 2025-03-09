@@ -64,12 +64,20 @@ export const POST = async (req: NextRequest) => {
 
 		if (!result.success) {
 			return NextResponse.json(
-				{error: 'Invalid request body'},
+				{error: 'Invalid request body', details: result.error.format()},
 				{status: 400}
 			)
 		}
 
 		const {name, isSensitive = false, isProtected = false, pin} = result.data
+
+		// Ensure PIN is provided when album is protected
+		if (isProtected && !pin) {
+			return NextResponse.json(
+				{error: 'PIN is required when album is protected'},
+				{status: 400}
+			)
+		}
 
 		// Hash the PIN if provided
 		let pinHash = null

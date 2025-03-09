@@ -127,6 +127,25 @@ export const PATCH = async (request: NextRequest, {params}: Props) => {
 
 	const {name, isSensitive, isProtected, pin} = result.data
 
+	// If setting isProtected to true, ensure PIN is provided
+	if (isProtected === true && !pin) {
+		// Check if album already has a PIN hash
+		const existingAlbum = await db.query.album.findFirst({
+			where: eq(album.id, id),
+			columns: {
+				pinHash: true
+			}
+		})
+		
+		// If no existing PIN hash and no new PIN provided, return error
+		if (!existingAlbum?.pinHash) {
+			return NextResponse.json({
+				error: 'PIN is required when album is protected',
+				path: ['pin']
+			}, {status: 400})
+		}
+	}
+
 	const updateData: Record<string, unknown> = {}
 	if (name) updateData.name = name
 	if (typeof isSensitive !== 'undefined') updateData.isSensitive = isSensitive

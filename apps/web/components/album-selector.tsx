@@ -24,16 +24,17 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger
 } from '@halycron/ui/components/dropdown-menu'
-import {Image as ImageIcon} from 'lucide-react'
+import {CircleHelp, Image as ImageIcon} from 'lucide-react'
 import {useLightbox} from './lightbox-context'
 import {Switch} from '@halycron/ui/components/switch'
 import {Label} from '@halycron/ui/components/label'
 import {EyeOff, Lock} from 'lucide-react'
 import {InputOTP, InputOTPGroup, InputOTPSlot} from '@halycron/ui/components/input-otp'
 import {useEffect, useState} from 'react'
+import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from '@halycron/ui/components/tooltip'
 
 const CreateAlbumForm = ({photoId, variant}: {photoId: string, variant?: 'context-menu' | 'dropdown'}) => {
-	const {register, handleSubmit, formState: {errors, isSubmitting}, reset, watch, setValue} = useForm<CreateAlbumInput>({
+	const {register, handleSubmit, formState: {errors, isSubmitting}, reset, watch, setValue, setError} = useForm<CreateAlbumInput>({
 		resolver: zodResolver(createAlbumSchema),
 		defaultValues: {
 			name: '',
@@ -54,10 +55,26 @@ const CreateAlbumForm = ({photoId, variant}: {photoId: string, variant?: 'contex
 			setValue('pin', pin)
 		} else {
 			setValue('pin', undefined)
+			// If isProtected is true and pin is not valid, set error
+			if (isProtected && pin.length !== 4) {
+				setError('pin', {
+					type: 'manual',
+					message: 'PIN is required when album is protected'
+				})
+			}
 		}
-	}, [pin, setValue])
+	}, [pin, setValue, isProtected, setError])
 
 	const onSubmit = async (data: CreateAlbumInput) => {
+		// Additional validation to ensure PIN is provided when isProtected is true
+		if (data.isProtected && !data.pin) {
+			setError('pin', {
+				type: 'manual',
+				message: 'PIN is required when album is protected'
+			})
+			return
+		}
+
 		try {
 			// Get the current photos from the cache
 			const previousPhotos = queryClient.getQueryData<Photo[]>(photoQueryKeys.allPhotos()) || []
@@ -135,11 +152,27 @@ const CreateAlbumForm = ({photoId, variant}: {photoId: string, variant?: 'contex
 							Sensitive Content
 						</Label>
 					</div>
-					<Switch
-						id="sensitive-toggle"
-						{...register('isSensitive')}
-						onCheckedChange={(checked) => setValue('isSensitive', checked)}
-					/>
+
+					<div className="flex items-center gap-2">
+						<Switch
+							id="sensitive-toggle"
+							{...register('isSensitive')}
+							onCheckedChange={(checked) => setValue('isSensitive', checked)}
+						/>
+
+						<TooltipProvider>
+							<Tooltip>
+								<TooltipTrigger>
+									<CircleHelp className="w-4 h-4 opacity-80" />
+								</TooltipTrigger>
+								<TooltipContent>
+									<p>
+										Photos that are in sensitive albums won't show up in gallery.
+									</p>
+								</TooltipContent>
+							</Tooltip>
+						</TooltipProvider>
+					</div>
 				</div>
 
 				<div className="flex items-center justify-between">
@@ -149,11 +182,25 @@ const CreateAlbumForm = ({photoId, variant}: {photoId: string, variant?: 'contex
 							PIN Protection
 						</Label>
 					</div>
-					<Switch
-						id="protected-toggle"
-						{...register('isProtected')}
-						onCheckedChange={(checked) => setValue('isProtected', checked)}
-					/>
+
+					<div className="flex items-center gap-2">
+						<Switch
+							id="protected-toggle"
+							{...register('isProtected')}
+							onCheckedChange={(checked) => setValue('isProtected', checked)}
+						/>
+
+						<TooltipProvider>
+							<Tooltip>
+								<TooltipTrigger>
+									<CircleHelp className="w-4 h-4 opacity-80" />
+								</TooltipTrigger>
+								<TooltipContent>
+									<p>You'll have to set a 4-digit PIN and enter it to access this album</p>
+								</TooltipContent>
+							</Tooltip>
+						</TooltipProvider>
+					</div>
 				</div>
 			</div>
 
@@ -162,17 +209,14 @@ const CreateAlbumForm = ({photoId, variant}: {photoId: string, variant?: 'contex
 					<Label htmlFor="pin-input" className="text-xs mb-1 block">
 						Enter 4-digit PIN
 					</Label>
-					<InputOTP maxLength={4} value={pin} onChange={setPin}>
-						<InputOTPGroup className="justify-center">
-							<InputOTPSlot index={0} />
-							<InputOTPSlot index={1} />
-							<InputOTPSlot index={2} />
-							<InputOTPSlot index={3} />
+					<InputOTP maxLength={4} value={pin} onChange={setPin} className="mt-2">
+						<InputOTPGroup className="justify-center w-full">
+							<InputOTPSlot index={0} className="w-full" />
+							<InputOTPSlot index={1} className="w-full" />
+							<InputOTPSlot index={2} className="w-full" />
+							<InputOTPSlot index={3} className="w-full" />
 						</InputOTPGroup>
 					</InputOTP>
-					{errors.pin && (
-						<p className="text-xs text-destructive mt-1">{errors.pin.message}</p>
-					)}
 				</div>
 			)}
 		</form>

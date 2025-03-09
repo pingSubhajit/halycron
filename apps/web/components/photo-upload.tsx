@@ -68,7 +68,7 @@ export const PhotoUpload = ({onPhotoUploaded}: Props) => {
 				{...getRootProps()}
 				className={cn(
 					'w-full h-full flex flex-col items-center justify-center transition-all duration-200 bg-transparent',
-					isDragActive && 'backdrop-blur-sm [box-shadow:inset_0_0_30px_hsl(var(--primary))]'
+					isDragActive && '[box-shadow:inset_0_0_30px_hsl(var(--primary))]'
 				)}
 				onClick={(e) => e.stopPropagation()} // Prevent clicks from reaching the gallery
 			>
