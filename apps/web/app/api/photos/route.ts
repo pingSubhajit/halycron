@@ -92,8 +92,14 @@ export const GET = async () => {
 			}
 		})
 
+		// Filter out photos that belong to at least one sensitive album
+		const filteredPhotos = photos.filter(photo => {
+			// Check if the photo belongs to any sensitive album
+			return !photo.albums?.some(pa => pa.album.isSensitive);
+		});
+
 		// Generate pre-signed URLs for each photo
-		const photosWithUrls = await Promise.all(photos.map(async (photo) => {
+		const photosWithUrls = await Promise.all(filteredPhotos.map(async (photo) => {
 			const url = await generatePresignedDownloadUrl(photo.s3Key)
 			return {
 				id: photo.id,

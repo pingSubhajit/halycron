@@ -306,7 +306,32 @@ export const AlbumCard = ({album, onDelete}: {album: Album, onDelete: () => void
 							onMouseEnter={startPhotoRotation}
 							onMouseLeave={stopPhotoRotation}
 						>
-							{photos && photos.length > 0 && photos.map((photo, index) => {
+							{(album.isProtected || album.isSensitive) && (
+								<div className="absolute inset-0 flex items-center justify-center p-4">
+									<div className="flex flex-col items-center justify-center gap-2 text-muted-foreground">
+										{album.isProtected && !album.isSensitive && (
+											<div className="flex flex-col items-center">
+												<LockIcon className="w-10 h-10 opacity-80" />
+											</div>
+										)}
+										{album.isSensitive && !album.isProtected && (
+											<div className="flex flex-col items-center">
+												<EyeOffIcon className="w-10 h-10 opacity-80" />
+											</div>
+										)}
+										{album.isProtected && album.isSensitive && (
+											<div className="flex flex-col items-center mt-2">
+												<div className="flex items-center gap-2">
+													<EyeOffIcon className="w-10 h-10 opacity-80" />
+													<LockIcon className="w-10 h-10 opacity-80" />
+												</div>
+											</div>
+										)}
+									</div>
+								</div>
+							)}
+
+							{!album.isProtected && !album.isSensitive && photos && photos.length > 0 && photos.map((photo, index) => {
 								const effectiveIndex = (index - topPhotoIndex + photos.length) % photos.length
 								const isTop = effectiveIndex === 0
 								const isStack = effectiveIndex > 0
@@ -326,32 +351,9 @@ export const AlbumCard = ({album, onDelete}: {album: Album, onDelete: () => void
 								)
 							})}
 
-							{(!photos || photos.length === 0) && <div>
+							{!album.isProtected && !album.isSensitive && (!photos || photos.length === 0) && <div>
 								<div className="absolute inset-0 flex items-center justify-center p-4">
-									{album.isProtected || album.isSensitive ? (
-										<div className="flex flex-col items-center justify-center gap-2 text-muted-foreground">
-											{album.isProtected && !album.isSensitive && (
-												<div className="flex flex-col items-center">
-													<LockIcon className="w-10 h-10 opacity-80" />
-												</div>
-											)}
-											{album.isSensitive && !album.isProtected && (
-												<div className="flex flex-col items-center">
-													<EyeOffIcon className="w-10 h-10 opacity-80" />
-												</div>
-											)}
-											{album.isProtected && album.isSensitive && (
-												<div className="flex flex-col items-center mt-2">
-													<div className="flex items-center gap-2">
-														<EyeOffIcon className="w-10 h-10 opacity-80" />
-														<LockIcon className="w-10 h-10 opacity-80" />
-													</div>
-												</div>
-											)}
-										</div>
-									) : (
-										<ImageIcon className="w-36 h-36 text-muted-foreground opacity-80"/>
-									)}
+									<ImageIcon className="w-36 h-36 text-muted-foreground opacity-80"/>
 								</div>
 							</div>}
 
