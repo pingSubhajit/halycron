@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "@halycron/ui": "workspace:*",
+    "clsx": "^2.1.1",
     "expo": "^53.0.0-canary-20250219-4a5dade",
     "expo-constants": "18.0.0-canary-20250219-4a5dade",
     "expo-dev-client": "5.0.13-canary-20250219-4a5dade",
@@ -29,6 +30,7 @@
     "react-native-safe-area-context": "^5.2.0",
     "react-native-screens": "^4.9.0-beta.0",
     "react-native-web": "~0.19.10",
+    "tailwind-merge": "^3.0.2",
     "tailwindcss": "^3.4.14"
   },
   "devDependencies": {
