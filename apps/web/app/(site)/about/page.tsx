@@ -5,7 +5,7 @@ import {GetStartedButton} from '@/app/(site)/get-started-button'
 import {ArrowUpRight} from 'lucide-react'
 
 export const metadata: Metadata = {
-	title: 'Halycron – The Ultimate Private & Secure Photo Vault',
+	title: 'About Halycron – The Ultimate Private & Secure Photo Vault',
 	description: 'Halycron is a highly secure, end-to-end encrypted photo storage solution. Store, organize, and manage your photos in your personal or private S3 bucket with zero-knowledge encryption. Keep your memories safe—only you can access them.',
 	keywords: [
 		'secure photo vault',
@@ -21,25 +21,24 @@ export const metadata: Metadata = {
 }
 
 const Page = () => (
-	<div className="flex justify-center min-h-svh relative py-16 pt-32 px-4 bg-neutral-950">
-		<div className="max-w-[800px] w-full flex flex-col gap-10 items-center">
-			<Image src={logo} alt="Halycron Logo" className="w-44"/>
+	<div className="flex justify-center min-h-svh relative py-16 px-4">
+		<div className="max-w-[600px] w-full flex flex-col gap-6">
+			<Image src={logo} alt="Halycron Logo"
+				className="w-24 opacity-80 hover:opacity-100 transition-opacity mb-6"/>
 
-			<div className="flex flex-col items-center justify-center gap-4">
-				<h1 className="font-semibold text-6xl text-center leading-tight">Truly private photo storage on cloud</h1>
+			<h1 className="font-semibold text-lg">Private photo storage for your peace of mind</h1>
 
-				<p className="text-lg opacity-60 leading-normal text-center max-w-[80%]">
-					Halycron is a <em className="font-serif font-medium">secure, private</em> photo vault designed to keep
-					your memories safe. With advanced end-to-end encryption, album protection, and complete control over
-					your storage, your photos remain yours—hidden, locked, and accessible only to you.
-				</p>
-			</div>
+			<p className="text-sm opacity-60 leading-normal">
+				Halycron is a <em className="font-serif font-medium">secure, private</em> photo vault designed to keep
+				your memories safe. With advanced end-to-end encryption, album protection, and complete control over
+				your storage, your photos remain yours—hidden, locked, and accessible only to you.
+			</p>
 
-			<div className="flex flex-col items-center gap-4">
+			<div className="flex items-center gap-8">
 				<GetStartedButton />
 
-				<a href="https://github.com/pingSubhajit/halycron?tab=readme-ov-file" target="_blank" className="flex items-center gap-1 hover:underline underline-offset-8 opacity-60 hover:opacity-100 focus-visible:opacity-100 transition-opacity" rel="noreferrer">
-					<span className="font-medium">Check the source code on <em className="font-serif">Github</em></span>
+				<a href="https://github.com/pingSubhajit/halycron?tab=readme-ov-file" target="_blank" className="flex items-center gap-1 hover:underline underline-offset-8" rel="noreferrer">
+					<em className="font-serif font-medium">Github</em>
 					<ArrowUpRight className="w-4 h-4" />
 				</a>
 			</div>
