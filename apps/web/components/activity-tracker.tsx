@@ -8,6 +8,7 @@ import {toast} from 'sonner'
 const {useSession} = createAuthClient()
 
 const INACTIVITY_TIMEOUT = 5 * 60 * 1000 // 5 minutes in milliseconds
+const isLocalEnvironment = process.env.NEXT_PUBLIC_BETTER_AUTH_URL?.includes('localhost')
 
 export const ActivityTracker = () => {
 	const {data: session} = useSession()
@@ -15,7 +16,8 @@ export const ActivityTracker = () => {
 	const timeoutRef = useRef<NodeJS.Timeout>(null)
 
 	useEffect(() => {
-		if (!session) return
+		// Don't track inactivity if not logged in or in local environment
+		if (!session || isLocalEnvironment) return
 
 		const resetTimer = () => {
 			if (timeoutRef.current) {
