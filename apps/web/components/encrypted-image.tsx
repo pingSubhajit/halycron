@@ -46,6 +46,18 @@ export const EncryptedImage = ({photo, hasNext, hasPrev, onOpen, onDelete}: Prop
 		openLightbox(photo, hasNext, hasPrev, onDelete)
 	}
 
+	const handleDownload = () => {
+		if (!decryptedUrl) return
+
+		// Create a temporary anchor element
+		const a = document.createElement('a')
+		a.href = decryptedUrl
+		a.download = photo.originalFilename || 'encrypted-image.jpg'
+		document.body.appendChild(a)
+		a.click()
+		document.body.removeChild(a)
+	}
+
 	return (
 		<ContextMenu>
 			<ContextMenuTrigger>
@@ -70,7 +82,7 @@ export const EncryptedImage = ({photo, hasNext, hasPrev, onOpen, onDelete}: Prop
 					<span>View photo</span>
 					<ImageIcon className="h-4 w-4" />
 				</ContextMenuItem>
-				<ContextMenuItem className="flex items-center justify-between">
+				<ContextMenuItem className="flex items-center justify-between" onSelect={handleDownload}>
 					<span>Download</span>
 					<Download className="h-4 w-4" />
 				</ContextMenuItem>

@@ -3,7 +3,7 @@
 import React, {createContext, useCallback, useContext, useEffect, useRef, useState} from 'react'
 import {Photo} from '@/app/api/photos/types'
 import Image from 'next/image'
-import {ChevronLeft, ChevronRight, Minus, Plus, Trash2, X} from 'lucide-react'
+import {ChevronLeft, ChevronRight, Minus, Plus, Trash2, X, Download} from 'lucide-react'
 import {AnimatePresence, motion} from 'framer-motion'
 import {Button} from '@halycron/ui/components/button'
 import {useDecryptedUrl} from '@/hooks/use-decrypted-url'
@@ -58,6 +58,18 @@ const Lightbox = ({
 	const handleDelete = () => {
 		onDelete?.()
 		onClose()
+	}
+
+	const handleDownload = () => {
+		if (!decryptedUrl) return
+
+		// Create a temporary anchor element
+		const a = document.createElement('a')
+		a.href = decryptedUrl
+		a.download = photo.originalFilename || 'encrypted-image.jpg'
+		document.body.appendChild(a)
+		a.click()
+		document.body.removeChild(a)
 	}
 
 	const handleNext = async () => {
@@ -454,6 +466,16 @@ const Lightbox = ({
 						<span className="sr-only">Zoom in</span>
 					</Button>
 					<AlbumSelector photo={photo} variant="dropdown" />
+					<Button
+						variant="ghost"
+						size="icon"
+						onClick={handleDownload}
+						className="hover:border-none"
+						disabled={!decryptedUrl}
+					>
+						<Download className="h-4 w-4" />
+						<span className="sr-only">Download image</span>
+					</Button>
 					<Button
 						variant="ghost"
 						size="icon"
