@@ -85,25 +85,25 @@ const Page = () => (
 			<section className="grid grid-cols-2 gap-4">
 				{/* MANDATORY MFA */}
 				<div className="bg-background p-4 flex flex-col gap-2">
-					<video src="/mandatory-mfa.mp4" autoPlay muted loop></video>
+					<video src="/protected-album.mp4" autoPlay muted loop></video>
 
 					<h3 className="mt-4 font-medium text-lg">Sensitive & protected albums</h3>
 					<p className="text-sm opacity-60 leading-normal">
-						Two factor authentication and strong password is a requirement for each account. While it
-						might be inconvenient for most, we strongly believe that it's benefit outweigh the
-						compromises by a large margin for such security critical app.
+						Protect your most sensitive photos with a password. Save them from people with physical access
+						of your device or just add them as an extra layer of security on top. Sensitive photos and
+						totally protected photos do not show up in the gallery.
 					</p>
 				</div>
 
 				{/* ZERO-KNOWLEDGE ARCHITECTURE */}
 				<div className="bg-background p-4 flex flex-col gap-2">
-					<video src="/zero-knowledge.mp4" autoPlay muted loop></video>
+					<video src="/shareable-link.mp4" autoPlay muted loop></video>
 
 					<h3 className="mt-4 font-medium text-lg">Share securely with others</h3>
 					<p className="text-sm opacity-60 leading-normal">
-						Nobody except you can decrypt your photos, even those with the physical access of the server.
-						We encrypt and decrypt your photos on your device and store the encrypted data on the server.
-						The keys are also encrypted securely.
+						Create auto-expiring, even optionally pin-secured shareable link for your photos or albums.
+						Anybody with access to the link, provided they entered the correct pin set by you would be
+						able to see what you shared for the set amount of time that you choose.
 					</p>
 				</div>
 			</section>
