@@ -3,11 +3,12 @@
 import React, {createContext, useCallback, useContext, useEffect, useRef, useState} from 'react'
 import {Photo} from '@/app/api/photos/types'
 import Image from 'next/image'
-import {ChevronLeft, ChevronRight, Minus, Plus, Trash2, X, Download} from 'lucide-react'
+import {ChevronLeft, ChevronRight, Minus, Plus, Trash2, X, Download, Share2} from 'lucide-react'
 import {AnimatePresence, motion} from 'framer-motion'
 import {Button} from '@halycron/ui/components/button'
 import {useDecryptedUrl} from '@/hooks/use-decrypted-url'
 import {AlbumSelector} from './album-selector'
+import {ShareDialog} from '@/components/share-dialog'
 
 interface LightboxContextType {
   openLightbox: (photo: Photo, hasNext?: boolean, hasPrev?: boolean, onDelete?: () => void) => void
@@ -54,6 +55,7 @@ const Lightbox = ({
 	const [pinchStart, setPinchStart] = useState<{ distance: number, scale: number } | null>(null)
 	const imageRef = useRef<HTMLDivElement>(null)
 	const containerRef = useRef<HTMLDivElement>(null)
+	const [isShareDialogOpen, setIsShareDialogOpen] = useState(false)
 
 	const handleDelete = () => {
 		onDelete?.()
@@ -365,18 +367,18 @@ const Lightbox = ({
 					<Button
 						variant="ghost"
 						size="icon"
+						className="absolute top-4 right-16 z-50"
 						onClick={handleDelete}
-						className="hover:border-none"
 					>
 						<Trash2 className="h-4 w-4" />
-						<span className="sr-only">Delete image</span>
+						<span className="sr-only">Delete</span>
 					</Button>
 				)}
 				<Button
 					variant="ghost"
 					size="icon"
+					className="absolute top-4 right-4 z-50"
 					onClick={onClose}
-					className="hover:border-none"
 				>
 					<X className="h-4 w-4" />
 					<span className="sr-only">Close</span>
@@ -469,6 +471,15 @@ const Lightbox = ({
 					<Button
 						variant="ghost"
 						size="icon"
+						className="hover:border-none"
+						onClick={() => setIsShareDialogOpen(true)}
+					>
+						<Share2 className="h-4 w-4" />
+						<span className="sr-only">Share image</span>
+					</Button>
+					<Button
+						variant="ghost"
+						size="icon"
 						onClick={handleDownload}
 						className="hover:border-none"
 						disabled={!decryptedUrl}
@@ -488,6 +499,11 @@ const Lightbox = ({
 					</Button>
 				</div>
 			</div>
+			<ShareDialog
+				open={isShareDialogOpen}
+				onOpenChange={setIsShareDialogOpen}
+				photoIds={[photo.id]}
+			/>
 		</div>
 	)
 }

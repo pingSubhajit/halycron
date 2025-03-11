@@ -88,7 +88,7 @@ export const EncryptedImage = ({photo, hasNext, hasPrev, onOpen, onDelete}: Prop
 					<Download className="h-4 w-4" />
 				</ContextMenuItem>
 				<ShareMenuItem photoIds={[photo.id]}>
-					Share photo
+					<div data-photo-id={photo.id}>Share photo</div>
 				</ShareMenuItem>
 				<AlbumSelector photo={photo} variant="context-menu" />
 				<ContextMenuSeparator />
