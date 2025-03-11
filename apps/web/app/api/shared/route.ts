@@ -110,6 +110,11 @@ export async function POST(req: NextRequest) {
 			})
 			.returning()
 
+		// Ensure shared link was created
+		if (!newSharedLink) {
+			return NextResponse.json({error: 'Failed to create share link'}, {status: 500})
+		}
+
 		// Create shared photos records if any
 		if (photoIds && photoIds.length > 0) {
 			await db.insert(sharedPhotos)
