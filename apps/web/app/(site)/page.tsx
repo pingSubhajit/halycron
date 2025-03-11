@@ -113,8 +113,8 @@ const Page = () => (
 					I built Halycron for those who want <em className="font-serif font-medium">peace of mind</em>, not
 					just convenience. A place where your photos stay locked away unless you decide otherwise. A place
 					where trust isn’t assumed but proven
-					through <em className="font-serif font-medium">encryption, protection, and control.</em> Every i
-					mage you store here is yours — untouched, untracked, and inaccessible to anyone but you. Because
+					through <em className="font-serif font-medium">encryption, protection, and control.</em> Every
+					image you store here is yours — untouched, untracked, and inaccessible to anyone but you. Because
 					privacy isn’t something you should have to ask for. It should be
 					the <em className="font-serif font-medium">default</em>.
 				</p>
