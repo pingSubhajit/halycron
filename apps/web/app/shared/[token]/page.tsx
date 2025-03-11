@@ -9,8 +9,22 @@ import {formatDistanceToNow} from 'date-fns'
 import {LockIcon, ClockIcon, Album as AlbumIcon} from 'lucide-react'
 import {Button} from '@halycron/ui/components/button'
 import {Loader2} from 'lucide-react'
+import {PhotoView} from '@/app/shared/[token]/photo-view'
+import {GetSharedItemsResponse} from '@/app/api/shared/types'
+import {Photo} from '@/app/api/photos/types'
 
-export default function SharedPage() {
+// Define the extended Album type that includes photos
+type AlbumWithPhotos = {
+	id: string
+	name: string
+	isSensitive: boolean
+	isProtected: boolean
+	createdAt: Date
+	updatedAt: Date
+	photos?: Photo[]
+}
+
+const SharedPage = () => {
 	const {token} = useParams<{ token: string }>()
 	const [isPinVerified, setIsPinVerified] = useState(false)
 	const [showPinDialog, setShowPinDialog] = useState(false)
@@ -83,13 +97,13 @@ export default function SharedPage() {
 				</div>
 			</div>
 
-			{data.shareType === 'photo' && data.photos && (
-				<Gallery photos={data.photos} />
+			{data.shareType === 'photo' && data.photos && data.photos[0] && (
+				<PhotoView photo={data.photos[0]} />
 			)}
 
 			{data.shareType === 'album' && data.albums && (
 				<div className="space-y-8">
-					{data.albums.map((album) => (
+					{(data.albums as AlbumWithPhotos[]).map((album) => (
 						<div key={album.id} className="space-y-4">
 							<div className="flex items-center gap-2">
 								<AlbumIcon className="h-5 w-5" />
@@ -108,3 +122,6 @@ export default function SharedPage() {
 		</div>
 	)
 }
+
+export default SharedPage
+

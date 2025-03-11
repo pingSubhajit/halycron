@@ -14,12 +14,10 @@ import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDesc
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@halycron/ui/components/select'
 import {ExpiryOption, CreateShareLinkRequest} from '@/app/api/shared/types'
 import {useCreateShareLink} from '@/app/api/shared/mutations'
-import {Photo} from '@/app/api/photos/types'
 import {usePhoto} from '@/app/api/photos/query'
 import {useDecryptedUrl} from '@/hooks/use-decrypted-url'
 import {toast} from 'sonner'
 import {CopyIcon, CheckIcon, Loader2} from 'lucide-react'
-import EncryptedImage from '@/components/encrypted-image'
 
 interface ShareDialogProps {
 	open: boolean
