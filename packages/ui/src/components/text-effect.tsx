@@ -1,6 +1,6 @@
 'use client'
 
-import {cn} from '@/lib/utils'
+import {cn} from '@halycron/ui/lib/utils'
 import {AnimatePresence, motion, TargetAndTransition, Transition, Variant, Variants} from 'motion/react'
 import React from 'react'
 
@@ -178,7 +178,7 @@ const createVariantsWithTransition = (
 		visible: {
 			...baseVariants.visible,
 			transition: {
-				...(hasTransition(baseVariants.visible)
+				...(hasTransition(baseVariants.visible!)
 					? baseVariants.visible.transition
 					: {}),
 				...mainTransition
@@ -187,7 +187,7 @@ const createVariantsWithTransition = (
 		exit: {
 			...baseVariants.exit,
 			transition: {
-				...(hasTransition(baseVariants.exit)
+				...(hasTransition(baseVariants.exit!)
 					? baseVariants.exit.transition
 					: {}),
 				...mainTransition,
