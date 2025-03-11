@@ -118,19 +118,19 @@ export const PinVerificationDialog = ({
 
 				<Form {...form}>
 					<form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col items-center justify-center gap-6 py-4">
-						<div className="relative">
+						<div className="relative w-full">
 							<FormField
 								control={form.control}
 								name="pin"
 								render={({field}) => (
-									<FormItem>
+									<FormItem className="w-full">
 										<FormControl>
-											<InputOTP maxLength={4} {...field}>
-												<InputOTPGroup>
-													<InputOTPSlot index={0} />
-													<InputOTPSlot index={1} />
-													<InputOTPSlot index={2} />
-													<InputOTPSlot index={3} />
+											<InputOTP maxLength={4} {...field} className="w-full">
+												<InputOTPGroup className="w-full">
+													<InputOTPSlot index={0} className="w-full h-16" />
+													<InputOTPSlot index={1} className="w-full h-16" />
+													<InputOTPSlot index={2} className="w-full h-16" />
+													<InputOTPSlot index={3} className="w-full h-16" />
 												</InputOTPGroup>
 											</InputOTP>
 										</FormControl>
