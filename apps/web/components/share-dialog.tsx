@@ -313,7 +313,7 @@ export const ShareDialog = ({
 						</form>
 					</Form>
 				) : (
-					<div className="space-y-4 py-4">
+					<div className="space-y-2 py-4">
 						<div className="flex items-center space-x-2">
 							<div className="grid flex-1 gap-2">
 								<Label htmlFor="link" className="sr-only">Link</Label>
@@ -339,16 +339,17 @@ export const ShareDialog = ({
 							</Button>
 						</div>
 
-						<div className="flex justify-end gap-2">
-							<Button
-								type="button"
-								variant="link"
-								size="sm"
-								onClick={resetDialog}
-								className="text-muted-foreground p-0 h-auto"
-							>
-								Create new link
-							</Button>
+						<div className="flex justify-start gap-2">
+							{/* <Button*/}
+							{/*	type="button"*/}
+							{/*	variant="link"*/}
+							{/*	size="sm"*/}
+							{/*	onClick={resetDialog}*/}
+							{/*	className="text-muted-foreground p-0 h-auto"*/}
+							{/* >*/}
+							{/*	Create new link*/}
+							{/* </Button>*/}
+							<p className="text-xs opacity-60">For security reasons, we won't be able to show this link anymore, make sure to copy it safely</p>
 						</div>
 					</div>
 				)}

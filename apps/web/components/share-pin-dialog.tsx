@@ -1,13 +1,13 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@halycron/ui/components/dialog'
-import { Button } from '@halycron/ui/components/button'
-import { InputOTP, InputOTPGroup, InputOTPSlot } from '@halycron/ui/components/input-otp'
-import { Label } from '@halycron/ui/components/label'
-import { useVerifyPin } from '@/app/api/shared/mutations'
-import { toast } from 'sonner'
-import { LockIcon } from 'lucide-react'
+import {useState, useRef, useEffect} from 'react'
+import {Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter} from '@halycron/ui/components/dialog'
+import {Button} from '@halycron/ui/components/button'
+import {InputOTP, InputOTPGroup, InputOTPSlot} from '@halycron/ui/components/input-otp'
+import {Label} from '@halycron/ui/components/label'
+import {useVerifyPin} from '@/app/api/shared/mutations'
+import {toast} from 'sonner'
+import {LockIcon} from 'lucide-react'
 
 interface SharePinDialogProps {
 	open: boolean
@@ -23,19 +23,19 @@ export function SharePinDialog({
 	onPinVerified
 }: SharePinDialogProps) {
 	const [pin, setPin] = useState<string>('')
-	const { mutate: verifyPin, isPending } = useVerifyPin()
+	const {mutate: verifyPin, isPending} = useVerifyPin()
 	const pinInputRef = useRef<HTMLDivElement>(null)
-	
+
 	useEffect(() => {
 		if (open) {
 			setTimeout(() => {
-				const input = pinInputRef.current?.querySelector('input');
+				const input = pinInputRef.current?.querySelector('input')
 				if (input) {
-					input.focus();
+					input.focus()
 				}
-			}, 100);
+			}, 100)
 		}
-	}, [open]);
+	}, [open])
 
 	const handleVerifyPin = () => {
 		// Validate PIN
@@ -45,7 +45,7 @@ export function SharePinDialog({
 		}
 
 		verifyPin(
-			{ token, pin },
+			{token, pin},
 			{
 				onSuccess: (data) => {
 					if (data.isValid) {
@@ -79,7 +79,7 @@ export function SharePinDialog({
 
 				<div className="grid gap-4 py-4">
 					<div className="grid gap-2">
-						<Label htmlFor="pin-input">4-Digit PIN</Label>
+						<Label htmlFor="pin-input" className="sr-only">4-Digit PIN</Label>
 						<div ref={pinInputRef}>
 							<InputOTP
 								maxLength={4}
@@ -87,11 +87,11 @@ export function SharePinDialog({
 								onChange={setPin}
 								onComplete={handleVerifyPin}
 							>
-								<InputOTPGroup className="gap-2 justify-center">
-									<InputOTPSlot index={0} className="w-10 h-10" />
-									<InputOTPSlot index={1} className="w-10 h-10" />
-									<InputOTPSlot index={2} className="w-10 h-10" />
-									<InputOTPSlot index={3} className="w-10 h-10" />
+								<InputOTPGroup className=" w-full justify-center">
+									<InputOTPSlot index={0} className="w-full h-16" />
+									<InputOTPSlot index={1} className="w-full h-16" />
+									<InputOTPSlot index={2} className="w-full h-16" />
+									<InputOTPSlot index={3} className="w-full h-16" />
 								</InputOTPGroup>
 							</InputOTP>
 						</div>
@@ -103,6 +103,7 @@ export function SharePinDialog({
 						type="button"
 						onClick={handleVerifyPin}
 						disabled={isPending || pin.length !== 4}
+						className="w-full"
 					>
 						{isPending ? 'Verifying...' : 'Verify PIN'}
 					</Button>
