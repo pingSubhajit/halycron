@@ -114,7 +114,7 @@ const AlbumManager = ({album, onDelete, isAccessDenied, handleLockAlbum}: AlbumM
 	}
 
 	return (
-		<div className="flex flex-col gap-4 mb-6">
+		<div className="flex flex-col gap-4">
 			{isEditing ? (
 				<Form {...form}>
 					<form onSubmit={form.handleSubmit(handleUpdate)} className="space-y-4">
@@ -475,7 +475,7 @@ export const SingleAlbumView = ({albumId}: Props) => {
 	return (
 		<div className="w-full h-full">
 			<div className="w-full h-full">
-				<div className="flex flex-col gap-1 mb-6">
+				<div className="flex flex-col gap-1 mb-4">
 					<AlbumManager
 						album={album}
 						onDelete={handleAlbumDelete}
