@@ -1,24 +1,24 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
+import {useState, useEffect, useRef} from 'react'
+import {useForm, useWatch} from 'react-hook-form'
+import {zodResolver} from '@hookform/resolvers/zod'
 import * as z from 'zod'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@halycron/ui/components/dialog'
-import { Button } from '@halycron/ui/components/button'
-import { Input } from '@halycron/ui/components/input'
-import { InputOTP, InputOTPGroup, InputOTPSlot } from '@halycron/ui/components/input-otp'
-import { Label } from '@halycron/ui/components/label'
-import { Switch } from '@halycron/ui/components/switch'
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@halycron/ui/components/form'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@halycron/ui/components/select'
-import { ExpiryOption, CreateShareLinkRequest } from '@/app/api/shared/types'
-import { useCreateShareLink } from '@/app/api/shared/mutations'
-import { Photo } from '@/app/api/photos/types'
-import { usePhoto } from '@/app/api/photos/query'
-import { useDecryptedUrl } from '@/hooks/use-decrypted-url'
-import { toast } from 'sonner'
-import { CopyIcon, CheckIcon, Loader2 } from 'lucide-react'
+import {Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription} from '@halycron/ui/components/dialog'
+import {Button} from '@halycron/ui/components/button'
+import {Input} from '@halycron/ui/components/input'
+import {InputOTP, InputOTPGroup, InputOTPSlot} from '@halycron/ui/components/input-otp'
+import {Label} from '@halycron/ui/components/label'
+import {Switch} from '@halycron/ui/components/switch'
+import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription} from '@halycron/ui/components/form'
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@halycron/ui/components/select'
+import {ExpiryOption, CreateShareLinkRequest} from '@/app/api/shared/types'
+import {useCreateShareLink} from '@/app/api/shared/mutations'
+import {Photo} from '@/app/api/photos/types'
+import {usePhoto} from '@/app/api/photos/query'
+import {useDecryptedUrl} from '@/hooks/use-decrypted-url'
+import {toast} from 'sonner'
+import {CopyIcon, CheckIcon, Loader2} from 'lucide-react'
 import EncryptedImage from '@/components/encrypted-image'
 
 interface ShareDialogProps {
@@ -34,38 +34,37 @@ const formSchema = z.object({
 	expiryOption: z.enum(['1h', '24h', '3d', '7d', '30d']),
 	isPinProtected: z.boolean(),
 	pin: z.string()
-		.refine(val => !val || val.length === 4, { 
-			message: "PIN must be exactly 4 digits" 
+		.refine(val => !val || val.length === 4, {
+			message: 'PIN must be exactly 4 digits'
 		})
-		.refine(val => !val || /^\d+$/.test(val), { 
-			message: "PIN must contain only digits" 
+		.refine(val => !val || /^\d+$/.test(val), {
+			message: 'PIN must contain only digits'
 		})
 		.optional()
 		.nullable()
-});
+})
 
-export function ShareDialog({
+export const ShareDialog = ({
 	open,
 	onOpenChange,
 	photoIds = [],
 	albumIds = [],
 	requiresPin = false
-}: ShareDialogProps) {
+}: ShareDialogProps) => {
 	const [shareUrl, setShareUrl] = useState<string>('')
 	const [copied, setCopied] = useState<boolean>(false)
 	const [step, setStep] = useState<'form' | 'link'>('form')
-	const [localIsPinProtected, setLocalIsPinProtected] = useState<boolean>(requiresPin)
 	const pinInputRef = useRef<HTMLDivElement>(null)
-	
+
 	// Determine if we're sharing a single photo
-	const isSinglePhoto = photoIds.length === 1;
-	
+	const isSinglePhoto = photoIds.length === 1
+
 	// Fetch photo data if we're sharing a single photo
-	const { data: photo, isLoading: isLoadingPhoto } = usePhoto(isSinglePhoto ? photoIds[0] : undefined);
-	
+	const {data: photo, isLoading: isLoadingPhoto} = usePhoto(isSinglePhoto ? photoIds[0] : undefined)
+
 	// Get the decrypted URL for the photo if available
-	const decryptedUrl = useDecryptedUrl(photo);
-	
+	const decryptedUrl = useDecryptedUrl(photo)
+
 	const form = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
 		defaultValues: {
@@ -73,116 +72,113 @@ export function ShareDialog({
 			isPinProtected: requiresPin,
 			pin: ''
 		}
-	});
+	})
 
-	// Sync form state with local state
-	const isPinProtected = form.watch('isPinProtected');
-	
-	useEffect(() => {
-		setLocalIsPinProtected(isPinProtected);
-	}, [isPinProtected]);
-	
+	// Watch form values
+	const isPinProtected = useWatch({control: form.control, name: 'isPinProtected'})
+	const pinValue = useWatch({control: form.control, name: 'pin'})
+
 	// Focus PIN input when isPinProtected changes to true
 	useEffect(() => {
-		if (localIsPinProtected) {
+		if (isPinProtected) {
 			setTimeout(() => {
-				const input = pinInputRef.current?.querySelector('input');
+				const input = pinInputRef.current?.querySelector('input')
 				if (input) {
-					input.focus();
+					input.focus()
 				}
-			}, 100);
+			}, 100)
 		}
-	}, [localIsPinProtected]);
+	}, [isPinProtected])
 
-	const { mutate: createShareLink, isPending } = useCreateShareLink();
+	const {mutate: createShareLink, isPending} = useCreateShareLink()
 
 	const handleSubmit = (values: z.infer<typeof formSchema>) => {
 		// Validate PIN if required
 		if (values.isPinProtected && (!values.pin || values.pin.length !== 4)) {
-			toast.error('Please enter a 4-digit PIN');
-			return;
+			toast.error('Please enter a 4-digit PIN')
+			return
 		}
 
 		// Validate that we have something to share
 		if (photoIds.length === 0 && albumIds.length === 0) {
-			toast.error('No photos or albums selected for sharing');
-			return;
+			toast.error('No photos or albums selected for sharing')
+			return
 		}
 
 		const shareData: CreateShareLinkRequest = {
 			expiryOption: values.expiryOption as ExpiryOption,
-			...(photoIds.length > 0 && { photoIds }),
-			...(albumIds.length > 0 && { albumIds }),
-			...(values.isPinProtected && values.pin && { pin: values.pin })
-		};
+			...(photoIds.length > 0 && {photoIds}),
+			...(albumIds.length > 0 && {albumIds}),
+			...(values.isPinProtected && values.pin && {pin: values.pin})
+		}
 
 		createShareLink(shareData, {
 			onSuccess: (data) => {
-				setShareUrl(data.shareUrl);
-				setStep('link');
+				setShareUrl(data.shareUrl)
+				setStep('link')
 			},
 			onError: (error: Error) => {
-				toast.error(`Failed to create share link: ${error.message}`);
+				toast.error(`Failed to create share link: ${error.message}`)
 			}
-		});
-	};
+		})
+	}
 
 	const copyToClipboard = async () => {
 		try {
-			await navigator.clipboard.writeText(shareUrl);
-			setCopied(true);
-			toast.success('Link copied to clipboard');
-			setTimeout(() => setCopied(false), 2000);
+			await navigator.clipboard.writeText(shareUrl)
+			setCopied(true)
+			toast.success('Link copied to clipboard')
+			setTimeout(() => setCopied(false), 2000)
 		} catch (error) {
-			toast.error('Failed to copy link');
+			toast.error('Failed to copy link')
 		}
-	};
+	}
 
 	const resetDialog = () => {
-		setStep('form');
-		setShareUrl('');
-		setCopied(false);
+		setStep('form')
+		setShareUrl('')
+		setCopied(false)
 		form.reset({
 			expiryOption: '24h' as ExpiryOption,
 			isPinProtected: requiresPin,
 			pin: ''
-		});
-	};
+		})
+	}
 
 	const handleClose = (open: boolean) => {
 		if (!open) {
-			resetDialog();
+			resetDialog()
 		}
-		onOpenChange(open);
-	};
+		onOpenChange(open)
+	}
 
 	const renderPhotoPreview = () => {
-		if (!isSinglePhoto) return null;
-		
+		if (!isSinglePhoto) return null
+
 		if (isLoadingPhoto) {
 			return (
 				<div className="flex items-center justify-center h-[200px] bg-muted rounded-md mb-4">
 					<Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
 				</div>
-			);
+			)
 		}
-		
+
 		if (!photo) {
 			return (
 				<div className="flex items-center justify-center h-[200px] bg-muted rounded-md mb-4">
 					<p className="text-sm text-muted-foreground">Unable to load photo preview</p>
 				</div>
-			);
+			)
 		}
-		
+
 		if (!decryptedUrl) {
 			return (
 				<div className="flex items-center justify-center h-[200px] bg-muted rounded-md mb-4">
 					<p className="text-sm text-muted-foreground">Decrypting photo...</p>
 				</div>
-			);
+			)
 		}
-		
+
 		return (
 			<div className="mb-4 overflow-hidden rounded-md border max-h-[250px]">
 				{/* Render image without the lightbox functionality */}
@@ -197,21 +193,21 @@ export function ShareDialog({
 						}}
 						onClick={(e) => {
 							// Prevent event propagation to avoid any default click handling
-							e.preventDefault();
-							e.stopPropagation();
+							e.preventDefault()
+							e.stopPropagation()
 						}}
 					/>
 				</div>
 			</div>
-		);
-	};
+		)
+	}
 
 	const getDialogTitle = () => {
-		if (photoIds.length > 1) return `Share ${photoIds.length} Photos`;
-		if (photoIds.length === 1) return "Share Photo";
-		if (albumIds.length === 1) return "Share Album";
-		return "Share Content";
-	};
+		if (photoIds.length > 1) return `Share ${photoIds.length} Photos`
+		if (photoIds.length === 1) return 'Share Photo'
+		if (albumIds.length === 1) return 'Share Album'
+		return 'Share Content'
+	}
 
 	return (
 		<Dialog open={open} onOpenChange={handleClose}>
@@ -229,15 +225,15 @@ export function ShareDialog({
 					<Form {...form}>
 						<form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6 py-4">
 							{renderPhotoPreview()}
-							
+
 							<FormField
 								control={form.control}
 								name="expiryOption"
-								render={({ field }) => (
+								render={({field}) => (
 									<FormItem>
 										<FormLabel>Link Expiration</FormLabel>
-										<Select 
-											onValueChange={field.onChange} 
+										<Select
+											onValueChange={field.onChange}
 											defaultValue={field.value}
 										>
 											<FormControl>
@@ -261,7 +257,7 @@ export function ShareDialog({
 							<FormField
 								control={form.control}
 								name="isPinProtected"
-								render={({ field }) => (
+								render={({field}) => (
 									<FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
 										<div className="space-y-0.5">
 											<FormLabel>Protect with PIN</FormLabel>
@@ -272,10 +268,7 @@ export function ShareDialog({
 										<FormControl>
 											<Switch
 												checked={field.value}
-												onCheckedChange={(checked) => {
-													field.onChange(checked);
-													setLocalIsPinProtected(checked);
-												}}
+												onCheckedChange={field.onChange}
 												disabled={requiresPin}
 											/>
 										</FormControl>
@@ -283,11 +276,11 @@ export function ShareDialog({
 								)}
 							/>
 
-							{localIsPinProtected && (
+							{isPinProtected && (
 								<FormField
 									control={form.control}
 									name="pin"
-									render={({ field }) => (
+									render={({field}) => (
 										<FormItem>
 											<FormLabel>4-Digit PIN Code</FormLabel>
 											<FormControl>
@@ -312,10 +305,10 @@ export function ShareDialog({
 								/>
 							)}
 
-							<Button 
-								type="submit" 
-								className="w-full" 
-								disabled={isPending || (localIsPinProtected && (!form.getValues('pin') || form.getValues('pin')?.length !== 4))}
+							<Button
+								type="submit"
+								className="w-full"
+								disabled={isPending || (isPinProtected && (!pinValue || pinValue.length !== 4))}
 							>
 								{isPending ? 'Creating...' : 'Create Share Link'}
 							</Button>
@@ -347,25 +340,21 @@ export function ShareDialog({
 								)}
 							</Button>
 						</div>
-						
-						<div className="flex justify-between gap-2">
+
+						<div className="flex justify-end gap-2">
 							<Button
 								type="button"
-								variant="outline"
+								variant="link"
+								size="sm"
 								onClick={resetDialog}
+								className="text-muted-foreground p-0 h-auto"
 							>
-								Create New Link
-							</Button>
-							<Button
-								type="button"
-								onClick={copyToClipboard}
-							>
-								{copied ? 'Copied!' : 'Copy Link'}
+								Create new link
 							</Button>
 						</div>
 					</div>
 				)}
 			</DialogContent>
 		</Dialog>
-	);
+	)
 }
