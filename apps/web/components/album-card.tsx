@@ -5,7 +5,7 @@ import {useAlbumPhotos} from '@/app/api/albums/query'
 import {Photo} from '@/app/api/photos/types'
 import {useDecryptedUrl} from '@/hooks/use-decrypted-url'
 import Image from 'next/image'
-import {Image as ImageIcon, Trash2, AlertCircle, LockIcon, EyeOffIcon} from 'lucide-react'
+import {AlertCircle, EyeOffIcon, Image as ImageIcon, LockIcon, Trash2} from 'lucide-react'
 import {useCallback, useEffect, useRef, useState} from 'react'
 import Link from 'next/link'
 import {
@@ -16,7 +16,7 @@ import {
 	ContextMenuTrigger
 } from '@halycron/ui/components/context-menu'
 import {format} from 'date-fns'
-import {useUpdateAlbum, useAddPhotosToAlbum} from '@/app/api/albums/mutations'
+import {useAddPhotosToAlbum, useUpdateAlbum} from '@/app/api/albums/mutations'
 import {toast} from 'sonner'
 import {useForm} from 'react-hook-form'
 import {zodResolver} from '@hookform/resolvers/zod'
@@ -24,18 +24,16 @@ import * as z from 'zod'
 import {Form, FormControl, FormField, FormItem, FormMessage} from '@halycron/ui/components/form'
 import {Input} from '@halycron/ui/components/input'
 import {useDebounce} from '@/hooks/use-debounce'
-import {useDropzone} from 'react-dropzone'
+import {FileRejection, useDropzone} from 'react-dropzone'
 import {cn} from '@halycron/ui/lib/utils'
 import {usePhotoUpload} from '@/hooks/use-photo-upload'
-import {AnimatePresence} from 'framer-motion'
-import {motion} from 'framer-motion'
-import {TextShimmer} from '@halycron/ui/components/text-shimmer'
 import {ACCEPTED_IMAGE_FORMATS, MAX_IMAGE_SIZE} from '@/lib/constants'
-import {FileRejection} from 'react-dropzone'
-import {Portal} from '@radix-ui/react-portal'
 import {UploadProgress} from './upload-progress'
 import {useQueryClient} from '@tanstack/react-query'
 import {albumQueryKeys} from '@/app/api/albums/keys'
+import protectedBanner from '@halycron/ui/media/protected.png'
+import sensitiveBanner from '@halycron/ui/media/sensitive.png'
+import sensiProtectBanner from '@halycron/ui/media/sensi-protect.png'
 
 const PhotoLayer = ({
 	photo,
@@ -308,23 +306,50 @@ export const AlbumCard = ({album, onDelete}: {album: Album, onDelete: () => void
 						>
 							{(album.isProtected || album.isSensitive) && (
 								<div className="absolute inset-0 flex items-center justify-center p-4">
-									<div className="flex flex-col items-center justify-center gap-2 text-muted-foreground">
+									<div
+										className="group flex flex-col items-center justify-center gap-2 w-full h-full relative overflow-hidden p-2 bg-neutral-50/80"
+										style={{
+											transform: getRandomRotation(1)
+										}}
+									>
+										<Image src={
+											album.isProtected && album.isSensitive
+												? sensiProtectBanner
+												: album.isProtected
+													? protectedBanner
+													: sensitiveBanner
+										} alt="" className="object-cover w-full h-full"/>
+
 										{album.isProtected && !album.isSensitive && (
-											<div className="flex flex-col items-center">
-												<LockIcon className="w-10 h-10 opacity-80" />
+											<div
+												className="p-2 flex flex-col gap-2 items-center absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+												<LockIcon
+													className="w-10 h-10 opacity-60 group-hover:opacity-100 transition-opacity"/>
+												<p className="whitespace-nowrap text-center opacity-0 group-hover:opacity-100 transition-opacity">This
+													album is protected</p>
 											</div>
 										)}
 										{album.isSensitive && !album.isProtected && (
-											<div className="flex flex-col items-center">
-												<EyeOffIcon className="w-10 h-10 opacity-80" />
+											<div
+												className="p-2 flex flex-col gap-2 items-center absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+												<EyeOffIcon
+													className="w-10 h-10 opacity-60 group-hover:opacity-100 transition-opacity"/>
+												<p className="whitespace-nowrap text-center opacity-0 group-hover:opacity-100 transition-opacity">This
+													album is sensitive</p>
 											</div>
 										)}
 										{album.isProtected && album.isSensitive && (
-											<div className="flex flex-col items-center mt-2">
+											<div
+												className="p-2 flex flex-col gap-2 items-center absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
 												<div className="flex items-center gap-2">
-													<EyeOffIcon className="w-10 h-10 opacity-80" />
-													<LockIcon className="w-10 h-10 opacity-80" />
+													<EyeOffIcon
+														className="w-10 h-10 opacity-60 group-hover:opacity-100 transition-opacity"/>
+													<LockIcon
+														className="w-10 h-10 opacity-60 group-hover:opacity-100 transition-opacity"/>
 												</div>
+
+												<p className="whitespace-nowrap text-center opacity-0 group-hover:opacity-100 transition-opacity">This
+													album is protected & protected</p>
 											</div>
 										)}
 									</div>
