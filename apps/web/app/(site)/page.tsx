@@ -40,7 +40,7 @@ const Page = () => (
 					<GetStartedButton />
 
 					<a href="https://github.com/pingSubhajit/halycron?tab=readme-ov-file" target="_blank" className="flex items-center gap-1 hover:underline underline-offset-8 opacity-60 hover:opacity-100 focus-visible:opacity-100 transition-opacity" rel="noreferrer">
-						<span className="font-medium">Check the source code on <em className="font-serif">Github</em></span>
+						<h2 className="font-medium">Check the source code on <em className="font-serif">Github</em></h2>
 						<ArrowUpRight className="w-4 h-4" />
 					</a>
 				</div>
