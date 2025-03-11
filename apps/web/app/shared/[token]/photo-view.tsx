@@ -1,17 +1,17 @@
 'use client'
 
-import React, { useEffect, useRef, useState } from 'react'
-import { Photo } from '@/app/api/photos/types'
-import { Button } from '@halycron/ui/components/button'
-import { ZoomIn, ZoomOut } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { downloadAndDecryptFile } from '@/app/api/photos/utils'
+import React, {useEffect, useRef, useState} from 'react'
+import {Photo} from '@/app/api/photos/types'
+import {Button} from '@halycron/ui/components/button'
+import {ZoomIn, ZoomOut} from 'lucide-react'
+import {motion, AnimatePresence} from 'framer-motion'
+import {downloadAndDecryptFile} from '@/app/api/photos/utils'
 
-export const PhotoView = ({ photo }: { photo: Photo }) => {
+export const PhotoView = ({photo}: { photo: Photo }) => {
 	const [scale, setScale] = useState(1)
-	const [position, setPosition] = useState({ x: 0, y: 0 })
+	const [position, setPosition] = useState({x: 0, y: 0})
 	const [isDragging, setIsDragging] = useState(false)
-	const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
+	const [dragStart, setDragStart] = useState({x: 0, y: 0})
 	const [pinchStart, setPinchStart] = useState<{ distance: number; scale: number } | null>(null)
 	const [decryptedUrl, setDecryptedUrl] = useState<string | null>(null)
 	const [isLoading, setIsLoading] = useState(true)
@@ -53,7 +53,7 @@ export const PhotoView = ({ photo }: { photo: Photo }) => {
 
 		if (newScale === 1) {
 			setScale(1)
-			setPosition({ x: 0, y: 0 })
+			setPosition({x: 0, y: 0})
 			return
 		}
 
@@ -69,7 +69,7 @@ export const PhotoView = ({ photo }: { photo: Photo }) => {
 	const handleMouseDown = (e: React.MouseEvent) => {
 		if (scale === 1) return // Only allow dragging when zoomed in
 		setIsDragging(true)
-		setDragStart({ x: e.clientX - position.x, y: e.clientY - position.y })
+		setDragStart({x: e.clientX - position.x, y: e.clientY - position.y})
 	}
 
 	const handleMouseMove = (e: React.MouseEvent) => {
@@ -111,7 +111,7 @@ export const PhotoView = ({ photo }: { photo: Photo }) => {
 			// Pinch gesture starting
 			if (!e.touches[0] || !e.touches[1]) return
 			const distance = calculateTouchDistance(e.touches[0], e.touches[1])
-			setPinchStart({ distance, scale })
+			setPinchStart({distance, scale})
 			setIsDragging(false)
 		} else if (e.touches.length === 1) {
 			// Single touch for panning
@@ -210,7 +210,7 @@ export const PhotoView = ({ photo }: { photo: Photo }) => {
 			// If zooming out to scale 1, center the image
 			if (newScale === 1) {
 				setScale(1)
-				setPosition({ x: 0, y: 0 })
+				setPosition({x: 0, y: 0})
 				return
 			}
 
@@ -248,7 +248,7 @@ export const PhotoView = ({ photo }: { photo: Photo }) => {
 			setIsDragging(false)
 		}
 
-		window.addEventListener('wheel', handleWheel, { passive: false })
+		window.addEventListener('wheel', handleWheel, {passive: false})
 		window.addEventListener('mouseup', handleGlobalMouseUp)
 
 		return () => {
@@ -298,10 +298,10 @@ export const PhotoView = ({ photo }: { photo: Photo }) => {
 				<AnimatePresence mode="wait">
 					<motion.div
 						key={photo.id}
-						initial={{ opacity: 0, scale: 0.95 }}
-						animate={{ opacity: 1, scale: 1 }}
-						exit={{ opacity: 0, scale: 0.95 }}
-						transition={{ duration: 0.15, ease: 'easeOut' }}
+						initial={{opacity: 0, scale: 0.95}}
+						animate={{opacity: 1, scale: 1}}
+						exit={{opacity: 0, scale: 0.95}}
+						transition={{duration: 0.15, ease: 'easeOut'}}
 						className="relative max-h-full max-w-full"
 						ref={imageRef}
 					>
@@ -331,7 +331,7 @@ export const PhotoView = ({ photo }: { photo: Photo }) => {
 							>
 								<img
 									src={decryptedUrl}
-									alt={photo.originalFilename || "Shared photo"}
+									alt={photo.originalFilename || 'Shared photo'}
 									className="max-h-[90vh] max-w-full h-auto w-auto object-contain select-none"
 									draggable={false}
 								/>

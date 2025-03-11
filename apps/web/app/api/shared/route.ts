@@ -35,8 +35,8 @@ function hashPin(pin: string): string {
 
 // Helper function to validate PIN is 4 digits
 function validatePin(pin: string | undefined): boolean {
-	if (!pin) return false;
-	return /^\d{4}$/.test(pin);
+	if (!pin) return false
+	return /^\d{4}$/.test(pin)
 }
 
 // POST - Create a new share link

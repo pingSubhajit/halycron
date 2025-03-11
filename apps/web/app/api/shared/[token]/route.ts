@@ -6,12 +6,12 @@ import {GetSharedItemsResponse} from '../types'
 import {generatePresignedDownloadUrl} from '@/lib/s3-client'
 
 // GET /api/shared/[token] - Get shared items for a token
-export async function GET(
+export const GET = async (
 	req: NextRequest,
-	{params}: { params: { token: string } }
-) {
+	{params}: { params: Promise<{ token: string }> }
+) => {
 	try {
-		const {token} = params
+		const {token} = await params
 
 		// Find the shared link
 		const [link] = await db

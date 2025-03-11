@@ -18,24 +18,24 @@ export const usePhoto = (photoId: string | undefined, options?: QueryOptions<Pho
 	return useQuery({
 		queryKey: photoQueryKeys.photo(photoId || ''),
 		queryFn: async () => {
-			if (!photoId) throw new Error("Photo ID is required");
-			
+			if (!photoId) throw new Error('Photo ID is required')
+
 			// Fetch all photos and find the specific one by ID
-			const response = await fetch('/api/photos');
+			const response = await fetch('/api/photos')
 			if (!response.ok) {
-				throw new Error('Failed to fetch photos');
+				throw new Error('Failed to fetch photos')
 			}
-			
-			const photos = await response.json() as Photo[];
-			const foundPhoto = photos.find(p => p.id === photoId);
-			
+
+			const photos = await response.json() as Photo[]
+			const foundPhoto = photos.find(p => p.id === photoId)
+
 			if (!foundPhoto) {
-				throw new Error(`Photo with ID ${photoId} not found`);
+				throw new Error(`Photo with ID ${photoId} not found`)
 			}
-			
-			return foundPhoto;
+
+			return foundPhoto
 		},
 		enabled: !!photoId,
 		...options
-	});
+	})
 }

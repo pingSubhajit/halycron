@@ -12,8 +12,8 @@ function hashPin(pin: string): string {
 
 // Helper function to validate PIN is 4 digits
 function validatePin(pin: string | undefined): boolean {
-	if (!pin) return false;
-	return /^\d{4}$/.test(pin);
+	if (!pin) return false
+	return /^\d{4}$/.test(pin)
 }
 
 // POST /api/shared/verify-pin - Verify PIN for a protected shared link
@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
 	try {
 		const body: VerifyPinRequest = await req.json()
 		const {token, pin} = body
-		
+
 		// Validate PIN format
 		if (!validatePin(pin)) {
 			return NextResponse.json({error: 'PIN must be exactly 4 digits'}, {status: 400})
@@ -56,4 +56,4 @@ export async function POST(req: NextRequest) {
 		console.error('Error verifying PIN:', error)
 		return NextResponse.json({error: 'Failed to verify PIN'}, {status: 500})
 	}
-} 
+}
