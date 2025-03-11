@@ -135,3 +135,33 @@ export const photosToAlbums = pgTable('photos_to_albums', {
 }, (t) => ({
 	pk: primaryKey(t.photoId, t.albumId)
 }))
+
+// Shared Links Table
+export const sharedLink = pgTable('shared_links', {
+	id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
+	userId: uuid('user_id').notNull().references(() => user.id, {onDelete: 'cascade'}),
+	token: text('token').notNull().unique(),
+	pinHash: text('pin_hash'),
+	isPinProtected: boolean('is_pin_protected').default(false).notNull(),
+	expiresAt: timestamp('expires_at', {withTimezone: true}).notNull(),
+	createdAt: timestamp('created_at', {withTimezone: true}).default(sql`CURRENT_TIMESTAMP`),
+	updatedAt: timestamp('updated_at', {withTimezone: true}).default(sql`CURRENT_TIMESTAMP`)
+})
+
+// Junction table for shared photos
+export const sharedPhotos = pgTable('shared_photos', {
+	sharedLinkId: uuid('shared_link_id').notNull().references(() => sharedLink.id, {onDelete: 'cascade'}),
+	photoId: uuid('photo_id').notNull().references(() => photo.id, {onDelete: 'cascade'}),
+	createdAt: timestamp('created_at', {withTimezone: true}).default(sql`CURRENT_TIMESTAMP`)
+}, (t) => ({
+	pk: primaryKey(t.sharedLinkId, t.photoId)
+}))
+
+// Junction table for shared albums
+export const sharedAlbums = pgTable('shared_albums', {
+	sharedLinkId: uuid('shared_link_id').notNull().references(() => sharedLink.id, {onDelete: 'cascade'}),
+	albumId: uuid('album_id').notNull().references(() => album.id, {onDelete: 'cascade'}),
+	createdAt: timestamp('created_at', {withTimezone: true}).default(sql`CURRENT_TIMESTAMP`)
+}, (t) => ({
+	pk: primaryKey(t.sharedLinkId, t.albumId)
+}))

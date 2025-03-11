@@ -12,11 +12,16 @@ const getStableUrlPart = (url: string): string => {
 	}
 }
 
-export const useDecryptedUrl = (photo: Photo) => {
+export const useDecryptedUrl = (photo?: Photo | null) => {
 	const [decryptedUrl, setDecryptedUrl] = useState<string | null>(null)
 	const {getFromCache, setInCache} = useDecryptionCache()
 
 	useEffect(() => {
+		if (!photo) {
+			setDecryptedUrl(null)
+			return
+		}
+
 		const cacheKey = `${photo.id}-${getStableUrlPart(photo.url)}`
 		let mounted = true
 

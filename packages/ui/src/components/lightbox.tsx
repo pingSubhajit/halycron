@@ -2,7 +2,7 @@
 
 import {useEffect, useState} from 'react'
 import {cn} from '@halycron/ui/lib/utils'
-import {ChevronLeft, ChevronRight, X, ZoomIn, ZoomOut} from 'lucide-react'
+import {ChevronLeft, ChevronRight, X, ZoomIn, ZoomOut, Share2} from 'lucide-react'
 import {Button} from '@halycron/ui/components/button'
 import {Carousel, CarouselApi, CarouselContent, CarouselItem} from '@halycron/ui/components/carousel'
 import {AnimatePresence, motion} from 'motion/react'
@@ -13,6 +13,8 @@ interface LightboxProps {
 	setCurrentIndex: (index: number) => void;
 	onClose: () => void;
 	onDelete?: () => void;
+	onShare?: () => void;
+	photoId?: string;
 	isOpen: boolean;
 	className?: string;
 }
@@ -23,6 +25,8 @@ export const Lightbox = ({
 	setCurrentIndex,
 	onClose,
 	onDelete,
+	onShare,
+	photoId,
 	isOpen,
 	className
 }: LightboxProps) => {
@@ -139,6 +143,16 @@ export const Lightbox = ({
 							<ZoomIn className="h-4 w-4" />
 							<span className="sr-only">Zoom in</span>
 						</Button>
+						{onShare && photoId && (
+							<Button
+								variant="ghost"
+								size="icon"
+								onClick={onShare}
+							>
+								<Share2 className="h-4 w-4" />
+								<span className="sr-only">Share image</span>
+							</Button>
+						)}
 						<Button
 							variant="ghost"
 							size="icon"

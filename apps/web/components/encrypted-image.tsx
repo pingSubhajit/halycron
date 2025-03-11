@@ -4,7 +4,7 @@ import {Photo} from '@/app/api/photos/types'
 import Image from 'next/image'
 import {HTMLProps} from 'react'
 import {cn} from '@halycron/ui/lib/utils'
-import {useLightbox} from './lightbox-context'
+import {useLightbox} from '@/components/lightbox-context'
 import {useDecryptedUrl} from '@/hooks/use-decrypted-url'
 import {
 	ContextMenu,
@@ -16,6 +16,7 @@ import {
 import {Download, Image as ImageIcon, Trash2} from 'lucide-react'
 import {format} from 'date-fns'
 import {AlbumSelector} from './album-selector'
+import {ShareMenuItem} from '@/components/share/share-menu-item'
 
 type Props = {
 	photo: Photo
@@ -86,6 +87,9 @@ export const EncryptedImage = ({photo, hasNext, hasPrev, onOpen, onDelete}: Prop
 					<span>Download</span>
 					<Download className="h-4 w-4" />
 				</ContextMenuItem>
+				<ShareMenuItem photoIds={[photo.id]}>
+					<div data-photo-id={photo.id}>Share photo</div>
+				</ShareMenuItem>
 				<AlbumSelector photo={photo} variant="context-menu" />
 				<ContextMenuSeparator />
 				<ContextMenuItem className="flex items-center justify-between" onSelect={onDelete}>

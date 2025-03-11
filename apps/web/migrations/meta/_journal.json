@@ -43,6 +43,13 @@
       "when": 1740324025523,
       "tag": "0005_equal_avengers",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1741658489528,
+      "tag": "0006_milky_white_queen",
+      "breakpoints": true
     }
   ]
 }
