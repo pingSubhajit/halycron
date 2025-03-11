@@ -21,7 +21,7 @@ export const metadata: Metadata = {
 }
 
 const Page = () => (
-	<div className="flex justify-center min-h-svh relative py-16 pt-32 px-4 bg-neutral-950">
+	<div className="flex justify-center min-h-svh relative py-32 px-4 bg-neutral-950">
 		<div className="max-w-[800px] w-full flex flex-col gap-32 items-center">
 			<section className="flex flex-col gap-10 items-center">
 				<Image src={logo} alt="Halycron Logo" className="w-44"/>
