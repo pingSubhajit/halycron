@@ -2,6 +2,7 @@ import {ReactNode} from 'react'
 import {auth} from '@/lib/auth/config'
 import {headers} from 'next/headers'
 import {redirect} from 'next/navigation'
+import {SmoothScroll} from '@/components/smooth-scroll'
 
 const SiteLayout = async ({children}: {children: ReactNode}) => {
 	// Check if user is logged in on the server
@@ -15,10 +16,12 @@ const SiteLayout = async ({children}: {children: ReactNode}) => {
 	}
 
 	return (
-		<div className="relative">
-			{/* <SiteNav />*/}
-			<main>{children}</main>
-		</div>
+		<SmoothScroll>
+			<div className="relative">
+				{/* <SiteNav />*/}
+				<main>{children}</main>
+			</div>
+		</SmoothScroll>
 	)
 }
 

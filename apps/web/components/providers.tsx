@@ -7,26 +7,23 @@ import {NuqsAdapter} from 'nuqs/adapters/next/app'
 import APIProvider from '@/components/api-provider'
 import {LightboxProvider} from './lightbox-context'
 import {ActivityTracker} from '@/components/activity-tracker'
-import {SmoothScroll} from './smooth-scroll'
 
 export const Providers = ({children}: { children: React.ReactNode }) => (
-	<SmoothScroll>
-		<NextThemesProvider
-			attribute="class"
-			defaultTheme="dark"
-			enableSystem
-			disableTransitionOnChange
-			enableColorScheme
-		>
-			<NuqsAdapter>
-				<APIProvider>
-					<LightboxProvider>
-						<ActivityTracker/>
-						{children}
-						<Toaster/>
-					</LightboxProvider>
-				</APIProvider>
-			</NuqsAdapter>
-		</NextThemesProvider>
-	</SmoothScroll>
+	<NextThemesProvider
+		attribute="class"
+		defaultTheme="dark"
+		enableSystem
+		disableTransitionOnChange
+		enableColorScheme
+	>
+		<NuqsAdapter>
+			<APIProvider>
+				<LightboxProvider>
+					<ActivityTracker/>
+					{children}
+					<Toaster/>
+				</LightboxProvider>
+			</APIProvider>
+		</NuqsAdapter>
+	</NextThemesProvider>
 )
