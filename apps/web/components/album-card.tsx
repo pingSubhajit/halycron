@@ -312,35 +312,38 @@ export const AlbumCard = ({album, onDelete}: {album: Album, onDelete: () => void
 											transform: getRandomRotation(1)
 										}}
 									>
-										<Image src={
-											album.isProtected && album.isSensitive
-												? sensiProtectBanner
-												: album.isProtected
-													? protectedBanner
-													: sensitiveBanner
-										} alt="" className="object-cover w-full h-full"/>
+										<Image
+											src={
+												album.isProtected && album.isSensitive
+													? sensiProtectBanner
+													: album.isProtected
+														? protectedBanner
+														: sensitiveBanner
+											} alt="" className="object-cover w-full h-full"
+											placeholder="blur"
+										/>
 
 										{album.isProtected && !album.isSensitive && (
 											<div
-												className="p-2 flex flex-col gap-2 items-center absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+												className="p-2 w-full flex flex-col gap-2 items-center absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
 												<LockIcon
 													className="w-10 h-10 opacity-60 group-hover:opacity-100 transition-opacity"/>
-												<p className="whitespace-nowrap text-center opacity-0 group-hover:opacity-100 transition-opacity">This
+												<p className="text-center opacity-0 group-hover:opacity-100 transition-opacity">This
 													album is protected</p>
 											</div>
 										)}
 										{album.isSensitive && !album.isProtected && (
 											<div
-												className="p-2 flex flex-col gap-2 items-center absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+												className="p-2 w-full flex flex-col gap-2 items-center absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
 												<EyeOffIcon
 													className="w-10 h-10 opacity-60 group-hover:opacity-100 transition-opacity"/>
-												<p className="whitespace-nowrap text-center opacity-0 group-hover:opacity-100 transition-opacity">This
+												<p className="text-center opacity-0 group-hover:opacity-100 transition-opacity">This
 													album is sensitive</p>
 											</div>
 										)}
 										{album.isProtected && album.isSensitive && (
 											<div
-												className="p-2 flex flex-col gap-2 items-center absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+												className="p-2 w-full flex flex-col gap-2 items-center absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
 												<div className="flex items-center gap-2">
 													<EyeOffIcon
 														className="w-10 h-10 opacity-60 group-hover:opacity-100 transition-opacity"/>
@@ -348,8 +351,9 @@ export const AlbumCard = ({album, onDelete}: {album: Album, onDelete: () => void
 														className="w-10 h-10 opacity-60 group-hover:opacity-100 transition-opacity"/>
 												</div>
 
-												<p className="whitespace-nowrap text-center opacity-0 group-hover:opacity-100 transition-opacity">This
-													album is protected & protected</p>
+												<p className="w-full text-center opacity-0 group-hover:opacity-100 transition-opacity">
+													This album is sensitive & protected
+												</p>
 											</div>
 										)}
 									</div>

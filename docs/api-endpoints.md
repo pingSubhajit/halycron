@@ -285,3 +285,100 @@ All endpoints except /auth/login and /auth/register require:
 - Authorization header with valid JWT
 - Content-Type header
 - Accept header
+
+### 6 Sharing Endpoints
+
+#### POST /api/shared
+
+Creates a shareable link for photos or albums
+
+```ts
+Request:
+{
+    photoIds ? : string[],    // Array of photo IDs to share
+        albumIds ? : string[],    // Array of album IDs to share
+        expiryOption
+:
+    '1h' | '24h' | '3d' | '7d' | '30d',  // Link expiration time
+        pin ? : string           // Optional 4-digit PIN for protected content
+}
+
+Response:
+{
+    shareLink: {
+        id: string,
+            token
+    :
+        string,
+            isPinProtected
+    :
+        boolean,
+            expiresAt
+    :
+        Date,
+            createdAt
+    :
+        Date
+    }
+,
+    shareUrl: string      // Complete URL for sharing
+}
+```
+
+#### GET /api/shared/[token]
+
+Retrieves shared content using a share token
+
+```ts
+Response:
+{
+    shareType: 'photo' | 'album',
+        isPinProtected
+:
+    boolean,
+        expiresAt
+:
+    Date,
+        photos ? : [{          // Present if shareType is 'photo'
+            id: string,
+            originalFilename: string,
+            mimeType: string,
+            encryptedFileKey: string,
+            fileKeyIv: string,
+            imageWidth: number,
+            imageHeight: number,
+            url: string,     // Pre-signed download URL
+            createdAt: Date
+        }],
+        albums ? : [{          // Present if shareType is 'album'
+            id: string,
+            name: string,
+            isSensitive: boolean,
+            isProtected: boolean,
+            createdAt: Date,
+            updatedAt: Date,
+            photos: [{       // Photos in the album
+                id: string,
+                originalFilename: string,
+                mimeType: string,
+                encryptedFileKey: string,
+                fileKeyIv: string,
+                imageWidth: number,
+                imageHeight: number,
+                url: string,
+                createdAt: Date
+            }]
+        }]
+}
+```
+
+Key Features:
+
+- Share individual photos or entire albums
+- Configurable expiration times (1 hour to 30 days)
+- Optional PIN protection for sensitive content
+- PIN protection is mandatory for sharing sensitive or protected albums
+- Secure sharing with unique tokens
+- Pre-signed URLs for secure content access
+- Automatic expiration of shared links
+- Encrypted content remains secure in shared links
