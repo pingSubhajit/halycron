@@ -1,23 +1,31 @@
 'use client'
 
-import {useState, useEffect, useRef} from 'react'
+import {useEffect, useRef, useState} from 'react'
 import {useForm, useWatch} from 'react-hook-form'
 import {zodResolver} from '@hookform/resolvers/zod'
 import * as z from 'zod'
-import {Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription} from '@halycron/ui/components/dialog'
+import {Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle} from '@halycron/ui/components/dialog'
 import {Button} from '@halycron/ui/components/button'
 import {Input} from '@halycron/ui/components/input'
 import {InputOTP, InputOTPGroup, InputOTPSlot} from '@halycron/ui/components/input-otp'
 import {Label} from '@halycron/ui/components/label'
 import {Switch} from '@halycron/ui/components/switch'
-import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription} from '@halycron/ui/components/form'
+import {
+	Form,
+	FormControl,
+	FormDescription,
+	FormField,
+	FormItem,
+	FormLabel,
+	FormMessage
+} from '@halycron/ui/components/form'
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@halycron/ui/components/select'
-import {ExpiryOption, CreateShareLinkRequest} from '@/app/api/shared/types'
+import {CreateShareLinkRequest, ExpiryOption} from '@/app/api/shared/types'
 import {useCreateShareLink} from '@/app/api/shared/mutations'
 import {usePhoto} from '@/app/api/photos/query'
 import {useDecryptedUrl} from '@/hooks/use-decrypted-url'
 import {toast} from 'sonner'
-import {CopyIcon, CheckIcon, Loader2} from 'lucide-react'
+import {CheckIcon, CopyIcon, Loader2} from 'lucide-react'
 
 interface ShareDialogProps {
 	open: boolean
@@ -114,6 +122,16 @@ export const ShareDialog = ({
 			onSuccess: (data) => {
 				setShareUrl(data.shareUrl)
 				setStep('link')
+				// Automatically copy the link to clipboard
+				navigator.clipboard.writeText(data.shareUrl)
+					.then(() => {
+						setCopied(true)
+						toast.success('Link created and copied to clipboard')
+						setTimeout(() => setCopied(false), 2000)
+					})
+					.catch(() => {
+						toast.error('Created link but failed to copy to clipboard')
+					})
 			},
 			onError: (error: Error) => {
 				toast.error(`Failed to create share link: ${error.message}`)
