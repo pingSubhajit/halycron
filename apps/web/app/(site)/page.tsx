@@ -49,7 +49,7 @@ const Page = () => (
 
 			<section className="grid grid-cols-2 gap-4">
 				{/* MANDATORY MFA */}
-				<div className="bg-background p-4 flex flex-col gap-2">
+				<div className="bg-card p-4 flex flex-col gap-2">
 					<video src="/mandatory-mfa.mp4" autoPlay muted loop></video>
 
 					<h3 className="mt-4 font-medium text-lg">Mandatory MFA</h3>
@@ -61,7 +61,7 @@ const Page = () => (
 				</div>
 
 				{/* ZERO-KNOWLEDGE ARCHITECTURE */}
-				<div className="bg-background p-4 flex flex-col gap-2">
+				<div className="bg-card p-4 flex flex-col gap-2">
 					<video src="/zero-knowledge.mp4" autoPlay muted loop></video>
 
 					<h3 className="mt-4 font-medium text-lg">Zero-knowledge architecture</h3>
@@ -85,7 +85,7 @@ const Page = () => (
 
 			<section className="grid grid-cols-2 gap-4">
 				{/* MANDATORY MFA */}
-				<div className="bg-background p-4 flex flex-col gap-2">
+				<div className="bg-card p-4 flex flex-col gap-2">
 					<video src="/protected-album.mp4" autoPlay muted loop></video>
 
 					<h3 className="mt-4 font-medium text-lg">Sensitive & protected albums</h3>
@@ -97,7 +97,7 @@ const Page = () => (
 				</div>
 
 				{/* ZERO-KNOWLEDGE ARCHITECTURE */}
-				<div className="bg-background p-4 flex flex-col gap-2">
+				<div className="bg-card p-4 flex flex-col gap-2">
 					<video src="/shareable-link.mp4" autoPlay muted loop></video>
 
 					<h3 className="mt-4 font-medium text-lg">Share securely with others</h3>
