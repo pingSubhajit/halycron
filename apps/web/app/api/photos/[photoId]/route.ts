@@ -18,10 +18,10 @@ const getUserAlbumIds = async (userId: string): Promise<string[]> => {
 }
 
 // GET /api/photos/[photoId]
-export async function GET(
+export const GET = async (
 	request: NextRequest,
-	{params}: { params: { photoId: string } }
-) {
+	{params}: { params: Promise<{ photoId: string }> }
+) => {
 	try {
 		const session = await auth.api.getSession({
 			headers: await headers()
@@ -31,7 +31,7 @@ export async function GET(
 			return NextResponse.json({error: 'Unauthorized'}, {status: 401})
 		}
 
-		const {photoId} = params
+		const {photoId} = await params
 		if (!photoId) {
 			return NextResponse.json({error: 'Photo ID is required'}, {status: 400})
 		}
