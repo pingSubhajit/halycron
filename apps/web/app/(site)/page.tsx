@@ -3,6 +3,7 @@ import logo from '@halycron/ui/media/logo.svg'
 import {Metadata} from 'next'
 import {GetStartedButton} from '@/app/(site)/get-started-button'
 import {ArrowUpRight} from 'lucide-react'
+import letrazLogo from '@halycron/ui/media/letraz-logo.svg'
 
 export const metadata: Metadata = {
 	title: 'Halycron – The Ultimate Private & Secure Photo Vault',
@@ -21,7 +22,7 @@ export const metadata: Metadata = {
 }
 
 const Page = () => (
-	<div className="flex justify-center min-h-svh relative py-32 px-4 bg-neutral-950">
+	<div className="flex flex-col items-center gap-32 min-h-svh relative pt-32 pb-8 px-4 bg-neutral-950">
 		<div className="max-w-[800px] w-full flex flex-col gap-32 items-center">
 			<section className="flex flex-col gap-10 items-center">
 				<Image src={logo} alt="Halycron Logo" className="w-44"/>
@@ -126,6 +127,20 @@ const Page = () => (
 				<GetStartedButton />
 			</section>
 		</div>
+
+		<footer className="max-w-[1200px] w-full flex items-center justify-center gap-8">
+			<p className="text-center text-sm opacity-60 hover:opacity-100 transition-opacity">
+				&copy; Built by <a href="https://x.com/ping_subhajit" target="_blank" className="underline"
+					rel="noreferrer">@ping_subhajit</a>
+			</p>
+
+			<p className="text-center text-sm opacity-60 hover:opacity-100 transition-opacity flex items-center gap-1">
+				A product from <a href="https://letraz.app" target="_blank"
+					className="underline flex items-center gap-1" rel="noreferrer">
+					<Image src={letrazLogo} alt="Letraz logo" className="w-8"/> @letrazApp
+				</a>
+			</p>
+		</footer>
 	</div>
 )
 
