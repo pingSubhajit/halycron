@@ -56,12 +56,26 @@ export const middleware = async (request: NextRequest) => {
 		}
 	}
 
+	// Redirect to /app if the user is already logged in
+	if (path === '/' || path === '/register' || path === '/login') {
+		const {data: session} = await betterFetch<Session>('/api/auth/get-session', {
+			baseURL: request.nextUrl.origin,
+			headers: {
+				cookie: request.headers.get('cookie') || '' // Forward the cookies from the request
+			}
+		})
+		if (session) {
+			return NextResponse.redirect(new URL('/app', request.url))
+		}
+	}
+
 	return NextResponse.next()
 }
 
 export const config = {
 	matcher: [
 		'/app/:path*',
-		'/api/:path*'
+		'/api/:path*',
+		'/:path*'
 	]
 }

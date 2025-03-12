@@ -85,7 +85,7 @@ export const UserMenu = () => {
 				</DropdownMenuItem>
 
 				<DropdownMenuSeparator />
-				<Link href="/"><DropdownMenuItem>
+				<Link href="/home"><DropdownMenuItem>
 					<span>Home page</span>
 				</DropdownMenuItem></Link>
 				<DropdownMenuItem
