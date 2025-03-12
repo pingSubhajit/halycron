@@ -20,20 +20,29 @@ export const usePhoto = (photoId: string | undefined, options?: QueryOptions<Pho
 		queryFn: async () => {
 			if (!photoId) throw new Error('Photo ID is required')
 
-			// Fetch all photos and find the specific one by ID
-			const response = await fetch('/api/photos')
+			// Fetch the specific photo by ID
+			const response = await fetch(`/api/photos/${photoId}`)
 			if (!response.ok) {
-				throw new Error('Failed to fetch photos')
+				/*
+				 * If we can't find the photo by direct ID endpoint, try the fallback approach
+				 * This maintains backward compatibility and handles cases where the direct endpoint isn't implemented
+				 */
+				const allPhotosResponse = await fetch('/api/photos')
+				if (!allPhotosResponse.ok) {
+					throw new Error('Failed to fetch photos')
+				}
+
+				const photos = await allPhotosResponse.json() as Photo[]
+				const foundPhoto = photos.find(p => p.id === photoId)
+
+				if (!foundPhoto) {
+					throw new Error(`Photo with ID ${photoId} not found`)
+				}
+
+				return foundPhoto
 			}
 
-			const photos = await response.json() as Photo[]
-			const foundPhoto = photos.find(p => p.id === photoId)
-
-			if (!foundPhoto) {
-				throw new Error(`Photo with ID ${photoId} not found`)
-			}
-
-			return foundPhoto
+			return await response.json() as Photo
 		},
 		enabled: !!photoId,
 		...options
