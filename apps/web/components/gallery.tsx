@@ -9,9 +9,10 @@ import {useLightbox} from './lightbox-context'
 type Props = {
 	photos: Photo[]
 	onDelete?: (photo: Photo) => void | Promise<void>
+    currentAlbumId?: string
 }
 
-export const Gallery = ({photos, onDelete}: Props) => {
+export const Gallery = ({photos, onDelete, currentAlbumId}: Props) => {
 	const breakpoint = useResponsive()
 	const [currentIndex, setCurrentIndex] = useState<number | null>(null)
 	const {setNavigationHandlers} = useLightbox()
@@ -96,6 +97,7 @@ export const Gallery = ({photos, onDelete}: Props) => {
 									hasPrev={hasPrev}
 									onOpen={() => setCurrentIndex(index)}
 									onDelete={() => onDelete?.(photo)}
+									currentAlbumId={currentAlbumId}
 								/>
 
 								{onDelete && (

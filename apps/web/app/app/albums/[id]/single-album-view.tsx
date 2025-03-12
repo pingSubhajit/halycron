@@ -497,7 +497,7 @@ export const SingleAlbumView = ({albumId}: Props) => {
 						<p className="text-destructive">Error loading photos</p>
 					</div>
 				) : Array.isArray(photos) && photos.length > 0 ? (
-					<Gallery photos={photos} onDelete={onDelete} />
+					<Gallery photos={photos} onDelete={onDelete} currentAlbumId={albumId}/>
 				) : (
 					<div className="w-full h-[50vh] flex items-center justify-center rounded-lg border border-dashed p-12">
 						<p className="text-muted-foreground">No photos in this album yet</p>

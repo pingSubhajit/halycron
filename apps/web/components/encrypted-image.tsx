@@ -24,6 +24,7 @@ type Props = {
 	hasPrev?: boolean
 	onOpen?: () => void
 	onDelete?: () => void
+	currentAlbumId?: string
 }
 
 const ImageSkeleton = (props: HTMLProps<HTMLDivElement>) => (
@@ -32,7 +33,7 @@ const ImageSkeleton = (props: HTMLProps<HTMLDivElement>) => (
 	</div>
 )
 
-export const EncryptedImage = ({photo, hasNext, hasPrev, onOpen, onDelete}: Props) => {
+export const EncryptedImage = ({photo, hasNext, hasPrev, onOpen, onDelete, currentAlbumId}: Props) => {
 	const decryptedUrl = useDecryptedUrl(photo)
 	const {openLightbox} = useLightbox()
 
@@ -90,7 +91,7 @@ export const EncryptedImage = ({photo, hasNext, hasPrev, onOpen, onDelete}: Prop
 				<ShareMenuItem photoIds={[photo.id]}>
 					<div data-photo-id={photo.id}>Share photo</div>
 				</ShareMenuItem>
-				<AlbumSelector photo={photo} variant="context-menu" />
+				<AlbumSelector photo={photo} variant="context-menu" currentAlbumId={currentAlbumId}/>
 				<ContextMenuSeparator />
 				<ContextMenuItem className="flex items-center justify-between" onSelect={onDelete}>
 					<span>Delete photo</span>

@@ -3,7 +3,7 @@
 import React, {createContext, useCallback, useContext, useEffect, useRef, useState} from 'react'
 import {Photo} from '@/app/api/photos/types'
 import Image from 'next/image'
-import {ChevronLeft, ChevronRight, Minus, Plus, Trash2, X, Download, Share2} from 'lucide-react'
+import {ChevronLeft, ChevronRight, Download, Minus, Plus, Share2, Trash2, X} from 'lucide-react'
 import {AnimatePresence, motion} from 'framer-motion'
 import {Button} from '@halycron/ui/components/button'
 import {useDecryptedUrl} from '@/hooks/use-decrypted-url'
@@ -36,7 +36,8 @@ const Lightbox = ({
 	onClose,
 	onDelete,
 	onNext,
-	onPrev
+	onPrev,
+	currentAlbumId
 }: {
 	photo: Photo
 	hasNext?: boolean
@@ -45,6 +46,7 @@ const Lightbox = ({
 	onDelete?: () => void
 	onNext?: () => Promise<Photo | null>
 	onPrev?: () => Promise<Photo | null>
+    currentAlbumId?: string
 }) => {
 	const decryptedUrl = useDecryptedUrl(photo)
 	const [loading, setLoading] = useState(false)
@@ -467,7 +469,7 @@ const Lightbox = ({
 						<Plus className="h-4 w-4" />
 						<span className="sr-only">Zoom in</span>
 					</Button>
-					<AlbumSelector photo={photo} variant="dropdown" />
+					<AlbumSelector photo={photo} variant="dropdown" currentAlbumId={currentAlbumId}/>
 					<Button
 						variant="ghost"
 						size="icon"
@@ -518,6 +520,20 @@ export const LightboxProvider = ({children}: { children: React.ReactNode }) => {
 		onNext?:() => Promise<Photo | null>
 		onPrev?: () => Promise<Photo | null>
 			}>({})
+	const [currentAlbumId, setCurrentAlbumId] = useState<string | undefined>(undefined)
+
+	// Extract album ID from URL if we're in an album view
+	useEffect(() => {
+		if (typeof window !== 'undefined') {
+			const path = window.location.pathname
+			const match = path.match(/\/app\/albums\/([^\/]+)/)
+			if (match && match[1]) {
+				setCurrentAlbumId(match[1])
+			} else {
+				setCurrentAlbumId(undefined)
+			}
+		}
+	}, [])
 
 	const openLightbox = useCallback((photo: Photo, hasNext = false, hasPrev = false, onDelete?: () => void) => {
 		setCurrentPhoto(photo)
@@ -598,6 +614,7 @@ export const LightboxProvider = ({children}: { children: React.ReactNode }) => {
 					onDelete={onDeleteHandler}
 					onNext={handleNext}
 					onPrev={handlePrev}
+					currentAlbumId={currentAlbumId}
 				/>
 			)}
 		</LightboxContext.Provider>

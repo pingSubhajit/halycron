@@ -24,16 +24,19 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger
 } from '@halycron/ui/components/dropdown-menu'
-import {CircleHelp, Image as ImageIcon} from 'lucide-react'
+import {CircleHelp, EyeOff, Image as ImageIcon, Lock} from 'lucide-react'
 import {useLightbox} from './lightbox-context'
 import {Switch} from '@halycron/ui/components/switch'
 import {Label} from '@halycron/ui/components/label'
-import {EyeOff, Lock} from 'lucide-react'
 import {InputOTP, InputOTPGroup, InputOTPSlot} from '@halycron/ui/components/input-otp'
 import {useEffect, useState} from 'react'
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from '@halycron/ui/components/tooltip'
 
-const CreateAlbumForm = ({photoId, variant}: {photoId: string, variant?: 'context-menu' | 'dropdown'}) => {
+const CreateAlbumForm = ({photoId, variant, currentAlbumId}: {
+    photoId: string,
+    variant?: 'context-menu' | 'dropdown',
+    currentAlbumId?: string
+}) => {
 	const {register, handleSubmit, formState: {errors, isSubmitting}, reset, watch, setValue, setError} = useForm<CreateAlbumInput>({
 		resolver: zodResolver(createAlbumSchema),
 		defaultValues: {
@@ -107,6 +110,23 @@ const CreateAlbumForm = ({photoId, variant}: {photoId: string, variant?: 'contex
 
 			// Add the current photo to the newly created album
 			await addToAlbum.mutateAsync({albumId: album.id, photoIds: [photoId]})
+
+			/*
+			 * If the album is sensitive, invalidate the photos query to update the gallery
+			 * This ensures photos added to sensitive albums are removed from the gallery view
+			 */
+			if (data.isSensitive) {
+				await queryClient.invalidateQueries({queryKey: photoQueryKeys.allPhotos()})
+			}
+
+			/*
+			 * If we're in an album view (currentAlbumId is provided), invalidate the album photos query
+			 * This ensures the album view is updated when a photo's albums are modified
+			 */
+			if (currentAlbumId) {
+				await queryClient.invalidateQueries({queryKey: albumQueryKeys.albumPhotos(currentAlbumId)})
+			}
+
 			reset()
 			setPin('')
 		} catch (error) {
@@ -227,9 +247,10 @@ interface AlbumSelectorProps {
 	photo: Photo
 	variant?: 'context-menu' | 'dropdown'
 	className?: string
+    currentAlbumId?: string
 }
 
-export const AlbumSelector = ({photo, variant = 'context-menu', className}: AlbumSelectorProps) => {
+export const AlbumSelector = ({photo, variant = 'context-menu', className, currentAlbumId}: AlbumSelectorProps) => {
 	const {data: albums} = useAllAlbums()
 	const addToAlbum = useAddPhotosToAlbum(photo.albums?.map(album => album.id))
 	const removeFromAlbum = useRemovePhotosFromAlbum(photo.albums?.map(album => album.id))
@@ -269,6 +290,22 @@ export const AlbumSelector = ({photo, variant = 'context-menu', className}: Albu
 				await removeFromAlbum.mutateAsync({albumId, photoIds: [photo.id]})
 			} else {
 				await addToAlbum.mutateAsync({albumId, photoIds: [photo.id]})
+
+				/*
+				 * If the album is sensitive, invalidate the photos query to update the gallery
+				 * This ensures photos added to sensitive albums are removed from the gallery view
+				 */
+				if (targetAlbum.isSensitive) {
+					await queryClient.invalidateQueries({queryKey: photoQueryKeys.allPhotos()})
+				}
+			}
+
+			/*
+			 * If we're in an album view (currentAlbumId is provided), invalidate the album photos query
+			 * This ensures the album view is updated when a photo's albums are modified
+			 */
+			if (currentAlbumId) {
+				await queryClient.invalidateQueries({queryKey: albumQueryKeys.albumPhotos(currentAlbumId)})
 			}
 		} catch (error) {
 			// If the mutation fails, revert to the previous state
@@ -286,7 +323,7 @@ export const AlbumSelector = ({photo, variant = 'context-menu', className}: Albu
 				<ContextMenuSub>
 					<ContextMenuSubTrigger>Add to album</ContextMenuSubTrigger>
 					<ContextMenuSubContent className="w-64">
-						<CreateAlbumForm photoId={photo.id} variant="context-menu" />
+						<CreateAlbumForm photoId={photo.id} variant="context-menu" currentAlbumId={currentAlbumId}/>
 						<ContextMenuSeparator />
 						{albums?.map(album => (
 							<ContextMenuCheckboxItem
@@ -320,7 +357,7 @@ export const AlbumSelector = ({photo, variant = 'context-menu', className}: Albu
 					</Button>
 				</DropdownMenuTrigger>
 				<DropdownMenuContent className="w-64" align="center">
-					<CreateAlbumForm photoId={photo.id} variant="dropdown" />
+					<CreateAlbumForm photoId={photo.id} variant="dropdown" currentAlbumId={currentAlbumId}/>
 					<DropdownMenuSeparator />
 					{albums?.map(album => (
 						<DropdownMenuCheckboxItem
