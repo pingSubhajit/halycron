@@ -4,16 +4,16 @@ import {toast} from 'sonner'
 import {Photo} from '@/app/api/photos/types'
 import {useAlbum, useAlbumPhotos} from '@/app/api/albums/query'
 import {useDeletePhoto, useRestorePhoto} from '@/app/api/photos/mutation'
-import {useDeleteAlbum, useUpdateAlbum, useAddPhotosToAlbum} from '@/app/api/albums/mutations'
+import {useAddPhotosToAlbum, useDeleteAlbum, useUpdateAlbum} from '@/app/api/albums/mutations'
 import {Album} from '@/app/api/albums/types'
 import dynamic from 'next/dynamic'
 import {TextShimmer} from '@halycron/ui/components/text-shimmer'
 import {api} from '@/lib/data/api-client'
 import {Button} from '@halycron/ui/components/button'
 import {Input} from '@halycron/ui/components/input'
-import {useState, useEffect, useCallback} from 'react'
+import {useCallback, useEffect, useState} from 'react'
 import {useRouter} from 'next/navigation'
-import {Trash2, EyeOff, Lock, CircleHelp, Loader2} from 'lucide-react'
+import {EyeOff, Lock, Trash2} from 'lucide-react'
 import {useForm} from 'react-hook-form'
 import {zodResolver} from '@hookform/resolvers/zod'
 import * as z from 'zod'
@@ -24,7 +24,7 @@ import {PinVerificationDialog} from '@/components/pin-verification-dialog'
 import {Switch} from '@halycron/ui/components/switch'
 import {Label} from '@halycron/ui/components/label'
 import {InputOTP, InputOTPGroup, InputOTPSlot} from '@halycron/ui/components/input-otp'
-import {useQueryClient, UseQueryOptions} from '@tanstack/react-query'
+import {useQueryClient} from '@tanstack/react-query'
 import {albumQueryKeys} from '@/app/api/albums/keys'
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from '@halycron/ui/components/tooltip'
 
@@ -88,21 +88,23 @@ const AlbumManager = ({album, onDelete, isAccessDenied, handleLockAlbum}: AlbumM
 
 	const handleUpdate = async (values: UpdateAlbumFormValues) => {
 		try {
-			// Create the update data
+			// Only include fields that are being updated
 			const updateData: Partial<Album> & { pin?: string } = {
-				...album,
-				name: values.name,
-				isSensitive: values.isSensitive ?? album.isSensitive,
-				isProtected: values.isProtected ?? album.isProtected,
-				updatedAt: new Date()
+				id: album.id, // Always need the ID
+				name: values.name
 			}
 
-			/*
-			 * Include pin only if it's provided and the album is not already protected
-			 * For already protected albums, keep the existing pin
-			 */
-			if (values.pin && !album.isProtected) {
-				updateData.pin = values.pin
+			// Only include these fields if they've changed
+			if (values.isSensitive !== album.isSensitive) {
+				updateData.isSensitive = values.isSensitive
+			}
+
+			if (values.isProtected !== album.isProtected) {
+				updateData.isProtected = values.isProtected
+				// Include PIN only when enabling protection
+				if (values.isProtected && values.pin) {
+					updateData.pin = values.pin
+				}
 			}
 
 			await updateAlbum.mutateAsync(updateData as Album)
