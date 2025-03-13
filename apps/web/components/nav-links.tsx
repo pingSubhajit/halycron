@@ -1,11 +1,16 @@
 'use client'
 
 import Link from 'next/link'
-import {usePathname} from 'next/navigation'
+import {usePathname, useRouter} from 'next/navigation'
 import {cn} from '@halycron/ui/lib/utils'
+import {useHotkeys} from 'react-hotkeys-hook'
 
 export const NavLinks = () => {
 	const pathname = usePathname()
+	const router = useRouter()
+
+	useHotkeys('g', () => pathname !== '/app' && router.push('/app'), [pathname])
+	useHotkeys('a', () => pathname !== '/app/albums' && router.push('/app/albums'), [pathname])
 
 	return (
 		<div className="flex items-center mt-2 gap-3">

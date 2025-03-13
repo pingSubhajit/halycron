@@ -4,11 +4,12 @@ import React, {createContext, useCallback, useContext, useEffect, useRef, useSta
 import {Photo} from '@/app/api/photos/types'
 import Image from 'next/image'
 import {ChevronLeft, ChevronRight, Download, Minus, Plus, Share2, Trash2, X} from 'lucide-react'
-import {AnimatePresence, motion} from 'framer-motion'
+import {AnimatePresence, motion} from 'motion/react'
 import {Button} from '@halycron/ui/components/button'
 import {useDecryptedUrl} from '@/hooks/use-decrypted-url'
 import {AlbumSelector} from './album-selector'
 import {ShareDialog} from '@/components/share-dialog'
+import {useHotkeys} from 'react-hotkeys-hook'
 
 interface LightboxContextType {
   openLightbox: (photo: Photo, hasNext?: boolean, hasPrev?: boolean, onDelete?: () => void) => void
@@ -241,22 +242,25 @@ const Lightbox = ({
 		setPinchStart(null)
 	}
 
-	// Handle keyboard navigation and zoom
-	useEffect(() => {
-		const handleKeyDown = (e: KeyboardEvent) => {
-			switch (e.key) {
-			case 'Escape':
-				onClose()
-				break
-			case 'ArrowLeft':
-				if (hasPrev && !loading) handlePrev()
-				break
-			case 'ArrowRight':
-				if (hasNext && !loading) handleNext()
-				break
-			}
-		}
+	// Handle keyboard shortcuts with useHotkeys
+	useHotkeys('escape', () => onClose(), [onClose])
+	useHotkeys('left', () => {
+		if (hasPrev && !loading) handlePrev()
+	}, [hasPrev, loading, handlePrev])
+	useHotkeys('right', () => {
+		if (hasNext && !loading) handleNext()
+	}, [hasNext, loading, handleNext])
+	useHotkeys('z', () => handleZoom(true), [handleZoom])
+	useHotkeys('x', () => handleZoom(false), [handleZoom])
+	useHotkeys('up', () => handleZoom(true), {preventDefault: true}, [handleZoom])
+	useHotkeys('down', () => handleZoom(false), {preventDefault: true}, [handleZoom])
+	useHotkeys('d', () => decryptedUrl && handleDownload(), [decryptedUrl, handleDownload])
+	useHotkeys('s', () => setIsShareDialogOpen(true), [setIsShareDialogOpen])
+	useHotkeys('shift+del', () => onDelete && handleDelete(), [onDelete, handleDelete])
+	useHotkeys('shift+backspace', () => onDelete && handleDelete(), [onDelete, handleDelete])
 
+	// Handle wheel events for zoom
+	useEffect(() => {
 		const handleWheel = (e: WheelEvent) => {
 			e.preventDefault()
 
@@ -342,16 +346,14 @@ const Lightbox = ({
 			setIsDragging(false)
 		}
 
-		window.addEventListener('keydown', handleKeyDown)
 		window.addEventListener('wheel', handleWheel, {passive: false})
 		window.addEventListener('mouseup', handleGlobalMouseUp)
 
 		return () => {
-			window.removeEventListener('keydown', handleKeyDown)
 			window.removeEventListener('wheel', handleWheel)
 			window.removeEventListener('mouseup', handleGlobalMouseUp)
 		}
-	}, [hasNext, hasPrev, loading, onClose, scale, position])
+	}, [scale, position])
 
 	return (
 		<div

@@ -4,7 +4,7 @@ import React, {useEffect, useRef, useState} from 'react'
 import {Photo} from '@/app/api/photos/types'
 import {Button} from '@halycron/ui/components/button'
 import {ZoomIn, ZoomOut} from 'lucide-react'
-import {motion, AnimatePresence} from 'framer-motion'
+import {AnimatePresence, motion} from 'motion/react'
 import {downloadAndDecryptFile} from '@/app/api/photos/utils'
 
 export const PhotoView = ({photo}: { photo: Photo }) => {

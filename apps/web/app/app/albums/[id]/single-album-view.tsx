@@ -27,6 +27,7 @@ import {InputOTP, InputOTPGroup, InputOTPSlot} from '@halycron/ui/components/inp
 import {useQueryClient} from '@tanstack/react-query'
 import {albumQueryKeys} from '@/app/api/albums/keys'
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from '@halycron/ui/components/tooltip'
+import {useHotkeys} from 'react-hotkeys-hook'
 
 const Gallery = dynamic(() => import('@/components/gallery').then(mod => mod.Gallery), {ssr: false})
 
@@ -59,19 +60,20 @@ const AlbumManager = ({album, onDelete, isAccessDenied, handleLockAlbum}: AlbumM
 		}
 	})
 
-	// Handle escape key to cancel editing
-	useEffect(() => {
-		const handleEscapeKey = (e: KeyboardEvent) => {
-			if (e.key === 'Escape' && isEditing) {
-				form.reset()
-				setPin('')
-				setIsEditing(false)
-			}
+	// Handle keyboard shortcuts with useHotkeys
+	useHotkeys('escape', () => {
+		if (isEditing) {
+			form.reset()
+			setPin('')
+			setIsEditing(false)
 		}
-
-		document.addEventListener('keydown', handleEscapeKey)
-		return () => document.removeEventListener('keydown', handleEscapeKey)
 	}, [isEditing, form])
+
+	useHotkeys('shift+e', () => {
+		if (!isEditing) {
+			setIsEditing(true)
+		}
+	}, [isEditing])
 
 	const isProtected = form.watch('isProtected')
 
@@ -424,7 +426,20 @@ export const SingleAlbumView = ({albumId}: Props) => {
 		} catch (error) {
 			toast.error('Failed to lock album')
 		}
-	}, [albumId, queryClient])
+	}, [albumId])
+
+	// Add keyboard shortcuts with useHotkeys
+	useHotkeys('l', () => {
+		if (album?.isProtected && !isAccessDenied) {
+			handleLockAlbum()
+		}
+	}, [album, isAccessDenied, handleLockAlbum])
+
+	useHotkeys(['shift+del', 'shift+backspace'], () => {
+		if (album) {
+			handleAlbumDelete()
+		}
+	}, [album, handleAlbumDelete])
 
 	if (albumLoading) {
 		return (

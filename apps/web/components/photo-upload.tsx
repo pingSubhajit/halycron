@@ -1,5 +1,5 @@
-import {useCallback, useEffect} from 'react'
-import {Upload, AlertCircle} from 'lucide-react'
+import {useEffect} from 'react'
+import {AlertCircle} from 'lucide-react'
 import {useDropzone} from 'react-dropzone'
 import {cn} from '@halycron/ui/lib/utils'
 import {Photo} from '@/app/api/photos/types'
@@ -7,12 +7,13 @@ import {usePhotoUpload} from '@/hooks/use-photo-upload'
 import {ACCEPTED_IMAGE_FORMATS, MAX_IMAGE_SIZE} from '@/lib/constants'
 import {toast} from 'sonner'
 import {UploadProgress} from './upload-progress'
+import {AnimatePresence, motion} from 'motion/react'
 
 type Props = {
 	onPhotoUploaded?: (photo: Photo) => void
 }
 
-const formatFileSize = (bytes: number) => {
+export const formatFileSize = (bytes: number) => {
 	if (bytes === 0) return '0 Bytes'
 	const k = 1024
 	const sizes = ['Bytes', 'KB', 'MB', 'GB']
@@ -68,15 +69,23 @@ export const PhotoUpload = ({onPhotoUploaded}: Props) => {
 				{...getRootProps()}
 				className={cn(
 					'w-full h-full flex flex-col items-center justify-center transition-all duration-200 bg-transparent',
-					isDragActive && '[box-shadow:inset_0_0_30px_hsl(var(--primary))]'
+					isDragActive && 'bg-dark/80 backdrop-blur-sm'
 				)}
 				onClick={(e) => e.stopPropagation()} // Prevent clicks from reaching the gallery
 			>
 				<input {...getInputProps()} />
-				<div className={cn(
-					'transition-opacity duration-200',
-					isDragActive ? 'opacity-100' : 'opacity-0'
-				)} />
+
+				<AnimatePresence>
+					{isDragActive && <motion.div
+						key="drag-active"
+						className="flex flex-col justify-center items-center gap-2"
+						initial={{opacity: 0, y: -20}}
+						animate={{opacity: 1, y: 0}}
+						exit={{opacity: 0, y: -20}}
+					>
+						<p className="text-lg">Just drop your files</p>
+					</motion.div>}
+				</AnimatePresence>
 			</div>
 		</div>
 	)
