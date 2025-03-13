@@ -1,7 +1,7 @@
 import {Photo} from '../photos/types'
 import {Album} from '../albums/types'
 
-export type ExpiryOption = '1h' | '24h' | '3d' | '7d' | '30d';
+export type ExpiryOption = '5min' | '15min' | '30min' | '1h' | '8h' | '24h' | '3d' | '7d' | '30d';
 
 export type ShareType = 'photo' | 'album';
 

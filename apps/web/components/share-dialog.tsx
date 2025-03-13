@@ -37,7 +37,7 @@ interface ShareDialogProps {
 
 // Define form schema
 const formSchema = z.object({
-	expiryOption: z.enum(['1h', '24h', '3d', '7d', '30d']),
+	expiryOption: z.enum(['5min', '15min', '30min', '1h', '8h', '24h', '3d', '7d', '30d']),
 	isPinProtected: z.boolean(),
 	pin: z.string()
 		.refine(val => !val || val.length === 4, {
@@ -74,7 +74,7 @@ export const ShareDialog = ({
 	const form = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
 		defaultValues: {
-			expiryOption: '24h' as ExpiryOption,
+			expiryOption: '1h' as ExpiryOption,
 			isPinProtected: requiresPin,
 			pin: ''
 		}
@@ -155,7 +155,7 @@ export const ShareDialog = ({
 		setShareUrl('')
 		setCopied(false)
 		form.reset({
-			expiryOption: '24h' as ExpiryOption,
+			expiryOption: '1h' as ExpiryOption,
 			isPinProtected: requiresPin,
 			pin: ''
 		})
@@ -258,7 +258,11 @@ export const ShareDialog = ({
 												</SelectTrigger>
 											</FormControl>
 											<SelectContent>
+												<SelectItem value="5min">5 minutes</SelectItem>
+												<SelectItem value="15min">15 minutes</SelectItem>
+												<SelectItem value="30min">30 minutes</SelectItem>
 												<SelectItem value="1h">1 hour</SelectItem>
+												<SelectItem value="8h">8 hours</SelectItem>
 												<SelectItem value="24h">24 hours</SelectItem>
 												<SelectItem value="3d">3 days</SelectItem>
 												<SelectItem value="7d">7 days</SelectItem>

@@ -2,19 +2,27 @@ import {NextRequest, NextResponse} from 'next/server'
 import {auth} from '@/lib/auth/config'
 import {db} from '@/db/drizzle'
 import {and, eq, inArray} from 'drizzle-orm'
-import {photo, album, sharedLink, sharedPhotos, sharedAlbums} from '@/db/schema'
+import {album, photo, sharedAlbums, sharedLink, sharedPhotos} from '@/db/schema'
 import {nanoid} from 'nanoid'
 import {createHash} from 'crypto'
 import {CreateShareLinkRequest, CreateShareLinkResponse} from './types'
 import {getBaseUrl} from '@/lib/utils'
-import {addHours, addDays} from 'date-fns'
+import {addDays, addHours, addMinutes} from 'date-fns'
 import {headers} from 'next/headers'
 
 // Helper function to calculate expiry date based on option
 function calculateExpiryDate(expiryOption: string): Date {
 	switch (expiryOption) {
+	case '5min':
+		return addMinutes(new Date(), 5)
+	case '15min':
+		return addMinutes(new Date(), 15)
+	case '30min':
+		return addMinutes(new Date(), 30)
 	case '1h':
 		return addHours(new Date(), 1)
+	case '8h':
+		return addHours(new Date(), 8)
 	case '24h':
 		return addHours(new Date(), 24)
 	case '3d':
