@@ -57,7 +57,7 @@ export const middleware = async (request: NextRequest) => {
 	}
 
 	// Redirect to /app if the user is already logged in
-	if (path === '/' || path === '/register' || path === '/login') {
+	if (path === '/' || path === '/login') {
 		const {data: session} = await betterFetch<Session>('/api/auth/get-session', {
 			baseURL: request.nextUrl.origin,
 			headers: {

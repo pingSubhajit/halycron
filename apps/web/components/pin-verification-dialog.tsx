@@ -1,26 +1,19 @@
 'use client'
 
 import {useEffect, useState} from 'react'
-import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogHeader,
-	DialogTitle
-} from '@halycron/ui/components/dialog'
+import {Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle} from '@halycron/ui/components/dialog'
 import {Button} from '@halycron/ui/components/button'
-import {api} from '@/lib/data/api-client'
+import {api, VerifyPinResponse} from '@/lib/data/api-client'
 import {toast} from 'sonner'
-import {Lock, AlertCircle, KeyRound} from 'lucide-react'
+import {KeyRound, Lock} from 'lucide-react'
 import {InputOTP, InputOTPGroup, InputOTPSlot} from '@halycron/ui/components/input-otp'
-import {VerifyPinResponse} from '@/lib/data/api-client'
 import {useForm} from 'react-hook-form'
 import {zodResolver} from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import {Form, FormControl, FormField, FormItem, FormMessage} from '@halycron/ui/components/form'
 
 const formSchema = z.object({
-	pin: z.string().length(4, 'Please enter a 4-digit PIN')
+	pin: z.string().length(4, 'Please enter your 4-digit PIN')
 })
 
 interface PinVerificationDialogProps {
@@ -66,7 +59,7 @@ export const PinVerificationDialog = ({
 			// Check verification status
 			if (response && response.verified === true) {
 				// Success! Close dialog and notify parent
-				toast.success('Album unlocked successfully')
+				toast.success('Album unlocked! Your photos are ready to view')
 
 				/*
 				 * Important: First close dialog, then notify parent with a slight delay
@@ -82,13 +75,13 @@ export const PinVerificationDialog = ({
 			// If we get here but verification isn't true, it's an unexpected response
 			form.setError('pin', {
 				type: 'manual',
-				message: 'Verification failed. Please try again.'
+				message: 'Hmm, that didn\'t work. Want to try again?'
 			})
 			form.reset({pin: ''})
 			setAttempts(prev => prev + 1)
 		} catch (err: any) {
 			// Extract error message from response if available
-			const errorMessage = err.response?.data?.error || 'Invalid PIN. Please try again.'
+			const errorMessage = err.response?.data?.error || 'That doesn\'t seem to be the right PIN. Let\'s try again?'
 			form.setError('pin', {
 				type: 'manual',
 				message: errorMessage
@@ -98,7 +91,7 @@ export const PinVerificationDialog = ({
 
 			// If too many failed attempts, show a stronger message
 			if (attempts >= 4) {
-				toast.error('Too many incorrect attempts. Please try again later.')
+				toast.error('For security, we\'ve paused PIN attempts. Please try again later.')
 			}
 		}
 	}
@@ -112,7 +105,7 @@ export const PinVerificationDialog = ({
 						Protected Album
 					</DialogTitle>
 					<DialogDescription className="text-center">
-						This album is protected. Please enter your PIN to access it.
+						This album is locked for extra privacy. Enter your PIN to peek inside.
 					</DialogDescription>
 				</DialogHeader>
 
@@ -151,13 +144,13 @@ export const PinVerificationDialog = ({
 							disabled={!form.formState.isValid || isVerifying}
 							className="w-full"
 						>
-							{isVerifying ? 'Verifying...' : 'Unlock Album'}
+							{isVerifying ? 'Unlocking...' : 'Open Album'}
 						</Button>
 
 						{attempts > 3 && (
 							<p className="text-xs text-muted-foreground text-center">
-								Multiple incorrect attempts may lead to temporary lockout.
-								Please make sure you're entering the correct PIN.
+								Multiple incorrect attempts may temporarily limit access.
+								Take a breath and try again with the correct PIN.
 							</p>
 						)}
 					</form>

@@ -45,7 +45,7 @@ export const AlbumView = () => {
 			toast.error(error.message)
 		},
 		onSuccess: () => {
-			toast.success('Album deleted successfully')
+			toast.success('Your album has been removed successfully')
 		},
 		onSettled: () => {
 			// Invalidate and refetch to ensure our optimistic update matches the server state
@@ -56,21 +56,22 @@ export const AlbumView = () => {
 	if (isLoading) {
 		return <div className="flex flex-col items-center justify-center h-96">
 			<TextShimmer duration={1}>
-				Collecting and decrypting . . .
+				Finding your collections...
 			</TextShimmer>
 		</div>
 	}
 
 	if (isError) {
 		return <div className="flex flex-col items-center justify-center h-96">
-			<p>Error loading albums</p>
+			<p>Hmm, we ran into a hiccup loading your albums. Mind trying again?</p>
 		</div>
 	}
 
 	if (albums && albums.length === 0) {
 		return <div className="flex flex-col items-center justify-center h-96">
-			<p className="text-lg text-neutral-300">No albums here</p>
-			<p className="text-sm text-neutral-500">Right click on a photo and add it to an album after creating one there itself</p>
+			<p className="text-lg text-neutral-300">Your album collection is empty</p>
+			<p className="text-sm text-neutral-500">Right-click on any photo and select "Add to album" to get
+				started</p>
 		</div>
 	}
 

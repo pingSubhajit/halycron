@@ -16,11 +16,11 @@ export const useLogout = () => {
 				throw error
 			}
 
-			toast.success('Logged out successfully')
+			toast.success('See you soon! You\'ve been signed out safely')
 			router.push('/login')
 			router.refresh()
 		} catch (error) {
-			toast.error(error instanceof Error ? error.message : 'Something went wrong')
+			toast.error(error instanceof Error ? error.message : 'Hmm, we had trouble signing you out. Mind trying again?')
 		} finally {
 			setIsLoading(false)
 		}

@@ -1,7 +1,14 @@
 'use client'
 
-import {useState, useRef, useEffect} from 'react'
-import {Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter} from '@halycron/ui/components/dialog'
+import {useEffect, useRef, useState} from 'react'
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle
+} from '@halycron/ui/components/dialog'
 import {Button} from '@halycron/ui/components/button'
 import {InputOTP, InputOTPGroup, InputOTPSlot} from '@halycron/ui/components/input-otp'
 import {Label} from '@halycron/ui/components/label'
@@ -40,7 +47,7 @@ export function SharePinDialog({
 	const handleVerifyPin = () => {
 		// Validate PIN
 		if (!pin || pin.length !== 4) {
-			toast.error('Please enter a 4-digit PIN')
+			toast.error('Just need that 4-digit PIN to unlock this content')
 			return
 		}
 
@@ -49,16 +56,15 @@ export function SharePinDialog({
 			{
 				onSuccess: (data) => {
 					if (data.isValid) {
-						toast.success('PIN verified successfully')
 						onPinVerified()
 						onOpenChange(false)
 					} else {
-						toast.error('Invalid PIN. Please try again.')
+						toast.error('Hmm, that PIN didn\'t work. Want to try again?')
 						setPin('')
 					}
 				},
 				onError: (error) => {
-					toast.error(`Failed to verify PIN: ${error.message}`)
+					toast.error(`We had trouble checking your PIN: ${error.message}`)
 				}
 			}
 		)
@@ -70,10 +76,11 @@ export function SharePinDialog({
 				<DialogHeader>
 					<DialogTitle className="flex items-center gap-2">
 						<LockIcon className="h-5 w-5" />
-						PIN Protected Content
+						Just One More Step
 					</DialogTitle>
 					<DialogDescription>
-						This content is protected with a 4-digit PIN. Please enter the PIN to view the shared content.
+						This content is protected with a PIN. Enter the 4-digit code you received to view the shared
+						photos.
 					</DialogDescription>
 				</DialogHeader>
 
@@ -105,7 +112,7 @@ export function SharePinDialog({
 						disabled={isPending || pin.length !== 4}
 						className="w-full"
 					>
-						{isPending ? 'Verifying...' : 'Verify PIN'}
+						{isPending ? 'Checking...' : 'Unlock Content'}
 					</Button>
 				</DialogFooter>
 			</DialogContent>

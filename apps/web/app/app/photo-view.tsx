@@ -8,7 +8,7 @@ import dynamic from 'next/dynamic'
 import {TextShimmer} from '@halycron/ui/components/text-shimmer'
 import {api} from '@/lib/data/api-client'
 import {PhotoUpload} from '@/components/photo-upload'
-import {useState, useEffect} from 'react'
+import {useEffect, useState} from 'react'
 import {cn} from '@halycron/ui/lib/utils'
 
 const Gallery = dynamic(() => import('@/components/gallery').then(mod => mod.Gallery), {ssr: false})
@@ -17,9 +17,6 @@ export const PhotoView = () => {
 	const {data: photos, isLoading, isError} = useAllPhotos()
 	const [isDragging, setIsDragging] = useState(false)
 	const {mutate: restorePhoto} = useRestorePhoto({
-		onSuccess: () => {
-			toast.success('Photo restored successfully')
-		},
 		onError: (error) => {
 			toast.error(error.message)
 		}
@@ -59,13 +56,13 @@ export const PhotoView = () => {
 		try {
 			await api.post('api/photos/cleanup', {s3Key})
 		} catch (error) {
-			toast.error(error instanceof Error ? `Failed to cleanup S3: ${error.message}` : 'Failed to cleanup S3')
+			toast.error(error instanceof Error ? `Oops, couldn't clean up that file: ${error.message}` : 'Hmm, something went wrong with cleanup')
 		}
 	}
 
 	const {mutate: deletePhoto} = useDeletePhoto({
 		onSuccess: (deletedPhoto) => {
-			toast.success('Photo deleted successfully', {
+			toast.success('That photo is sent away. Need it back?', {
 				action: {
 					label: 'Undo',
 					onClick: () => restorePhoto(deletedPhoto)
@@ -88,14 +85,14 @@ export const PhotoView = () => {
 	if (isLoading) {
 		return <div className="flex flex-col items-center justify-center h-96">
 			<TextShimmer duration={1}>
-				Collecting and decrypting . . .
+				Unlocking your memories . . .
 			</TextShimmer>
 		</div>
 	}
 
 	if (isError) {
 		return <div className="flex flex-col items-center justify-center h-96">
-			<p>Error loading photos</p>
+			<p>Hmm, we ran into a hiccup loading your photos. Mind trying again?</p>
 		</div>
 	}
 

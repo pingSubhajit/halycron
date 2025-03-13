@@ -101,13 +101,13 @@ export const ShareDialog = ({
 	const handleSubmit = (values: z.infer<typeof formSchema>) => {
 		// Validate PIN if required
 		if (values.isPinProtected && (!values.pin || values.pin.length !== 4)) {
-			toast.error('Please enter a 4-digit PIN')
+			toast.error('Please add a 4-digit PIN to protect your shared content')
 			return
 		}
 
 		// Validate that we have something to share
 		if (photoIds.length === 0 && albumIds.length === 0) {
-			toast.error('No photos or albums selected for sharing')
+			toast.error('Oops! You need to select something to share first')
 			return
 		}
 
@@ -126,15 +126,15 @@ export const ShareDialog = ({
 				navigator.clipboard.writeText(data.shareUrl)
 					.then(() => {
 						setCopied(true)
-						toast.success('Link created and copied to clipboard')
+						toast.success('Sharing link created and copied to your clipboard!')
 						setTimeout(() => setCopied(false), 2000)
 					})
 					.catch(() => {
-						toast.error('Created link but failed to copy to clipboard')
+						toast.error('Your link is ready, but we couldn\'t copy it automatically. Try the copy button below.')
 					})
 			},
 			onError: (error: Error) => {
-				toast.error(`Failed to create share link: ${error.message}`)
+				toast.error(`Hmm, we couldn't create your sharing link: ${error.message}`)
 			}
 		})
 	}
@@ -143,10 +143,10 @@ export const ShareDialog = ({
 		try {
 			await navigator.clipboard.writeText(shareUrl)
 			setCopied(true)
-			toast.success('Link copied to clipboard')
+			toast.success('Link copied and ready to share!')
 			setTimeout(() => setCopied(false), 2000)
 		} catch (error) {
-			toast.error('Failed to copy link')
+			toast.error('We couldn\'t copy the link. You might need to do it manually.')
 		}
 	}
 
@@ -232,8 +232,8 @@ export const ShareDialog = ({
 					<DialogTitle>{getDialogTitle()}</DialogTitle>
 					<DialogDescription>
 						{step === 'form'
-							? 'Create a secure sharable link to share your photos or albums.'
-							: 'Share this link with others to give them access to your content.'}
+							? 'Create a secure link to share your memories while keeping them protected.'
+							: 'Your sharing link is ready! Copy it to share with friends and family.'}
 					</DialogDescription>
 				</DialogHeader>
 

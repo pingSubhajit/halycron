@@ -57,8 +57,8 @@ export const UserMenu = () => {
 					</Avatar>
 
 					<div className="flex flex-col space-y-1">
-						<p className="text-sm font-medium leading-none truncate">{session?.user.name || 'Loading...'}</p>
-						<p className="text-sm leading-none truncate">{session?.user.email || 'Loading...'}</p>
+						<p className="text-sm font-medium leading-none truncate">{session?.user.name || 'One moment...'}</p>
+						<p className="text-sm leading-none truncate">{session?.user.email || 'One moment...'}</p>
 					</div>
 				</DropdownMenuLabel>
 
@@ -93,7 +93,7 @@ export const UserMenu = () => {
 					onSelect={() => logout()}
 					className="flex items-center justify-between"
 				>
-					<span>{isLoading ? 'Logging out...' : 'Log out'}</span>
+					<span>{isLoading ? 'Signing out...' : 'Sign out'}</span>
 					<LogOut className="h-4 w-4" />
 				</DropdownMenuItem>
 			</DropdownMenuContent>

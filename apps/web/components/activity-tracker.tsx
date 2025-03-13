@@ -26,7 +26,7 @@ export const ActivityTracker = () => {
 
 			timeoutRef.current = setTimeout(() => {
 				if (session) {
-					toast('You have been logged out due to inactivity')
+					toast('For your security, we\'ve signed you out after a period of inactivity')
 					logout()
 				}
 			}, INACTIVITY_TIMEOUT)

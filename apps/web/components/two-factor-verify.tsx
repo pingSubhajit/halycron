@@ -1,4 +1,4 @@
-import {useState} from 'react'
+import {useEffect, useRef, useState} from 'react'
 import {zodResolver} from '@hookform/resolvers/zod'
 import {useForm} from 'react-hook-form'
 import * as z from 'zod'
@@ -6,10 +6,9 @@ import {Button} from '@halycron/ui/components/button'
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@halycron/ui/components/card'
 import {Form, FormControl, FormField, FormItem, FormMessage} from '@halycron/ui/components/form'
 import {InputOTP, InputOTPGroup, InputOTPSlot} from '@halycron/ui/components/input-otp'
-import {useEffect, useRef} from 'react'
 
 const formSchema = z.object({
-	code: z.string().length(6, 'Please enter a valid 6-digit code')
+	code: z.string().length(6, 'Please provide your 6-digit security code')
 })
 
 export const TwoFactorVerify = ({onVerify, onCancel}: { onVerify: (code: string) => Promise<void>, onCancel: () => void }) => {
@@ -45,7 +44,7 @@ export const TwoFactorVerify = ({onVerify, onCancel}: { onVerify: (code: string)
 			await onVerify(values.code)
 		} catch (err) {
 			form.setError('code', {
-				message: err instanceof Error ? err.message : 'Invalid verification code'
+				message: err instanceof Error ? err.message : 'That code doesn\'t seem right. Let\'s try again?'
 			})
 		} finally {
 			setIsLoading(false)
@@ -55,9 +54,9 @@ export const TwoFactorVerify = ({onVerify, onCancel}: { onVerify: (code: string)
 	return (
 		<Card className="w-full max-w-md mx-auto">
 			<CardHeader>
-				<CardTitle className="text-center">Two-Factor Authentication</CardTitle>
+				<CardTitle className="text-center">One Last Security Step</CardTitle>
 				<CardDescription className="text-center">
-					Enter the verification code from your authenticator app
+					Enter the 6-digit code from your authenticator app to confirm it's you
 				</CardDescription>
 			</CardHeader>
 			<CardContent>
@@ -98,7 +97,7 @@ export const TwoFactorVerify = ({onVerify, onCancel}: { onVerify: (code: string)
 								disabled={isLoading || !form.formState.isValid}
 								className="flex-1"
 							>
-								Verify
+								{isLoading ? 'Verifying...' : 'Let me in'}
 							</Button>
 							<Button
 								type="button"
@@ -106,7 +105,7 @@ export const TwoFactorVerify = ({onVerify, onCancel}: { onVerify: (code: string)
 								variant="outline"
 								disabled={isLoading}
 							>
-								Cancel
+								Go back
 							</Button>
 						</div>
 					</form>
