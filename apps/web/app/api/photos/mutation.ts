@@ -15,6 +15,7 @@ import {albumQueryKeys} from '@/app/api/albums/keys'
 
 type DeletePhotoContext = {
 	previousPhotos: Photo[] | undefined
+    previousAlbumPhotos: Record<string, Photo[] | undefined>
 }
 
 export const useDeletePhoto = (options?: MutationOptions<Photo, Error, Photo, DeletePhotoContext>) => {
@@ -30,10 +31,25 @@ export const useDeletePhoto = (options?: MutationOptions<Photo, Error, Photo, De
 			// Cancel any outgoing re-fetches
 			await queryClient.cancelQueries({queryKey: photoQueryKeys.allPhotos()})
 
-			// Snapshot the previous value
-			const previousPhotos = queryClient.getQueryData<Photo[]>(photoQueryKeys.allPhotos())
+			// Also cancel any album photo queries that this photo belongs to
+			if (photo.albums?.length) {
+				await Promise.all(
+					photo.albums.map(album => queryClient.cancelQueries({queryKey: albumQueryKeys.albumPhotos(album.id)}))
+				)
+			}
 
-			// Optimistically update to the new value
+			// Snapshot the previous values
+			const previousPhotos = queryClient.getQueryData<Photo[]>(photoQueryKeys.allPhotos())
+			const previousAlbumPhotos: Record<string, Photo[] | undefined> = {}
+
+			// Store the previous state of each album's photos
+			if (photo.albums?.length) {
+				photo.albums.forEach(album => {
+					previousAlbumPhotos[album.id] = queryClient.getQueryData<Photo[]>(albumQueryKeys.albumPhotos(album.id))
+				})
+			}
+
+			// Optimistically update the gallery photos
 			if (previousPhotos) {
 				queryClient.setQueryData<Photo[]>(
 					photoQueryKeys.allPhotos(),
@@ -41,18 +57,51 @@ export const useDeletePhoto = (options?: MutationOptions<Photo, Error, Photo, De
 				)
 			}
 
+			// Optimistically update each album's photos
+			if (photo.albums?.length) {
+				photo.albums.forEach(album => {
+					const albumPhotos = queryClient.getQueryData<Photo[]>(albumQueryKeys.albumPhotos(album.id))
+					if (albumPhotos) {
+						queryClient.setQueryData<Photo[]>(
+							albumQueryKeys.albumPhotos(album.id),
+							albumPhotos.filter(p => p.id !== photo.id)
+						)
+					}
+				})
+			}
+
 			// Return a context object with the snapshot value
-			return {previousPhotos}
+			return {previousPhotos, previousAlbumPhotos}
 		},
 		onSettled: (_, __, photo) => {
-			photo.albums?.forEach(album => {
-				queryClient.invalidateQueries({queryKey: albumQueryKeys.albumPhotos(album.id)})
-			})
+			// Invalidate the main photos query
+			queryClient.invalidateQueries({queryKey: photoQueryKeys.allPhotos()})
+
+			// Invalidate all album queries that this photo belongs to
+			if (photo.albums?.length) {
+				photo.albums.forEach(album => {
+					// Invalidate both the album's photos and the album itself
+					queryClient.invalidateQueries({queryKey: albumQueryKeys.albumPhotos(album.id)})
+					queryClient.invalidateQueries({queryKey: albumQueryKeys.album(album.id)})
+				})
+			}
 		},
 		onError: (err, photo, context) => {
 			// If the mutation fails, use the context returned from onMutate to roll back
 			if (context?.previousPhotos) {
 				queryClient.setQueryData(photoQueryKeys.allPhotos(), context.previousPhotos)
+			}
+
+			// Roll back all album photo queries
+			if (context?.previousAlbumPhotos && photo.albums?.length) {
+				photo.albums.forEach(album => {
+					if (context.previousAlbumPhotos[album.id]) {
+						queryClient.setQueryData(
+							albumQueryKeys.albumPhotos(album.id),
+							context.previousAlbumPhotos[album.id]
+						)
+					}
+				})
 			}
 		},
 		...options
@@ -156,6 +205,7 @@ export const useRestorePhoto = (options?: MutationOptions<void, Error, Photo, De
 
 			// Snapshot the previous value
 			const previousPhotos = queryClient.getQueryData<Photo[]>(photoQueryKeys.allPhotos())
+			const previousAlbumPhotos: Record<string, Photo[] | undefined> = {}
 
 			// Optimistically update to the new value
 			if (previousPhotos) {
@@ -166,7 +216,7 @@ export const useRestorePhoto = (options?: MutationOptions<void, Error, Photo, De
 			}
 
 			// Return a context object with the snapshot value
-			return {previousPhotos}
+			return {previousPhotos, previousAlbumPhotos}
 		},
 		onError: (err, photo, context) => {
 			// If the mutation fails, use the context returned from onMutate to roll back

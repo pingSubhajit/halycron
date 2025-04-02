@@ -15,6 +15,7 @@ export const NavLinks = () => {
 	return (
 		<div className="flex items-center mt-2 gap-3">
 			<Link
+				prefetch={true}
 				href="/app"
 				className={cn(
 					'transition-colors hover:text-primary',
@@ -24,6 +25,7 @@ export const NavLinks = () => {
 				Gallery
 			</Link>
 			<Link
+				prefetch={true}
 				href="/app/albums"
 				className={cn(
 					'transition-colors hover:text-primary',
