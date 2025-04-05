@@ -14,14 +14,15 @@ export const SiteNav = async ({className}: { className?: string }) => {
 	return (
 		<header
 			className={cn('absolute mx-auto px-8 lg:px-20 max-w-[1400px] py-6 top-0 inset-x-0 flex justify-between items-center z-10', className)}>
-			<Link href="/"><Image src={logo} alt="Halycron Logo" className="w-28"/></Link>
+			<Link prefetch={true} href="/"><Image src={logo} alt="Halycron Logo" className="w-28"/></Link>
 
 			<nav className="flex items-center gap-4">
-				<Link href="/about">About</Link>
-				{!session ? <Link href="/login">Log in</Link> : <Link href="/api/auth/logout">Log out</Link>}
+				<Link prefetch={true} href="/about">About</Link>
+				{!session ? <Link prefetch={true} href="/login">Log in</Link> :
+					<Link href="/api/auth/logout">Log out</Link>}
 
-				{!session ? <Link href="/register"><Button size="sm">Get started</Button></Link> :
-					<Link href="/app"><Button size="sm">Dashboard</Button></Link>}
+				{!session ? <Link prefetch={true} href="/register"><Button size="sm">Get started</Button></Link> :
+					<Link prefetch={true} href="/app"><Button size="sm">Dashboard</Button></Link>}
 			</nav>
 		</header>
 	)

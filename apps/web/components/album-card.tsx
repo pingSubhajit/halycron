@@ -277,7 +277,7 @@ export const AlbumCard = ({album, onDelete}: {album: Album, onDelete: () => void
 
 	return (
 		<ContextMenu>
-			<Link href={`/app/albums/${album.id}`}>
+			<Link prefetch={true} href={`/app/albums/${album.id}`}>
 				<ContextMenuTrigger>
 					<div className="w-full cursor-pointer relative" {...getRootProps()}>
 						<input {...getInputProps()} />

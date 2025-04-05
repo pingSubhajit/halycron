@@ -105,7 +105,7 @@ const RegisterForm = () => {
 					layoutId="register-header"
 					transition={springTransition}
 				>
-					<Link href="/"><Image src={logo} alt="Halycron Logo" className="w-32"/></Link>
+					<Link prefetch={true} href="/"><Image src={logo} alt="Halycron Logo" className="w-32"/></Link>
 
 					<h1 className="mt-8 text-2xl font-semibold tracking-tight">
 						Create your account
@@ -224,6 +224,7 @@ const RegisterForm = () => {
 				>
 					Already have an account?{' '}
 					<Link
+						prefetch={true}
 						href="/login"
 						className="underline underline-offset-4 hover:text-primary"
 					>

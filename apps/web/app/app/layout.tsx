@@ -11,7 +11,7 @@ const DashboardLayout = ({children}: {children: ReactNode}) => {
 		<div className="w-full bg-background">
 			<header className="px-4 py-2 border-b border-dashed flex items-center justify-between sticky top-0 z-20 bg-background">
 				<div className="flex items-center gap-8">
-					<Link href="/app"><Image src={logo} alt="Halycron Logo" className="w-32" /></Link>
+					<Link prefetch={true} href="/app"><Image src={logo} alt="Halycron Logo" className="w-32"/></Link>
 					<NavLinks/>
 				</div>
 
