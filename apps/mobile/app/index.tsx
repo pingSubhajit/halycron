@@ -1,5 +1,5 @@
 import React from 'react'
-import {Text, View, ScrollView} from 'react-native'
+import {ScrollView, Text, View} from 'react-native'
 import {StatusBar} from 'expo-status-bar'
 import {Button} from '../src/components/Button'
 import {useTheme} from '../src/theme/ThemeProvider'
@@ -10,9 +10,9 @@ const Home = () => {
 	return (
 		<ScrollView
 			className="flex-1"
-			// style={{ backgroundColor: theme.background }}
+			style={{backgroundColor: theme.background}}
 		>
-			<StatusBar style={isDark ? 'light' : 'dark'} />
+			<StatusBar style={'dark'}/>
 
 			<View className="p-6">
 				<Text className="text-foreground text-2xl font-bold mb-6">Button Examples</Text>

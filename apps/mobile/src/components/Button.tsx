@@ -1,5 +1,5 @@
 import React from 'react'
-import {TouchableOpacity, Text, ActivityIndicator, TouchableOpacityProps, View} from 'react-native'
+import {ActivityIndicator, Text, TouchableOpacity, TouchableOpacityProps, View} from 'react-native'
 import {cn} from '../utils/cn'
 import {useTheme} from '../theme/ThemeProvider'
 
@@ -27,13 +27,13 @@ export const Button = ({
 	const {theme} = useTheme()
 
 	// Base styles - matching web component
-	const baseStyles = 'items-center justify-center rounded-md'
+	const baseStyles = 'items-center justify-center rounded-md gap-2'
 
 	// Variant styles - matching web component
 	const variantStyles = {
 		default: 'border border-primary bg-primary/10 text-primary',
 		destructive: 'bg-destructive text-destructive-foreground',
-		outline: 'border border-input bg-background',
+		outline: 'border border-input bg-transparent text-foreground',
 		secondary: 'bg-secondary text-secondary-foreground',
 		ghost: 'bg-transparent',
 		link: 'text-primary'
@@ -92,9 +92,8 @@ export const Button = ({
 			{...props}
 		>
 			{isLoading && (
-				<View className="mr-4 w-2 h-2">
+				<View className="mr-4 w-1 h-1">
 					<ActivityIndicator
-						size="small"
 						color={getSpinnerColor()}
 						className="w-full h-full"
 					/>
