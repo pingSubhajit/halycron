@@ -2,7 +2,15 @@
   "extends": "@halycron/typescript-config/base.json",
   "compilerOptions": {
     "jsx": "react-native",
-    "strict": true
+    "strict": true,
+    "paths": {
+      "@/*": [
+        "./*"
+      ],
+      "@halycron/ui/*": [
+        "../../packages/ui/src/*"
+      ]
+    }
   },
   "include": [
     "**/*.ts",

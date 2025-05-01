@@ -2,6 +2,7 @@ import baseConfig from '@halycron/ui/tailwind.config'
 
 /** @type {import('tailwindcss').Config} */
 const config = {
+	darkMode: 'class',
 	content: [
 		'./app/**/*.{js,jsx,ts,tsx}',
 		'../../packages/ui/src/**/*.{js,jsx,ts,tsx}'

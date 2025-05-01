@@ -1,7 +1,7 @@
 import React from 'react'
 import {ActivityIndicator, Text, TouchableOpacity, TouchableOpacityProps, View} from 'react-native'
-import {cn} from '../utils/cn'
-import {useTheme} from '../theme/ThemeProvider'
+import {cn} from '@/src/utils/cn'
+import {useTheme} from '@/src/theme/ThemeProvider'
 
 export interface ButtonProps extends TouchableOpacityProps {
   variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';

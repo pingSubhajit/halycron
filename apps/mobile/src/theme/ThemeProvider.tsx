@@ -1,6 +1,6 @@
-import React, {createContext, useContext, useEffect, useState} from 'react'
-import {useColorScheme} from 'react-native'
-import {darkTheme, lightTheme} from './theme'
+import React, {createContext, useContext, useState} from 'react'
+import {darkTheme, lightTheme} from '@/src/theme/theme'
+import {colorScheme, useColorScheme} from 'nativewind'
 
 type ThemeContextType = {
   theme: typeof lightTheme;
@@ -10,23 +10,16 @@ type ThemeContextType = {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
 
-export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({children}) => {
-	const colorScheme = useColorScheme()
-	const [isDark, setIsDark] = useState(true)
+colorScheme.set('dark')
 
-	// Update theme when system theme changes
-	useEffect(() => {
-		setIsDark(true)
-	}, [colorScheme])
+export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({children}) => {
+	const {colorScheme, toggleColorScheme} = useColorScheme()
+	const [isDark, setIsDark] = useState(true)
 
 	const theme = isDark ? darkTheme : lightTheme
 
-	const toggleTheme = () => {
-		setIsDark(isDark)
-	}
-
 	return (
-		<ThemeContext.Provider value={{theme, isDark, toggleTheme}}>
+		<ThemeContext.Provider value={{theme, isDark, toggleTheme: toggleColorScheme}}>
 			{children}
 		</ThemeContext.Provider>
 	)
