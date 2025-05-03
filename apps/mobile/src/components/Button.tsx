@@ -10,6 +10,7 @@ export interface ButtonProps extends TouchableOpacityProps {
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
   children: React.ReactNode;
+	textClassName?: string;
 }
 
 export const Button = ({
@@ -20,6 +21,7 @@ export const Button = ({
 	rightIcon,
 	children,
 	className,
+	textClassName,
 	disabled,
 	style,
 	...props
@@ -41,14 +43,14 @@ export const Button = ({
 
 	// Size styles - matching web component
 	const sizeStyles = {
-		default: 'h-10 px-4 py-2',
-		sm: 'h-9 px-3',
-		lg: 'h-11 px-8',
+		default: 'h-11 px-4 py-2',
+		sm: 'h-10 px-3',
+		lg: 'h-12 px-8',
 		icon: 'h-10 w-10'
 	}
 
 	// Text styles
-	const textBaseStyles = 'text-sm font-medium text-center'
+	const textBaseStyles = 'text-base font-medium text-center'
 	const textVariantStyles = {
 		default: 'text-primary',
 		destructive: 'text-destructive-foreground',
@@ -109,7 +111,8 @@ export const Button = ({
 			<Text
 				className={cn(
 					textBaseStyles,
-					textVariantStyles[variant]
+					textVariantStyles[variant],
+					textClassName
 				)}
 			>
 				{children}

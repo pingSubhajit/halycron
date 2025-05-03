@@ -9,7 +9,11 @@ const AppLayout = () => {
 				screenOptions={{
 					headerShown: false // Hides the header for all screens
 				}}
-			/>
+			>
+				<Stack.Screen name="index"/>
+				<Stack.Screen name="onboarding"/>
+				<Stack.Screen name="login"/>
+			</Stack>
 		</ThemeProvider>
 	)
 }

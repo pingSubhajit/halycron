@@ -1,11 +1,21 @@
 import React from 'react'
 import {ScrollView, Text, View} from 'react-native'
 import {StatusBar} from 'expo-status-bar'
-import {Button} from '../src/components/Button'
-import {useTheme} from '../src/theme/ThemeProvider'
+import {Button} from '@/src/components/Button'
+import {useTheme} from '@/src/theme/ThemeProvider'
+import {Redirect, useRouter} from 'expo-router'
+
+// This would normally check if the user is authenticated
+const isAuthenticated = false
 
 const Home = () => {
 	const {theme} = useTheme()
+	const router = useRouter()
+
+	// For demo purposes, redirect to onboarding if not authenticated
+	if (isAuthenticated === false) {
+		return <Redirect href="/onboarding"/>
+	}
 
 	return (
 		<ScrollView
@@ -15,11 +25,17 @@ const Home = () => {
 			<StatusBar style={'dark'}/>
 
 			<View className="p-6">
-				<Text className="text-foreground text-2xl font-bold mb-6">Button Examples</Text>
+				<Text className="text-foreground text-2xl font-bold mb-6">Welcome to Halycron</Text>
+
+				<Text className="text-foreground mb-6">You are now logged in to the home screen.</Text>
 
 				<View className="space-y-4">
-					<Button variant="default" onPress={() => console.log('Default button pressed')}>
-						Default Button
+					<Button variant="default" onPress={() => console.log('Action button pressed')}>
+						Take Action
+					</Button>
+
+					<Button variant="outline" onPress={() => router.push('/onboarding')}>
+						Log Out
 					</Button>
 				</View>
 			</View>
