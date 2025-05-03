@@ -14,6 +14,9 @@
   },
   "dependencies": {
     "@halycron/ui": "workspace:*",
+    "@rn-primitives/accordion": "^1.1.0",
+    "@rn-primitives/slot": "^1.1.0",
+    "@rn-primitives/types": "^1.1.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "expo": "^53.0.0-canary-20250219-4a5dade",
@@ -24,6 +27,7 @@
     "expo-router": "4.1.0-canary-20250219-4a5dade",
     "expo-status-bar": "2.0.2-canary-20250219-4a5dade",
     "expo-system-ui": "4.0.9-canary-20250219-4a5dade",
+    "lucide-react-native": "^0.507.0",
     "nativewind": "^4.1.23",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

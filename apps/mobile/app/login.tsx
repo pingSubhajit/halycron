@@ -1,7 +1,7 @@
 import React, {useState} from 'react'
 import {Text, TextInput, TouchableOpacity, View} from 'react-native'
 import {StatusBar} from 'expo-status-bar'
-import {Button} from '@/src/components/Button'
+import {Button} from '@/src/components/ui/button'
 import {useTheme} from '@/src/theme/ThemeProvider'
 import {useRouter} from 'expo-router'
 
@@ -60,7 +60,7 @@ const Login = () => {
 					onPress={handleLogin}
 					className="mb-4"
 				>
-					Log In
+					<Text>Log In</Text>
 				</Button>
 
 				<View className="flex-row justify-center">

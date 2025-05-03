@@ -116,7 +116,7 @@ bun test:coverage # Generate coverage report
 ```typescript
 // Example component structure
 import { type FC } from 'react'
-import {utils} from '@/lib/utils'
+import {cn} from '@/lib/utils'
 
 interface ComponentProps {
   // Props interface

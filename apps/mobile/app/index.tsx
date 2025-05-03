@@ -1,7 +1,7 @@
 import React from 'react'
 import {ScrollView, Text, View} from 'react-native'
 import {StatusBar} from 'expo-status-bar'
-import {Button} from '@/src/components/Button'
+import {Button} from '@/src/components/ui/button'
 import {useTheme} from '@/src/theme/ThemeProvider'
 import {Redirect, useRouter} from 'expo-router'
 
@@ -31,11 +31,11 @@ const Home = () => {
 
 				<View className="space-y-4">
 					<Button variant="default" onPress={() => console.log('Action button pressed')}>
-						Take Action
+						<Text>Take Action</Text>
 					</Button>
 
 					<Button variant="outline" onPress={() => router.push('/onboarding')}>
-						Log Out
+						<Text>Log Out</Text>
 					</Button>
 				</View>
 			</View>
