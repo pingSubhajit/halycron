@@ -1,6 +1,6 @@
 import React from 'react'
 import {ActivityIndicator, Text, TouchableOpacity, TouchableOpacityProps, View} from 'react-native'
-import {cn} from '@/src/utils/cn'
+import {utils} from '@/lib/utils'
 import {useTheme} from '@/src/theme/ThemeProvider'
 
 export interface ButtonProps extends TouchableOpacityProps {
@@ -81,7 +81,7 @@ export const Button = ({
 
 	return (
 		<TouchableOpacity
-			className={cn(
+			className={utils(
 				baseStyles,
 				variantStyles[variant],
 				sizeStyles[size],
@@ -109,7 +109,7 @@ export const Button = ({
 			)}
 
 			<Text
-				className={cn(
+				className={utils(
 					textBaseStyles,
 					textVariantStyles[variant],
 					textClassName
