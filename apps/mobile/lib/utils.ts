@@ -4,6 +4,6 @@ import {type ClassValue, clsx} from 'clsx'
 /**
  * Merge multiple class names with tailwind classes
  */
-export function utils(...inputs: ClassValue[]) {
+export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs))
 }

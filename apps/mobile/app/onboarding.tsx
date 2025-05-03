@@ -1,11 +1,12 @@
 import React from 'react'
-import {StyleSheet, Text, View} from 'react-native'
+import {StyleSheet, View} from 'react-native'
 import {StatusBar} from 'expo-status-bar'
-import {Button} from '@/src/components/Button'
+import {Button} from '@/src/components/ui/button'
 import {useTheme} from '@/src/theme/ThemeProvider'
 import {useRouter} from 'expo-router'
 import {Image} from '@/src/components/interops'
 import logo from '@halycron/ui/media/logo.svg'
+import {Text} from '@/src/components/ui/text'
 
 const Onboarding = () => {
 	const {theme} = useTheme()
@@ -32,18 +33,18 @@ const Onboarding = () => {
 				<Button
 					variant="default"
 					size="lg"
+					className="h-12"
 					onPress={() => router.push('/login')}
 				>
-					Log In
+					<Text className="text-base">Log In</Text>
 				</Button>
 
 				<Button
 					variant="link"
 					className="mt-2"
 					onPress={() => router.push('/login')}
-					textClassName="text-primary-foreground font-semibold text-lg"
 				>
-					Get Started
+					<Text className="text-primary-foreground font-semibold text-base">Get Started</Text>
 				</Button>
 			</View>
 		</View>
