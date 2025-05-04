@@ -12,6 +12,7 @@ const photoMetadataSchema = z.object({
 	fileKey: z.string(),
 	encryptedFileKey: z.string(),
 	fileKeyIv: z.string(),
+	fileIv: z.string(),  // Added fileIv for file encryption
 	originalFilename: z.string(),
 	mimeType: z.string().regex(
 		/^(image\/(jpeg|png|jpg|heic|heif|avif|avis|webp|raw|arw|cr2|nef|orf|rw2)|application\/octet-stream)$/,
@@ -44,6 +45,7 @@ export const POST = async (req: NextRequest) => {
 			fileKey,
 			encryptedFileKey,
 			fileKeyIv,
+			fileIv,
 			originalFilename,
 			mimeType,
 			imageWidth,
@@ -55,6 +57,7 @@ export const POST = async (req: NextRequest) => {
 			userId: session.user.id,
 			encryptedFileKey: encryptedFileKey,
 			fileKeyIv: fileKeyIv,
+			fileIv: fileIv,
 			s3Key: fileKey,
 			originalFilename,
 			mimeType,
@@ -125,6 +128,7 @@ export const GET = async () => {
 				createdAt: photo.createdAt,
 				encryptedFileKey: photo.encryptedFileKey,
 				fileKeyIv: photo.fileKeyIv,
+				fileIv: photo.fileIv,
 				mimeType: photo.mimeType,
 				imageWidth: photo.imageWidth,
 				imageHeight: photo.imageHeight,
@@ -183,6 +187,7 @@ export const DELETE = async (req: NextRequest) => {
 			createdAt: photoToDelete.createdAt,
 			encryptedFileKey: photoToDelete.encryptedFileKey,
 			fileKeyIv: photoToDelete.fileKeyIv,
+			fileIv: photoToDelete.fileIv,
 			mimeType: photoToDelete.mimeType,
 			imageWidth: photoToDelete.imageWidth,
 			imageHeight: photoToDelete.imageHeight
@@ -226,6 +231,7 @@ export const PATCH = async (req: NextRequest) => {
 			userId: session.user.id,
 			encryptedFileKey: photoData.encryptedFileKey,
 			fileKeyIv: photoData.fileKeyIv,
+			fileIv: photoData.fileIv,
 			s3Key: photoData.s3Key,
 			originalFilename: photoData.originalFilename,
 			mimeType: photoData.mimeType,

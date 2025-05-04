@@ -6,6 +6,7 @@ export type Photo = {
 	createdAt: Date | null
 	encryptedFileKey: string
 	fileKeyIv: string
+	fileIv: string  // IV used for file encryption
 	mimeType: string
 	imageWidth: number | null
 	imageHeight: number | null

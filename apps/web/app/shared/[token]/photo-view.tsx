@@ -5,7 +5,8 @@ import {Photo} from '@/app/api/photos/types'
 import {Button} from '@halycron/ui/components/button'
 import {ZoomIn, ZoomOut} from 'lucide-react'
 import {AnimatePresence, motion} from 'motion/react'
-import {downloadAndDecryptFile} from '@/app/api/photos/utils'
+import {downloadAndDecryptFile, getUserKey} from '@/app/api/photos/utils'
+import {Input} from '@halycron/ui/components/input'
 
 export const PhotoView = ({photo}: { photo: Photo }) => {
 	const [scale, setScale] = useState(1)
@@ -15,34 +16,61 @@ export const PhotoView = ({photo}: { photo: Photo }) => {
 	const [pinchStart, setPinchStart] = useState<{ distance: number; scale: number } | null>(null)
 	const [decryptedUrl, setDecryptedUrl] = useState<string | null>(null)
 	const [isLoading, setIsLoading] = useState(true)
+	const [password, setPassword] = useState('')
+	const [error, setError] = useState<string | null>(null)
+	const [isDecrypting, setIsDecrypting] = useState(false)
 	const imageRef = useRef<HTMLDivElement>(null)
 	const containerRef = useRef<HTMLDivElement>(null)
 
-	// Decrypt the image
-	useEffect(() => {
-		const decryptImage = async () => {
-			try {
-				setIsLoading(true)
-				if (photo.encryptedFileKey && photo.fileKeyIv) {
-					const url = await downloadAndDecryptFile(
-						photo.url,
-						photo.encryptedFileKey,
-						photo.fileKeyIv,
-						photo.mimeType
-					)
-					setDecryptedUrl(url)
-				} else {
-					// For non-encrypted images
-					setDecryptedUrl(photo.url)
-				}
-			} catch (error) {
-				console.error('Failed to decrypt image:', error)
-			} finally {
-				setIsLoading(false)
-			}
+	// Handle decryption with password
+	const handleDecrypt = async () => {
+		if (!password) {
+			setError('Password is required')
+			return
 		}
 
-		decryptImage()
+		try {
+			setIsDecrypting(true)
+			setError(null)
+
+			if (photo.encryptedFileKey && photo.fileKeyIv && photo.fileIv) {
+				// Get the user key using the password
+				const userKey = await getUserKey(password)
+
+				// Use the user key to decrypt the file
+				const url = await downloadAndDecryptFile(
+					photo.url,
+					photo.encryptedFileKey,
+					photo.fileKeyIv,
+					photo.fileIv,
+					photo.mimeType,
+					userKey
+				)
+				setDecryptedUrl(url)
+			} else {
+				// For non-encrypted images
+				setDecryptedUrl(photo.url)
+			}
+		} catch (error) {
+			console.error('Failed to decrypt image:', error)
+			setError('Failed to decrypt image. Please check your password and try again.')
+		} finally {
+			setIsDecrypting(false)
+			setIsLoading(false)
+		}
+	}
+
+	// Set loading state when photo changes
+	useEffect(() => {
+		setDecryptedUrl(null)
+		setIsLoading(true)
+		setError(null)
+
+		// If the photo doesn't need decryption, set it directly
+		if (!photo.encryptedFileKey || !photo.fileKeyIv) {
+			setDecryptedUrl(photo.url)
+			setIsLoading(false)
+		}
 	}, [photo])
 
 	const handleZoom = (zoomIn: boolean) => {
@@ -308,6 +336,38 @@ export const PhotoView = ({photo}: { photo: Photo }) => {
 						{isLoading ? (
 							<div className="flex items-center justify-center w-full h-full">
 								<div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+							</div>
+						) : photo.encryptedFileKey && photo.fileKeyIv && !decryptedUrl ? (
+							<div
+								className="bg-muted p-8 rounded flex flex-col items-center justify-center gap-4 max-w-md">
+								<h3 className="text-lg font-semibold">Encrypted Photo</h3>
+								<p className="text-sm text-center mb-2">Enter your password to decrypt this photo</p>
+
+								{error && (
+									<div className="bg-destructive/10 text-destructive p-2 rounded text-sm w-full">
+										{error}
+									</div>
+								)}
+
+								<div className="flex flex-col w-full gap-2">
+									<Input
+										type="password"
+										placeholder="Enter your password"
+										value={password}
+										onChange={(e) => setPassword(e.target.value)}
+										onKeyDown={(e) => {
+											if (e.key === 'Enter') {
+												handleDecrypt()
+											}
+										}}
+									/>
+									<Button
+										onClick={handleDecrypt}
+										disabled={isDecrypting || !password}
+									>
+										{isDecrypting ? 'Decrypting...' : 'Decrypt Photo'}
+									</Button>
+								</div>
 							</div>
 						) : decryptedUrl ? (
 							<div

@@ -6,6 +6,7 @@ import {
 	generateEncryptionKey,
 	getImageDimensions,
 	getPreSignedUploadUrl,
+	getUserKey,
 	savePhotoToDB,
 	uploadEncryptedPhoto
 } from '@/app/api/photos/utils'
@@ -110,15 +111,15 @@ export const useDeletePhoto = (options?: MutationOptions<Photo, Error, Photo, De
 
 export const useUploadPhoto = (
 	setUploadStates: (value: SetStateAction<Record<string, UploadState>>) => void,
-	options?: MutationOptions<Photo, Error, File>
+	options?: MutationOptions<Photo, Error, { file: File, password: string }>
 ) => {
 	return useMutation({
-		mutationFn: async (file: File) => {
+		mutationFn: async ({file, password}) => {
 			try {
 				// Get image dimensions
 				const dimensions = await getImageDimensions(file)
 
-				// Generate a secure random encryption key
+				// Generate a secure random encryption key for the file
 				const encryptionKey = generateEncryptionKey()
 
 				// Update state to encrypting
@@ -126,6 +127,9 @@ export const useUploadPhoto = (
 					...prev,
 					[file.name]: {progress: 0, status: 'encrypting'}
 				}))
+
+				// Get or generate the user's encryption key
+				const userKey = await getUserKey(password)
 
 				// Encrypt the file
 				const {encryptedFile, iv, key} = await encryptFile(file, encryptionKey)
@@ -142,13 +146,14 @@ export const useUploadPhoto = (
 				// Upload encrypted file
 				await uploadEncryptedPhoto(encryptedFile, uploadUrl)
 
-				// Save encryption details to database
+				// Save encryption details to database (now with user key and file IV)
 				const response = await savePhotoToDB(
 					fileKey,
 					key,
-					iv,
+					iv, // This is the file IV
 					file.name,
 					file.type,
+					userKey,
 					dimensions.width,
 					dimensions.height
 				)

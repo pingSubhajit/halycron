@@ -37,10 +37,9 @@ export const user = pgTable('user', {
 	email: varchar('email').notNull(),
 	emailVerified: boolean('email_verified').default(false),
 	image: varchar('image'),
-	/*
-	 * encryptedUserKey: text('encrypted_user_key').notNull(),
-	 * userKeyIv: text('user_key_iv').notNull(),
-	 */
+	encryptedUserKey: text('encrypted_user_key'),
+	userKeyIv: text('user_key_iv'),
+	userKeySalt: text('user_key_salt'),
 	twoFactorEnabled: boolean('two_factor_enabled').default(false),
 	createdAt: timestamp('created_at', {withTimezone: true}).default(sql`CURRENT_TIMESTAMP`),
 	updatedAt: timestamp('updated_at', {withTimezone: true}).default(sql`CURRENT_TIMESTAMP`)
@@ -94,6 +93,7 @@ export const photo = pgTable('photos', {
 	userId: uuid('user_id').notNull().references(() => user.id, {onDelete: 'cascade'}),
 	encryptedFileKey: text('encrypted_file_key').notNull(),
 	fileKeyIv: text('file_key_iv').notNull(),
+	fileIv: text('file_iv').notNull(),
 	s3Key: text('s3_key').notNull(),
 	originalFilename: text('original_filename').notNull(),
 	mimeType: text('mime_type').notNull(),
