@@ -16,12 +16,12 @@ const Onboarding = () => {
 	return (
 		<View
 			className="flex-1 justify-end"
-			style={{backgroundColor: theme.background}}
+			style={{backgroundColor: '#070607'}}
 		>
 			<StatusBar style="dark"/>
 
 			<Image
-				className="w-[80%] h-[80%] absolute top-0 mx-auto -translate-x-[50%]"
+				className="w-[100%] h-[80%] absolute top-0 mx-auto"
 				source={banner}
 				contentFit="cover"
 			/>

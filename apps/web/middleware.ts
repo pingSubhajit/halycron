@@ -5,6 +5,11 @@ import {getRateLimitHeaders, RATE_LIMIT_CONFIGS, rateLimit} from '@/lib/rate-lim
 
 type Session = typeof auth.$Infer.Session
 
+// Declaring a type for the session user with twoFactorEnabled property
+type UserWithTwoFactor = {
+	twoFactorEnabled: boolean;
+}
+
 export const middleware = async (request: NextRequest) => {
 	// Apply rate limiting based on the route
 	const path = request.nextUrl.pathname
@@ -51,7 +56,7 @@ export const middleware = async (request: NextRequest) => {
 			return NextResponse.redirect(new URL('/login', request.url))
 		}
 
-		if (!session.user.twoFactorEnabled) {
+		if (!(session.user as unknown as UserWithTwoFactor).twoFactorEnabled) {
 			return NextResponse.redirect(new URL('/register?twoFa=2fa', request.url))
 		}
 	}
