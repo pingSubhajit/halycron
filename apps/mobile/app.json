@@ -1,11 +1,12 @@
 {
   "expo": {
-    "name": "native",
-    "slug": "native",
+    "name": "halycron",
+    "slug": "halycron",
     "version": "1.0.0",
-    "scheme": "com.turbo.example",
+    "scheme": "halycron",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
+    "newArchEnabled": true,
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/splash.png",
@@ -19,14 +20,15 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.halycron.app"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"
       },
-      "package": "com.turbo.example"
+      "package": "com.halycron.app"
     },
     "web": {
       "favicon": "./assets/favicon.png",
@@ -35,5 +37,5 @@
     "plugins": [
       "expo-router"
     ]
-  } 
+  }
 }
