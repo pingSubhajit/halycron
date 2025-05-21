@@ -74,7 +74,8 @@ const Login = () => {
 				/>
 
 				<Text className="text-3xl font-bold mb-2 text-center text-white">Welcome back</Text>
-				<Text className="mb-12 text-center">Enter your credentials to sign in to your account</Text>
+				<Text className="mb-12 text-center text-primary-foreground/80">Enter your credentials to sign in to your
+					account</Text>
 
 				{error ? (
 					<Text className="text-red-500 mb-4 text-center">{error}</Text>
@@ -82,7 +83,7 @@ const Login = () => {
 
 				<View className="gap-4 mb-6">
 					<Input
-						className="h-16 px-6"
+						className="h-16 px-6 text-primary-foreground"
 						placeholder="Your email"
 						value={email}
 						onChangeText={setEmail}
@@ -91,7 +92,7 @@ const Login = () => {
 					/>
 
 					<Input
-						className="h-16 px-6"
+						className="h-16 px-6 text-primary-foreground"
 						placeholder="Your password"
 						value={password}
 						onChangeText={setPassword}
@@ -105,11 +106,11 @@ const Login = () => {
 					className="mb-4 h-16"
 					disabled={loading}
 				>
-					<Text>{loading ? 'Getting you in...' : 'Welcome back'}</Text>
+					<Text className="text-primary-foreground">{loading ? 'Getting you in...' : 'Welcome back'}</Text>
 				</Button>
 
 				<View className="flex-row justify-center">
-					<Text className="text-gray-600">Don't have an account? </Text>
+					<Text className="text-primary-foreground/60">Don't have an account? </Text>
 					<TouchableOpacity onPress={() => router.push('/onboarding')}>
 						<Text className="text-primary font-medium">Create account</Text>
 					</TouchableOpacity>

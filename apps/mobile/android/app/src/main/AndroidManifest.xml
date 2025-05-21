@@ -24,9 +24,8 @@
         <action android:name="android.intent.action.VIEW"/>
         <category android:name="android.intent.category.DEFAULT"/>
         <category android:name="android.intent.category.BROWSABLE"/>
-        <data android:scheme="com.turbo.example"/>
-        <data android:scheme="com.turbo.example"/>
-        <data android:scheme="exp+native"/>
+          <data android:scheme="halycron"/>
+          <data android:scheme="exp+halycron"/>
       </intent-filter>
     </activity>
   </application>

@@ -61,7 +61,8 @@ const TwoFactorScreen = () => {
 				/>
 
 				<Text className="text-3xl font-bold mb-2 text-center text-white">One Last Security Step</Text>
-				<Text className="mb-12 text-center">Enter the 6-digit code from your authenticator app to confirm it's
+				<Text className="mb-12 text-center text-primary-foreground/80">Enter the 6-digit code from your
+					authenticator app to confirm it's
 					you</Text>
 
 				{error ? (
@@ -70,7 +71,7 @@ const TwoFactorScreen = () => {
 
 				<View className="mb-4">
 					<Input
-						className="h-16 text-center text-2xl"
+						className="h-16 text-center text-2xl text-primary-foreground"
 						placeholder="000000"
 						value={code}
 						onChangeText={setCode}
@@ -85,7 +86,7 @@ const TwoFactorScreen = () => {
 					className="mb-4 h-16"
 					disabled={loading}
 				>
-					<Text>{loading ? 'Verifying...' : 'Let me in'}</Text>
+					<Text className="text-primary-foreground">{loading ? 'Verifying...' : 'Let me in'}</Text>
 				</Button>
 
 				<Button
@@ -93,7 +94,7 @@ const TwoFactorScreen = () => {
 					onPress={() => router.push('/login')}
 					className="mb-4 h-16"
 				>
-					<Text>Go back</Text>
+					<Text className="text-primary-foreground">Go back</Text>
 				</Button>
 			</View>
 		</View>
