@@ -54,7 +54,8 @@ export const useDecryptedUrl = (photo?: Photo | null) => {
 					photo.url,
 					photo.encryptedFileKey,
 					photo.fileKeyIv,
-					photo.mimeType
+					photo.mimeType,
+					photo.id
 				)
 
 				if (mounted) {

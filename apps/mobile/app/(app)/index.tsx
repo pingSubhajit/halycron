@@ -1,5 +1,5 @@
 import React from 'react'
-import {Text, View} from 'react-native'
+import {ScrollView, Text, View} from 'react-native'
 import {useTheme} from '@/src/theme/ThemeProvider'
 import {useRouter} from 'expo-router'
 import {useSession} from '@/src/components/session-provider'
@@ -23,14 +23,11 @@ const Home = () => {
 
 	return (
 		<SafeAreaView className="flex-1 bg-background">
-			<View className="flex-1">
+			<ScrollView className="flex-1">
 				{/* Header */}
-				<View className="p-6 pb-4">
-					<Text className="text-primary-foreground text-2xl font-bold mb-2">Welcome to Halycron</Text>
-
-					<Text className="text-primary-foreground mb-4">
-						{user?.name ? `You are logged in as ${user.name}` : 'Welcome!'}
-					</Text>
+				<View className="mt-8 p-6">
+					<Text className="text-primary-foreground opacity-80 text-3xl font-semibold mb-2">Welcome</Text>
+					<Text className="text-primary-foreground text-6xl font-bold mb-4">{user?.name.split(' ')[0]}</Text>
 				</View>
 
 				{/* Photo Gallery */}
@@ -41,7 +38,7 @@ const Home = () => {
 						error={error?.message || null}
 					/>
 				</View>
-			</View>
+			</ScrollView>
 		</SafeAreaView>
 	)
 }

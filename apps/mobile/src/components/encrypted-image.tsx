@@ -3,6 +3,8 @@ import {ActivityIndicator, Text, TouchableOpacity, View} from 'react-native'
 import {Image} from 'expo-image'
 import {Photo} from '@/src/lib/types'
 import {useDecryptedUrl} from '@/src/hooks/use-decrypted-url'
+import {cn} from '@/lib/utils'
+import {darkTheme} from '@/src/theme/theme'
 
 type Props = {
 	photo: Photo
@@ -10,36 +12,36 @@ type Props = {
 	className?: string
 }
 
-const ImageSkeleton = ({style}: { style?: any }) => (
+const ImageSkeleton = ({className, style}: { className?: string, style?: any }) => (
 	<View
 		style={[
 			{
-				backgroundColor: '#f3f4f6',
+				backgroundColor: darkTheme.accent,
 				aspectRatio: 4 / 3,
 				justifyContent: 'center',
-				alignItems: 'center',
-				borderRadius: 8
+				alignItems: 'center'
 			},
 			style
 		]}
+		className={cn('aspect-video justify-center items-center', className)}
 	>
-		<ActivityIndicator size="large" color="#6b7280"/>
+		<ActivityIndicator size="small" color={darkTheme.accentForeground}/>
 	</View>
 )
 
-const ErrorState = ({style}: { style?: any }) => (
+const ErrorState = ({className, style}: { className?: string, style?: any }) => (
 	<View
 		style={[
 			{
-				backgroundColor: '#fee2e2',
+				backgroundColor: darkTheme.accent,
 				aspectRatio: 4 / 3,
 				justifyContent: 'center',
 				alignItems: 'center',
-				borderRadius: 8,
 				padding: 16
 			},
 			style
 		]}
+		className={cn('bg-accent aspect-video justify-center items-center p-4', className)}
 	>
 		<Text style={{color: '#dc2626', textAlign: 'center', fontSize: 14}}>
 			Failed to load image
@@ -51,7 +53,6 @@ export const EncryptedImage = ({photo, style, className}: Props) => {
 	const {decryptedUrl, isLoading, error} = useDecryptedUrl(photo)
 
 	if (error) {
-		console.log('Decryption error:', error)
 		return <ErrorState style={style}/>
 	}
 
@@ -79,14 +80,13 @@ export const EncryptedImage = ({photo, style, className}: Props) => {
 			<Image
 				source={{uri: decryptedUrl}}
 				style={{
-					width: '100%',
 					aspectRatio: photo.imageWidth && photo.imageHeight
 						? photo.imageWidth / photo.imageHeight
-						: 4 / 3,
-					borderRadius: 8
+						: 4 / 3
 				}}
 				contentFit="cover"
 				transition={200}
+				className="w-full"
 			/>
 		</TouchableOpacity>
 	)

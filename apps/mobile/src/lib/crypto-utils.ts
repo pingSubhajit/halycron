@@ -7,7 +7,7 @@ const blobToBase64 = (blob: Blob): Promise<string> => {
 			const result = reader.result as string
 			// Remove data URL prefix to get just the base64 string
 			const base64 = result.split(',')[1]
-			resolve(base64)
+			resolve(base64!)
 		}
 		reader.onerror = reject
 		reader.readAsDataURL(blob)
@@ -18,7 +18,7 @@ const arrayBufferToBase64 = (buffer: ArrayBuffer): string => {
 	const bytes = new Uint8Array(buffer)
 	let binary = ''
 	for (let i = 0; i < bytes.byteLength; i++) {
-		binary += String.fromCharCode(bytes[i])
+		binary += String.fromCharCode(bytes[i]!)
 	}
 	return btoa(binary)
 }
@@ -28,9 +28,6 @@ export const decryptFile = async (encryptedBlob: Blob, key: string, iv: string) 
 		// Convert blob to base64 string (React Native compatible)
 		const encryptedBase64 = await blobToBase64(encryptedBlob)
 
-		// Convert base64 to WordArray for crypto-js
-		const encryptedWordArray = CryptoJS.enc.Base64.parse(encryptedBase64)
-
 		// Convert base64 key to WordArray
 		const keyWordArray = CryptoJS.enc.Base64.parse(key)
 
@@ -39,7 +36,7 @@ export const decryptFile = async (encryptedBlob: Blob, key: string, iv: string) 
 
 		// Decrypt using AES-CBC
 		const decrypted = CryptoJS.AES.decrypt(
-			{ciphertext: encryptedWordArray},
+			encryptedBase64,
 			keyWordArray,
 			{
 				iv: ivWordArray,
@@ -53,7 +50,7 @@ export const decryptFile = async (encryptedBlob: Blob, key: string, iv: string) 
 		const words = decrypted.words
 
 		for (let i = 0; i < decrypted.sigBytes; i++) {
-			decryptedArray[i] = (words[i >>> 2] >>> (24 - (i % 4) * 8)) & 0xff
+			decryptedArray[i] = (words[i >>> 2]! >>> (24 - (i % 4) * 8)) & 0xff
 		}
 
 		return decryptedArray.buffer
@@ -63,7 +60,7 @@ export const decryptFile = async (encryptedBlob: Blob, key: string, iv: string) 
 	}
 }
 
-export const downloadAndDecryptFile = async (fileUrl: string, key: string, iv: string, mimeType: string) => {
+export const downloadAndDecryptFile = async (fileUrl: string, key: string, iv: string, mimeType: string, id: string) => {
 	try {
 		// Download the encrypted file
 		const response = await fetch(fileUrl)
@@ -78,9 +75,7 @@ export const downloadAndDecryptFile = async (fileUrl: string, key: string, iv: s
 
 		// Convert ArrayBuffer to base64 and create data URL (React Native compatible)
 		const base64Data = arrayBufferToBase64(decryptedData)
-		const dataUrl = `data:${mimeType};base64,${base64Data}`
-
-		return dataUrl
+		return `data:${mimeType};base64,${base64Data}`
 	} catch (error) {
 		console.error('Download and decrypt failed:', error)
 		throw error
