@@ -4,6 +4,7 @@ import CustomSplashScreen from '@/src/components/splash-screen'
 import {ThemeProvider} from '@/src/theme/ThemeProvider'
 import {SessionProvider, useSession} from '@/src/components/session-provider'
 import {DialogProvider} from '@/src/components/dialog-provider'
+import {QueryProvider} from '@/src/components/query-provider'
 import {StatusBar} from 'expo-status-bar'
 
 // Prevent the splash screen from auto-hiding
@@ -11,15 +12,17 @@ SplashScreen.preventAutoHideAsync()
 
 const AppLayout = () => {
 	return (
-		<ThemeProvider>
-			<SessionProvider>
-				<DialogProvider>
-					<StatusBar style="light"/>
+		<QueryProvider>
+			<ThemeProvider>
+				<SessionProvider>
+					<DialogProvider>
+						<StatusBar style="light"/>
 
-					<RootNavigator/>
-				</DialogProvider>
-			</SessionProvider>
-		</ThemeProvider>
+						<RootNavigator/>
+					</DialogProvider>
+				</SessionProvider>
+			</ThemeProvider>
+		</QueryProvider>
 	)
 }
 

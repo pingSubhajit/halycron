@@ -119,7 +119,7 @@ export function SessionProvider({children}: { children: React.ReactNode }) {
 
 						if (currentSession?.id) {
 							// Valid session, go home
-							setInitialRoute('/(app)')
+							setInitialRoute('/')
 						} else {
 							// No session, go to onboarding
 							setInitialRoute('/onboarding')
