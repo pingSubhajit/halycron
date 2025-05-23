@@ -12,6 +12,7 @@ web-build/
 
 # Native build directories
 /android
+/ios
 
 # macOS
 .DS_Store

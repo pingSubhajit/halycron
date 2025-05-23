@@ -2,10 +2,13 @@ import React, {createContext, useContext, useEffect, useState} from 'react'
 import {authClient} from '@/src/lib/auth-client'
 import {Session, User} from 'better-auth'
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import {Route, SplashScreen} from 'expo-router'
+import CustomSplashScreen from '@/src/components/splash-screen'
 
 interface SessionContextValue {
 	session: Session | null;
 	user: User | null;
+	initialRoute: Route | null;
 	status: 'loading' | 'authenticated' | 'unauthenticated';
 	signOut: () => Promise<void>;
 }
@@ -20,8 +23,9 @@ export function SessionProvider({children}: { children: React.ReactNode }) {
 	const [status, setStatus] = useState<'loading' | 'authenticated' | 'unauthenticated'>('loading')
 	const [sessionState, setSessionState] = useState<Session | null>(null)
 	const [userState, setUserState] = useState<User | null>(null)
+	const [initialRoute, setInitialRoute] = useState<string | null>(null)
 
-	const {data: sessionData} = authClient.useSession()
+	const {data: sessionData, isPending} = authClient.useSession()
 
 	// Effect to update and persist session when it changes from auth client
 	useEffect(() => {
@@ -104,16 +108,48 @@ export function SessionProvider({children}: { children: React.ReactNode }) {
 		}
 	}
 
+	useEffect(() => {
+		// Check auth state immediately on app load
+		const checkAuthAndSetInitialRoute = async () => {
+			try {
+				if (!isPending) {
+					setTimeout(() => {
+						// Use sessionData from auth client as the source of truth, with fallback to local sessionState
+						const currentSession = sessionData?.session || sessionState
+
+						if (currentSession?.id) {
+							// Valid session, go home
+							setInitialRoute('/(app)')
+						} else {
+							// No session, go to onboarding
+							setInitialRoute('/onboarding')
+						}
+
+						// Hide the splash screen once we've determined the route
+						SplashScreen.hideAsync()
+					}, 2000)
+				}
+			} catch (error) {
+				setInitialRoute('onboarding')
+				SplashScreen.hideAsync()
+			}
+		}
+
+		checkAuthAndSetInitialRoute()
+	}, [sessionState, sessionData, isPending])
+
 	return (
 		<SessionContext.Provider
 			value={{
 				session: sessionState,
 				user: userState,
+				initialRoute,
 				status,
 				signOut
 			}}
 		>
-			{children}
+			{!initialRoute && <CustomSplashScreen/>}
+			{initialRoute && children}
 		</SessionContext.Provider>
 	)
 }
