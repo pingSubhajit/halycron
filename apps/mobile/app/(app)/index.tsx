@@ -1,15 +1,18 @@
 import React, {useEffect, useState} from 'react'
-import {ScrollView, Text, View} from 'react-native'
+import {Text, View} from 'react-native'
 import {Button} from '@/src/components/ui/button'
 import {useTheme} from '@/src/theme/ThemeProvider'
-import {useRouter} from 'expo-router'
+import {Link, useRouter} from 'expo-router'
 import {useSession} from '@/src/components/session-provider'
+import {useExampleDialog} from '@/src/components/dialog-provider'
 import {authClient} from '@/src/lib/auth-client'
+import {SafeAreaView} from 'react-native-safe-area-context'
 
 const Home = () => {
 	const {theme} = useTheme()
 	const router = useRouter()
 	const {user, status, signOut} = useSession()
+	const {setExampleDialogOpen} = useExampleDialog()
 	const [cookieInfo, setCookieInfo] = useState<string>('Loading...')
 
 	useEffect(() => {
@@ -25,12 +28,9 @@ const Home = () => {
 	}
 
 	return (
-		<ScrollView
-			className="flex-1"
-			style={{backgroundColor: theme.background}}
-		>
+		<SafeAreaView className="flex-1 bg-background">
 			<View className="p-6">
-				<Text className="text-foreground text-2xl font-bold mb-6">Welcome to Halycron</Text>
+				<Text className="text-primary-foreground text-2xl font-bold mb-6">Welcome to Halycron</Text>
 
 				<View className="bg-gray-100 p-4 rounded-md mb-6">
 					<Text className="text-gray-700 font-bold">Auth Debug Info:</Text>
@@ -45,17 +45,27 @@ const Home = () => {
 					{user?.name ? `You are logged in as ${user.name}` : 'Welcome!'}
 				</Text>
 
-				<View className="space-y-4">
+				<View className="gap-4">
 					<Button variant="default" onPress={() => console.log('Action button pressed')}>
-						<Text>Take Action</Text>
+						<Text className="text-primary-foreground">Take Action</Text>
 					</Button>
 
-					<Button variant="outline" onPress={handleLogout}>
-						<Text>Log Out</Text>
+					<Button onPress={() => setExampleDialogOpen(true)}>
+						<Text className="text-primary-foreground">Test Dialog</Text>
+					</Button>
+
+					<Link href="/upload">
+						{/* <Button>*/}
+						<Text className="text-primary-foreground">Test Routed Modal</Text>
+						{/* </Button>*/}
+					</Link>
+
+					<Button onPress={handleLogout}>
+						<Text className="text-primary-foreground">Log Out</Text>
 					</Button>
 				</View>
 			</View>
-		</ScrollView>
+		</SafeAreaView>
 	)
 }
 

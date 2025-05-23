@@ -3,6 +3,7 @@ import {SplashScreen, Stack} from 'expo-router'
 import CustomSplashScreen from '@/src/components/splash-screen'
 import {ThemeProvider} from '@/src/theme/ThemeProvider'
 import {SessionProvider} from '@/src/components/session-provider'
+import {DialogProvider} from '@/src/components/dialog-provider'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import {StatusBar} from 'expo-status-bar'
 
@@ -57,20 +58,21 @@ const AppLayout = () => {
 	return (
 		<ThemeProvider>
 			<SessionProvider>
-				<StatusBar style="light"/>
+				<DialogProvider>
+					<StatusBar style="light"/>
 
-				<Stack
-					initialRouteName={initialRoute}
-					screenOptions={{
-						headerShown: false, // Hides the header for all screens
-						animation: 'fade'
-					}}
-				>
-					<Stack.Screen name="index"/>
-					<Stack.Screen name="onboarding"/>
-					<Stack.Screen name="login"/>
-					<Stack.Screen name="two-factor"/>
-				</Stack>
+					<Stack
+						initialRouteName={initialRoute}
+						screenOptions={{
+							headerShown: false, // Hides the header for all screens
+							animation: 'fade'
+						}}
+					>
+						<Stack.Screen name="onboarding"/>
+						<Stack.Screen name="login"/>
+						<Stack.Screen name="two-factor"/>
+					</Stack>
+				</DialogProvider>
 			</SessionProvider>
 		</ThemeProvider>
 	)
