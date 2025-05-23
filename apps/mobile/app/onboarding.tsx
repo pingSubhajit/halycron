@@ -1,8 +1,6 @@
 import React from 'react'
 import {StyleSheet, View} from 'react-native'
-import {StatusBar} from 'expo-status-bar'
 import {Button} from '@/src/components/ui/button'
-import {useTheme} from '@/src/theme/ThemeProvider'
 import {useRouter} from 'expo-router'
 import {Image} from '@/src/components/interops'
 import logo from '@halycron/ui/media/logo.svg'
@@ -10,7 +8,6 @@ import {Text} from '@/src/components/ui/text'
 import banner from '@halycron/ui/media/banner_square.png'
 
 const Onboarding = () => {
-	const {theme} = useTheme()
 	const router = useRouter()
 
 	return (
@@ -18,8 +15,6 @@ const Onboarding = () => {
 			className="flex-1 justify-end"
 			style={{backgroundColor: '#070607'}}
 		>
-			<StatusBar style="dark"/>
-
 			<Image
 				className="w-[100%] h-[80%] absolute top-0 mx-auto"
 				source={banner}

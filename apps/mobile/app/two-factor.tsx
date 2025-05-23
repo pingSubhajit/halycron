@@ -1,6 +1,5 @@
 import React, {useState} from 'react'
 import {Text, View} from 'react-native'
-import {StatusBar} from 'expo-status-bar'
 import {Button} from '@/src/components/ui/button'
 import {useTheme} from '@/src/theme/ThemeProvider'
 import {useRouter} from 'expo-router'
@@ -51,8 +50,6 @@ const TwoFactorScreen = () => {
 			className="flex-1 px-6"
 			style={{backgroundColor: theme.background}}
 		>
-			<StatusBar style="dark"/>
-
 			<View className="flex-1 justify-center">
 				<Image
 					className="w-40 h-10 mb-7 mx-auto"

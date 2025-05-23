@@ -1,6 +1,5 @@
 import React, {useState} from 'react'
 import {Alert, Text, TouchableOpacity, View} from 'react-native'
-import {StatusBar} from 'expo-status-bar'
 import {Button} from '@/src/components/ui/button'
 import {useTheme} from '@/src/theme/ThemeProvider'
 import {useRouter} from 'expo-router'
@@ -8,14 +7,22 @@ import {authClient} from '@/src/lib/auth-client'
 import {Input} from '@/src/components/ui/input'
 import logo from '@halycron/ui/media/logo.svg'
 import {Image} from '@/src/components/interops'
+import {useSession} from '@/src/components/session-provider'
+import {useAuthRedirect} from '@/src/hooks/useAuthRedirect'
 
 const Login = () => {
 	const {theme} = useTheme()
 	const router = useRouter()
+	const {status} = useSession()
 	const [email, setEmail] = useState('')
 	const [password, setPassword] = useState('')
 	const [error, setError] = useState('')
 	const [loading, setLoading] = useState(false)
+
+	// Redirect authenticated users to home
+	useAuthRedirect({
+		redirectAuthenticatedTo: '/'
+	})
 
 	const handleLogin = async () => {
 		if (!email || !password) {
@@ -64,8 +71,6 @@ const Login = () => {
 			className="flex-1 px-6"
 			style={{backgroundColor: theme.background}}
 		>
-			<StatusBar style="dark"/>
-
 			<View className="flex-1 justify-center">
 				<Image
 					className="w-40 h-10 mb-7 mx-auto"
@@ -104,9 +109,11 @@ const Login = () => {
 					variant="default"
 					onPress={handleLogin}
 					className="mb-4 h-16"
-					disabled={loading}
+					disabled={loading || status === 'loading'}
 				>
-					<Text className="text-primary-foreground">{loading ? 'Getting you in...' : 'Welcome back'}</Text>
+					<Text className="text-primary-foreground">
+						{loading ? 'Getting you in...' : status === 'loading' ? 'Loading...' : 'Welcome back'}
+					</Text>
 				</Button>
 
 				<View className="flex-row justify-center">

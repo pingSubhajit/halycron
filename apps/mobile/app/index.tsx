@@ -1,16 +1,15 @@
 import React, {useEffect, useState} from 'react'
 import {ScrollView, Text, View} from 'react-native'
-import {StatusBar} from 'expo-status-bar'
 import {Button} from '@/src/components/ui/button'
 import {useTheme} from '@/src/theme/ThemeProvider'
-import {Redirect, useRouter} from 'expo-router'
-import {useSession} from '@/src/components/SessionProvider'
+import {useRouter} from 'expo-router'
+import {useSession} from '@/src/components/session-provider'
 import {authClient} from '@/src/lib/auth-client'
 
 const Home = () => {
 	const {theme} = useTheme()
 	const router = useRouter()
-	const {session, user, status, signOut} = useSession()
+	const {user, status, signOut} = useSession()
 	const [cookieInfo, setCookieInfo] = useState<string>('Loading...')
 
 	useEffect(() => {
@@ -19,19 +18,10 @@ const Home = () => {
 		setCookieInfo(cookie || 'No cookie found')
 	}, [])
 
-	// Check authentication status
-	if (status === 'unauthenticated') {
-		return <Redirect href="/onboarding"/>
-	}
-
 	// Handle logout action
 	const handleLogout = async () => {
-		try {
-			await signOut()
-			router.push('/onboarding')
-		} catch (error) {
-			console.error('Logout error:', error)
-		}
+		await signOut()
+		router.push('/onboarding')
 	}
 
 	return (
@@ -39,8 +29,6 @@ const Home = () => {
 			className="flex-1"
 			style={{backgroundColor: theme.background}}
 		>
-			<StatusBar style={'dark'}/>
-
 			<View className="p-6">
 				<Text className="text-foreground text-2xl font-bold mb-6">Welcome to Halycron</Text>
 
@@ -54,9 +42,7 @@ const Home = () => {
 				</View>
 
 				<Text className="text-foreground mb-6">
-					{status === 'authenticated'
-						? `You are logged in as ${user?.name}`
-						: 'Loading authentication state...'}
+					{user?.name ? `You are logged in as ${user.name}` : 'Welcome!'}
 				</Text>
 
 				<View className="space-y-4">
