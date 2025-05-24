@@ -23,7 +23,6 @@ const Home = () => {
 			<ScrollView
 				className="flex-1"
 				contentInsetAdjustmentBehavior="automatic"
-				contentContainerStyle={{paddingBottom: 100}}
 			>
 				{/* Header */}
 				<View className="mt-16 p-6">
