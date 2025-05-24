@@ -5,11 +5,11 @@
     "version": "1.0.0",
     "scheme": "halycron",
     "orientation": "portrait",
-    "icon": "../../packages/ui/src/media/icons/mac/512.png",
+    "icon": "../../packages/ui/src/media/icons/Mac/512@2x.png",
     "newArchEnabled": true,
     "userInterfaceStyle": "dark",
     "splash": {
-      "image": "../../packages/ui/src/media/logo.png",
+      "image": "../../packages/ui/src/media/icons/Mac/512@2x.png",
       "resizeMode": "contain",
       "backgroundColor": "#0a0a0a"
     },
@@ -26,8 +26,8 @@
     "android": {
       "edgeToEdgeEnabled": true,
       "adaptiveIcon": {
-        "foregroundImage": "../../packages/ui/src/media/icons/mac/512.png",
-        "backgroundColor": "#FFFFFF"
+        "foregroundImage": "../../packages/ui/src/media/icons/mac/512@2x.png",
+        "backgroundColor": "#0a0a0a"
       },
       "package": "com.halycron.app"
     },
@@ -52,6 +52,12 @@
             "parentTheme": "Default",
             "enforceNavigationBarContrast": false
           }
+        }
+      ],
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Allow $(PRODUCT_NAME) to use Face ID."
         }
       ]
     ]

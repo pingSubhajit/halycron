@@ -3,6 +3,7 @@ import {router, SplashScreen, Stack} from 'expo-router'
 import CustomSplashScreen from '@/src/components/splash-screen'
 import {ThemeProvider} from '@/src/theme/ThemeProvider'
 import {SessionProvider, useSession} from '@/src/components/session-provider'
+import {BiometricProvider} from '@/src/components/biometric-provider'
 import {DialogProvider} from '@/src/components/dialog-provider'
 import {QueryProvider} from '@/src/components/query-provider'
 import {SystemBars} from 'react-native-edge-to-edge'
@@ -18,11 +19,13 @@ const AppLayout = () => {
 			<ThemeProvider>
 				<SafeAreaProvider>
 					<SessionProvider>
-						<DialogProvider>
-							<SystemBars style="light"/>
+						<BiometricProvider>
+							<DialogProvider>
+								<SystemBars style="light"/>
 
-							<RootNavigator/>
-						</DialogProvider>
+								<RootNavigator/>
+							</DialogProvider>
+						</BiometricProvider>
 					</SessionProvider>
 				</SafeAreaProvider>
 			</ThemeProvider>
