@@ -23,7 +23,8 @@ const AuthenticatedAppLayout = () => {
 						<Stack.Screen
 							name="upload"
 							options={{
-								presentation: 'modal'
+								presentation: 'modal',
+								animation: 'default'
 							}}
 						/>
 					</Stack.Protected>
