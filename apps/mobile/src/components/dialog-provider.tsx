@@ -1,11 +1,21 @@
 import React, {createContext, ReactNode, useContext, useState} from 'react'
-import {ExampleDialog} from './dialogs'
+import {ExampleDialog, PhotoViewerSheet} from './dialogs'
+import {Photo} from '@/src/lib/types'
 
 // Dialog Context Interface
 interface DialogContextType {
 	// Example Dialog
 	isExampleDialogOpen: boolean
 	setExampleDialogOpen: (open: boolean) => void
+
+	// Photo Viewer Sheet
+	isPhotoViewerSheetOpen: boolean
+	setPhotoViewerSheetOpen: (open: boolean) => void
+	photoViewerData: {
+		photo: Photo | null
+		decryptedUrl: string | null
+	}
+	setPhotoViewerData: (data: { photo: Photo | null; decryptedUrl: string | null }) => void
 }
 
 // Create the context
@@ -21,11 +31,27 @@ export const DialogProvider: React.FC<DialogProviderProps> = ({children}) => {
 	// State for Example Dialog
 	const [isExampleDialogOpen, setExampleDialogOpen] = useState(false)
 
+	// State for Photo Viewer Sheet
+	const [isPhotoViewerSheetOpen, setPhotoViewerSheetOpen] = useState(false)
+	const [photoViewerData, setPhotoViewerData] = useState<{
+		photo: Photo | null
+		decryptedUrl: string | null
+	}>({
+		photo: null,
+		decryptedUrl: null
+	})
+
 	// Context value containing all dialog states and setters
 	const contextValue: DialogContextType = {
 		// Example Dialog
 		isExampleDialogOpen,
-		setExampleDialogOpen
+		setExampleDialogOpen,
+
+		// Photo Viewer Sheet
+		isPhotoViewerSheetOpen,
+		setPhotoViewerSheetOpen,
+		photoViewerData,
+		setPhotoViewerData
 	}
 
 	return (
@@ -37,6 +63,13 @@ export const DialogProvider: React.FC<DialogProviderProps> = ({children}) => {
 			<ExampleDialog
 				isOpen={isExampleDialogOpen}
 				onClose={() => setExampleDialogOpen(false)}
+			/>
+
+			<PhotoViewerSheet
+				isOpen={isPhotoViewerSheetOpen}
+				onClose={() => setPhotoViewerSheetOpen(false)}
+				photo={photoViewerData.photo}
+				decryptedUrl={photoViewerData.decryptedUrl}
 			/>
 
 			{/* Future dialogs can be added here following the same pattern */}
@@ -73,6 +106,48 @@ export const useExampleDialog = () => {
 	return {
 		isExampleDialogOpen,
 		setExampleDialogOpen
+	}
+}
+
+/**
+ * Hook to control the Photo Viewer Sheet
+ * Returns the open state, setter function, and methods to manage photo data
+ *
+ * Usage:
+ * const { openPhotoViewer, closePhotoViewer } = usePhotoViewer()
+ *
+ * // To open the photo viewer with a specific photo
+ * openPhotoViewer(photo, decryptedUrl)
+ *
+ * // To close the photo viewer
+ * closePhotoViewer()
+ */
+export const usePhotoViewer = () => {
+	const {
+		isPhotoViewerSheetOpen,
+		setPhotoViewerSheetOpen,
+		photoViewerData,
+		setPhotoViewerData
+	} = useDialogContext()
+
+	const openPhotoViewer = (photo: Photo, decryptedUrl: string) => {
+		setPhotoViewerData({photo, decryptedUrl})
+		setPhotoViewerSheetOpen(true)
+	}
+
+	const closePhotoViewer = () => {
+		setPhotoViewerSheetOpen(false)
+		// Clear data after a short delay to allow closing animation
+		setTimeout(() => {
+			setPhotoViewerData({photo: null, decryptedUrl: null})
+		}, 300)
+	}
+
+	return {
+		isPhotoViewerSheetOpen,
+		photoViewerData,
+		openPhotoViewer,
+		closePhotoViewer
 	}
 }
 

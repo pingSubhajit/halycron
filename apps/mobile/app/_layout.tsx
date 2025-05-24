@@ -8,6 +8,7 @@ import {DialogProvider} from '@/src/components/dialog-provider'
 import {QueryProvider} from '@/src/components/query-provider'
 import {SystemBars} from 'react-native-edge-to-edge'
 import {SafeAreaProvider} from 'react-native-safe-area-context'
+import {GestureHandlerRootView} from 'react-native-gesture-handler'
 
 // Prevent the splash screen from auto-hiding
 SplashScreen.preventAutoHideAsync()
@@ -15,21 +16,23 @@ SystemBars.setStyle('light')
 
 const AppLayout = () => {
 	return (
-		<QueryProvider>
-			<ThemeProvider>
-				<SafeAreaProvider>
-					<SessionProvider>
-						<BiometricProvider>
-							<DialogProvider>
-								<SystemBars style="light"/>
+		<GestureHandlerRootView style={{flex: 1}}>
+			<QueryProvider>
+				<ThemeProvider>
+					<SafeAreaProvider>
+						<SessionProvider>
+							<BiometricProvider>
+								<DialogProvider>
+									<SystemBars style="light"/>
 
-								<RootNavigator/>
-							</DialogProvider>
-						</BiometricProvider>
-					</SessionProvider>
-				</SafeAreaProvider>
-			</ThemeProvider>
-		</QueryProvider>
+									<RootNavigator/>
+								</DialogProvider>
+							</BiometricProvider>
+						</SessionProvider>
+					</SafeAreaProvider>
+				</ThemeProvider>
+			</QueryProvider>
+		</GestureHandlerRootView>
 	)
 }
 

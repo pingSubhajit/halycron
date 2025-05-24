@@ -5,6 +5,7 @@ import {Photo} from '@/src/lib/types'
 import {useDecryptedUrl} from '@/src/hooks/use-decrypted-url'
 import {cn} from '@/lib/utils'
 import {darkTheme} from '@/src/theme/theme'
+import {usePhotoViewer} from '@/src/components/dialog-provider'
 
 type Props = {
 	photo: Photo
@@ -51,6 +52,13 @@ const ErrorState = ({className, style}: { className?: string, style?: any }) => 
 
 export const EncryptedImage = ({photo, style, className}: Props) => {
 	const {decryptedUrl, isLoading, error} = useDecryptedUrl(photo)
+	const {openPhotoViewer} = usePhotoViewer()
+
+	const handleImagePress = () => {
+		if (decryptedUrl && !isLoading && !error) {
+			openPhotoViewer(photo, decryptedUrl)
+		}
+	}
 
 	if (error) {
 		return <ErrorState style={style}/>
@@ -76,6 +84,7 @@ export const EncryptedImage = ({photo, style, className}: Props) => {
 			activeOpacity={0.9}
 			style={style}
 			className={className}
+			onPress={handleImagePress}
 		>
 			<Image
 				source={{uri: decryptedUrl}}
