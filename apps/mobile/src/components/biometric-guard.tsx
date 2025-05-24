@@ -1,10 +1,10 @@
 import React, {useEffect, useState} from 'react'
-import {ActivityIndicator, StyleSheet, Text, View} from 'react-native'
+import {ActivityIndicator, Text, View} from 'react-native'
 import {useBiometric} from './biometric-provider'
-import * as LocalAuthentication from 'expo-local-authentication'
 import fingerprint from '@halycron/ui/media/fingerprint.png'
 import {Image} from '@/src/components/interops'
 import {Button} from '@/src/components/ui/button'
+import {darkTheme} from '@/src/theme/theme'
 
 interface BiometricGuardProps {
 	children: React.ReactNode;
@@ -42,21 +42,12 @@ export const BiometricGuard = ({children, fallback}: BiometricGuardProps) => {
 		}
 	}
 
-	const getBiometricText = () => {
-		if (biometricType.includes(LocalAuthentication.AuthenticationType.FACIAL_RECOGNITION)) {
-			return 'Face ID'
-		} else if (biometricType.includes(LocalAuthentication.AuthenticationType.FINGERPRINT)) {
-			return 'Touch ID'
-		}
-		return 'Biometric Authentication'
-	}
-
 	// Show loading state
 	if (isLoading) {
 		return (
 			<View className="flex-1 bg-dark justify-center items-center p-6">
-				<ActivityIndicator size="large" color="#8B5CF6"/>
-				<Text style={styles.loadingText}>Checking biometric availability...</Text>
+				<ActivityIndicator size="large" color={darkTheme.primary}/>
+				<Text className="text-muted-foreground mt-4">Checking biometric availability...</Text>
 			</View>
 		)
 	}
@@ -88,7 +79,7 @@ export const BiometricGuard = ({children, fallback}: BiometricGuardProps) => {
 					Halycron</Text>
 
 				{fallback && (
-					<View style={styles.fallbackContainer}>
+					<View className="mt-6">
 						{fallback}
 					</View>
 				)}
@@ -103,43 +94,9 @@ export const BiometricGuard = ({children, fallback}: BiometricGuardProps) => {
 				{isAuthenticating ? (
 					<ActivityIndicator size="small" color="#FFFFFF"/>
 				) : (
-					<Text style={styles.buttonText}>Authenticate</Text>
+					<Text className="text-primary-foreground font-semibold">Authenticate</Text>
 				)}
 			</Button>
 		</View>
 	)
 }
-
-const styles = StyleSheet.create({
-	subtitle: {
-		fontSize: 16,
-		color: '#A1A1AA',
-		marginBottom: 32,
-		textAlign: 'center',
-		lineHeight: 22
-	},
-	button: {
-		backgroundColor: '#8B5CF6',
-		paddingHorizontal: 32,
-		paddingVertical: 12,
-		borderRadius: 8,
-		minWidth: 140,
-		alignItems: 'center'
-	},
-	buttonDisabled: {
-		opacity: 0.6
-	},
-	buttonText: {
-		color: '#FFFFFF',
-		fontSize: 16,
-		fontWeight: '600'
-	},
-	loadingText: {
-		color: '#A1A1AA',
-		marginTop: 16,
-		fontSize: 16
-	},
-	fallbackContainer: {
-		marginTop: 24
-	}
-})
