@@ -2,7 +2,7 @@
   "expo": {
     "name": "Halycron",
     "slug": "halycron",
-    "version": "1.0.0",
+    "version": "0.0.3",
     "scheme": "halycron",
     "orientation": "portrait",
     "icon": "../../packages/ui/src/media/icons/Mac/512@2x.png",
@@ -26,13 +26,20 @@
     "android": {
       "edgeToEdgeEnabled": true,
       "adaptiveIcon": {
-        "foregroundImage": "../../packages/ui/src/media/icons/mac/512@2x.png",
+        "foregroundImage": "../../packages/ui/src/media/icons/Mac/512@2x.png",
         "backgroundColor": "#0a0a0a"
       },
-      "package": "com.halycron.app"
+      "package": "com.halycron.app",
+      "permissions": [
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.ACCESS_MEDIA_LOCATION",
+        "android.permission.USE_BIOMETRIC",
+        "android.permission.USE_FINGERPRINT"
+      ]
     },
     "web": {
-      "favicon": "../../packages/ui/src/media/icons/mac/512.png",
+      "favicon": "../../packages/ui/src/media/icons/Mac/512.png",
       "bundler": "metro"
     },
     "plugins": [
@@ -60,6 +67,12 @@
           "faceIDPermission": "Allow $(PRODUCT_NAME) to use Face ID."
         }
       ]
-    ]
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "1a399942-c9ed-4348-ac51-0730f2d541fa"
+      }
+    }
   }
 }
