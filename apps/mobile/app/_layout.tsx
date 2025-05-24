@@ -5,22 +5,26 @@ import {ThemeProvider} from '@/src/theme/ThemeProvider'
 import {SessionProvider, useSession} from '@/src/components/session-provider'
 import {DialogProvider} from '@/src/components/dialog-provider'
 import {QueryProvider} from '@/src/components/query-provider'
-import {StatusBar} from 'expo-status-bar'
+import {SystemBars} from 'react-native-edge-to-edge'
+import {SafeAreaProvider} from 'react-native-safe-area-context'
 
 // Prevent the splash screen from auto-hiding
 SplashScreen.preventAutoHideAsync()
+SystemBars.setStyle('light')
 
 const AppLayout = () => {
 	return (
 		<QueryProvider>
 			<ThemeProvider>
-				<SessionProvider>
-					<DialogProvider>
-						<StatusBar style="light"/>
+				<SafeAreaProvider>
+					<SessionProvider>
+						<DialogProvider>
+							<SystemBars style="light"/>
 
-						<RootNavigator/>
-					</DialogProvider>
-				</SessionProvider>
+							<RootNavigator/>
+						</DialogProvider>
+					</SessionProvider>
+				</SafeAreaProvider>
 			</ThemeProvider>
 		</QueryProvider>
 	)

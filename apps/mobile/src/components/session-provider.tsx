@@ -2,7 +2,7 @@ import React, {createContext, useContext, useEffect, useState} from 'react'
 import {authClient} from '@/src/lib/auth-client'
 import {Session, User} from 'better-auth'
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import {Route, SplashScreen} from 'expo-router'
+import {Route, router, SplashScreen} from 'expo-router'
 import CustomSplashScreen from '@/src/components/splash-screen'
 
 interface SessionContextValue {
@@ -103,6 +103,7 @@ export function SessionProvider({children}: { children: React.ReactNode }) {
 			setSessionState(null)
 			setUserState(null)
 			setStatus('unauthenticated')
+			router.push('/onboarding')
 		} catch (error) {
 			console.error('Error signing out:', error)
 		}
