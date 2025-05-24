@@ -1,6 +1,6 @@
 {
   "name": "@halycron/mobile",
-  "version": "1.0.0",
+  "version": "0.0.4",
   "private": true,
   "main": "index.js",
   "scripts": {

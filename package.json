@@ -1,6 +1,5 @@
 {
   "name": "halycron",
-  "version": "0.0.3",
   "private": true,
   "scripts": {
     "build": "turbo build",
