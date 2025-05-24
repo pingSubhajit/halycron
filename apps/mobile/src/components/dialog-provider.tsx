@@ -12,10 +12,9 @@ interface DialogContextType {
 	isPhotoViewerSheetOpen: boolean
 	setPhotoViewerSheetOpen: (open: boolean) => void
 	photoViewerData: {
-		photo: Photo | null
-		decryptedUrl: string | null
+		initialPhoto: Photo | null
 	}
-	setPhotoViewerData: (data: { photo: Photo | null; decryptedUrl: string | null }) => void
+	setPhotoViewerData: (data: { initialPhoto: Photo | null }) => void
 }
 
 // Create the context
@@ -34,11 +33,9 @@ export const DialogProvider: React.FC<DialogProviderProps> = ({children}) => {
 	// State for Photo Viewer Sheet
 	const [isPhotoViewerSheetOpen, setPhotoViewerSheetOpen] = useState(false)
 	const [photoViewerData, setPhotoViewerData] = useState<{
-		photo: Photo | null
-		decryptedUrl: string | null
+		initialPhoto: Photo | null
 	}>({
-		photo: null,
-		decryptedUrl: null
+		initialPhoto: null
 	})
 
 	// Context value containing all dialog states and setters
@@ -68,8 +65,7 @@ export const DialogProvider: React.FC<DialogProviderProps> = ({children}) => {
 			<PhotoViewerSheet
 				isOpen={isPhotoViewerSheetOpen}
 				onClose={() => setPhotoViewerSheetOpen(false)}
-				photo={photoViewerData.photo}
-				decryptedUrl={photoViewerData.decryptedUrl}
+				initialPhoto={photoViewerData.initialPhoto}
 			/>
 
 			{/* Future dialogs can be added here following the same pattern */}
@@ -117,7 +113,7 @@ export const useExampleDialog = () => {
  * const { openPhotoViewer, closePhotoViewer } = usePhotoViewer()
  *
  * // To open the photo viewer with a specific photo
- * openPhotoViewer(photo, decryptedUrl)
+ * openPhotoViewer(photo)
  *
  * // To close the photo viewer
  * closePhotoViewer()
@@ -130,8 +126,8 @@ export const usePhotoViewer = () => {
 		setPhotoViewerData
 	} = useDialogContext()
 
-	const openPhotoViewer = (photo: Photo, decryptedUrl: string) => {
-		setPhotoViewerData({photo, decryptedUrl})
+	const openPhotoViewer = (photo: Photo) => {
+		setPhotoViewerData({initialPhoto: photo})
 		setPhotoViewerSheetOpen(true)
 	}
 
@@ -139,7 +135,7 @@ export const usePhotoViewer = () => {
 		setPhotoViewerSheetOpen(false)
 		// Clear data after a short delay to allow closing animation
 		setTimeout(() => {
-			setPhotoViewerData({photo: null, decryptedUrl: null})
+			setPhotoViewerData({initialPhoto: null})
 		}, 300)
 	}
 

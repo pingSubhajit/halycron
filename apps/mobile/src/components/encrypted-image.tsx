@@ -56,7 +56,7 @@ export const EncryptedImage = ({photo, style, className}: Props) => {
 
 	const handleImagePress = () => {
 		if (decryptedUrl && !isLoading && !error) {
-			openPhotoViewer(photo, decryptedUrl)
+			openPhotoViewer(photo)
 		}
 	}
 
