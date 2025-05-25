@@ -117,7 +117,13 @@ const MasonryPhotoItem = React.memo(({photo, memoryPhotos, photoIndex}: {
 MasonryPhotoItem.displayName = 'MasonryPhotoItem'
 
 export const PhotoGallery = ({photos, isLoading, error, headerComponent}: Props) => {
-	const [visibleRange, setVisibleRange] = useState<{ start: number; end: number }>({start: 0, end: 10})
+	const [visibleRangeState, setVisibleRangeState] = useState<{ start: number; end: number }>({start: 0, end: 10})
+
+	// Stabilize the visibleRange object to prevent unnecessary re-renders
+	const visibleRange = useMemo(() => ({
+		start: visibleRangeState.start,
+		end: visibleRangeState.end
+	}), [visibleRangeState.start, visibleRangeState.end])
 
 	// Use memory-limited photos hook - always call hooks at top level
 	const {memoryPhotos, renderablePhotos, getStats} = useMemoryLimitedPhotos({
@@ -164,9 +170,15 @@ export const PhotoGallery = ({photos, isLoading, error, headerComponent}: Props)
 			const firstIndex = masonryPhotos.indexOf(visiblePhotos[0]!)
 			const lastIndex = masonryPhotos.indexOf(visiblePhotos[visiblePhotos.length - 1]!)
 
-			setVisibleRange({
-				start: Math.max(0, firstIndex),
-				end: Math.min(masonryPhotos.length - 1, lastIndex)
+			const newStart = Math.max(0, firstIndex)
+			const newEnd = Math.min(masonryPhotos.length - 1, lastIndex)
+
+			// Only update if the range has actually changed
+			setVisibleRangeState(prev => {
+				if (prev.start !== newStart || prev.end !== newEnd) {
+					return {start: newStart, end: newEnd}
+				}
+				return prev
 			})
 		}
 	}, [masonryPhotos])

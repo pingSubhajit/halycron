@@ -1,4 +1,4 @@
-import {useCallback, useEffect, useState} from 'react'
+import {useCallback, useEffect, useMemo, useState} from 'react'
 import {Photo} from '../lib/types'
 
 interface MemoryLimitedPhoto extends Photo {
@@ -21,6 +21,10 @@ export const useMemoryLimitedPhotos = ({
 }: UseMemoryLimitedPhotosProps) => {
 	const [memoryPhotos, setMemoryPhotos] = useState<MemoryLimitedPhoto[]>([])
 
+	// Stabilize the visibleRange values to prevent unnecessary recalculations
+	const stableVisibleStart = visibleRange.start
+	const stableVisibleEnd = visibleRange.end
+
 	// Calculate which photos should be loaded based on visibility and priority
 	const updateLoadablePhotos = useCallback(() => {
 		const photosWithPriority = photos.map((photo, index): MemoryLimitedPhoto => {
@@ -28,16 +32,16 @@ export const useMemoryLimitedPhotos = ({
 			let shouldLoad = false
 
 			// Calculate priority based on distance from visible area
-			const visibleCenter = (visibleRange.start + visibleRange.end) / 2
+			const visibleCenter = (stableVisibleStart + stableVisibleEnd) / 2
 			const distanceFromCenter = Math.abs(index - visibleCenter)
 
-			if (index >= visibleRange.start && index <= visibleRange.end) {
+			if (index >= stableVisibleStart && index <= stableVisibleEnd) {
 				// Visible photos get highest priority
 				priority = 1000 - distanceFromCenter
 				shouldLoad = true
 			} else if (
-				index >= visibleRange.start - preloadBuffer &&
-				index <= visibleRange.end + preloadBuffer
+				index >= stableVisibleStart - preloadBuffer &&
+				index <= stableVisibleEnd + preloadBuffer
 			) {
 				// Buffer photos get medium priority
 				priority = 500 - distanceFromCenter
@@ -67,18 +71,23 @@ export const useMemoryLimitedPhotos = ({
 		}))
 
 		setMemoryPhotos(finalPhotos)
-	}, [photos, visibleRange, maxInMemory, preloadBuffer])
+	}, [photos, stableVisibleStart, stableVisibleEnd, maxInMemory, preloadBuffer])
 
 	// Update when dependencies change
 	useEffect(() => {
 		updateLoadablePhotos()
 	}, [updateLoadablePhotos])
 
+	// Memoize renderablePhotos to prevent unnecessary recalculations
+	const renderablePhotos = useMemo(() => {
+		return memoryPhotos.filter(p => p.shouldLoad)
+	}, [memoryPhotos])
+
 	// Get statistics
 	const getStats = useCallback(() => {
 		const total = memoryPhotos.length
 		const shouldLoad = memoryPhotos.filter(p => p.shouldLoad).length
-		const visible = memoryPhotos.filter(p => p.shouldLoad && memoryPhotos.indexOf(p) >= visibleRange.start && memoryPhotos.indexOf(p) <= visibleRange.end).length
+		const visible = memoryPhotos.filter(p => p.shouldLoad && memoryPhotos.indexOf(p) >= stableVisibleStart && memoryPhotos.indexOf(p) <= stableVisibleEnd).length
 
 		return {
 			total,
@@ -88,11 +97,11 @@ export const useMemoryLimitedPhotos = ({
 			memoryUsagePercentage: (shouldLoad / maxInMemory) * 100,
 			queueSize: 0
 		}
-	}, [memoryPhotos, maxInMemory, visibleRange])
+	}, [memoryPhotos, maxInMemory, stableVisibleStart, stableVisibleEnd])
 
 	return {
 		memoryPhotos,
-		renderablePhotos: memoryPhotos.filter(p => p.shouldLoad),
+		renderablePhotos,
 		getStats,
 		maxInMemory
 	}
