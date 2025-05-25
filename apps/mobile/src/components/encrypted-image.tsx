@@ -13,6 +13,7 @@ type Props = {
 	style?: any
 	className?: string
 	shouldUseThumbnail?: boolean
+	loadDelay?: number // Delay in milliseconds before starting to load
 }
 
 const ImageSkeleton = ({className, style}: { className?: string, style?: any }) => (
@@ -70,9 +71,48 @@ const ThumbnailGeneratingState = ({style}: { style?: any }) => (
 	</View>
 )
 
-export const EncryptedImage = React.memo(({photo, style, className, shouldUseThumbnail = false}: Props) => {
-	const thumbnailResult = useThumbnail(shouldUseThumbnail ? photo : null)
-	const fullSizeResult = useDecryptedUrl(!shouldUseThumbnail ? photo : null)
+const PlaceholderState = ({style}: { style?: any }) => (
+	<View
+		style={[
+			{
+				backgroundColor: '#1a1a1a',
+				justifyContent: 'center',
+				alignItems: 'center',
+				borderRadius: 8
+			},
+			style
+		]}
+	>
+		{/* Empty placeholder while waiting for load delay */}
+	</View>
+)
+
+export const EncryptedImage = React.memo(({
+	photo,
+	style,
+	className,
+	shouldUseThumbnail = false,
+	loadDelay = 0
+}: Props) => {
+	const [shouldStartLoading, setShouldStartLoading] = React.useState(loadDelay === 0)
+
+	// Start loading after the specified delay
+	React.useEffect(() => {
+		if (loadDelay > 0) {
+			const timer = setTimeout(() => {
+				setShouldStartLoading(true)
+			}, loadDelay)
+
+			return () => clearTimeout(timer)
+		}
+	}, [loadDelay])
+
+	// Only start loading when shouldStartLoading is true
+	const photoToLoad = shouldStartLoading ? photo : null
+
+	// Use thumbnail hook for gallery view, full-size for detailed view
+	const thumbnailResult = useThumbnail(shouldUseThumbnail ? photoToLoad : null)
+	const fullSizeResult = useDecryptedUrl(!shouldUseThumbnail ? photoToLoad : null)
 
 	const {
 		thumbnailUrl,
@@ -89,18 +129,37 @@ export const EncryptedImage = React.memo(({photo, style, className, shouldUseThu
 
 	const {openPhotoViewer} = usePhotoViewer()
 
+	// Determine what to display
 	const imageUrl = shouldUseThumbnail ? thumbnailUrl : fullSizeUrl
 	const isLoading = shouldUseThumbnail ? isLoadingThumbnail : isLoadingFullSize
 	const error = shouldUseThumbnail ? thumbnailError : fullSizeError
 
 	const handleImagePress = () => {
+		// Always open full-size image in viewer, regardless of thumbnail usage
 		openPhotoViewer(photo)
+	}
+
+	// Show placeholder while waiting for load delay
+	if (!shouldStartLoading) {
+		return (
+			<PlaceholderState
+				style={[
+					style,
+					{
+						aspectRatio: photo.imageWidth && photo.imageHeight
+							? photo.imageWidth / photo.imageHeight
+							: 4 / 3
+					}
+				]}
+			/>
+		)
 	}
 
 	if (error) {
 		return <ErrorState style={style}/>
 	}
 
+	// Show thumbnail generation state
 	if (shouldUseThumbnail && isGeneratingThumbnail && !thumbnailUrl) {
 		return (
 			<ThumbnailGeneratingState

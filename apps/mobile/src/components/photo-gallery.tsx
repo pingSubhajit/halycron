@@ -86,16 +86,11 @@ const calculateMasonryLayout = (photos: Photo[]): PhotoWithLayout[] => {
 	return photosWithLayout
 }
 
-const MasonryPhotoItem = React.memo(({photo, memoryPhotos}: { photo: PhotoWithLayout; memoryPhotos: any[] }) => {
-	const memoryMap = useMemo(() => {
-		const map = new Map()
-		memoryPhotos.forEach(p => map.set(p.id, p))
-		return map
-	}, [memoryPhotos])
-
-	const memoryPhoto = memoryMap.get(photo.id)
-	const shouldRender = memoryPhoto?.shouldLoad
-
+const MasonryPhotoItem = React.memo(({photo, memoryPhotos, photoIndex}: {
+	photo: PhotoWithLayout;
+	memoryPhotos: any[];
+	photoIndex: number
+}) => {
 	return (
 		<View
 			style={{
@@ -106,25 +101,15 @@ const MasonryPhotoItem = React.memo(({photo, memoryPhotos}: { photo: PhotoWithLa
 				height: photo.calculatedHeight
 			}}
 		>
-			{shouldRender ? (
-				<EncryptedImage
-					photo={photo}
-					style={{
-						width: COLUMN_WIDTH,
-						height: photo.calculatedHeight
-					}}
-					shouldUseThumbnail={true}
-				/>
-			) : (
-				<View
-					style={{
-						width: COLUMN_WIDTH,
-						height: photo.calculatedHeight,
-						backgroundColor: '#1a1a1a',
-						borderRadius: 8
-					}}
-				/>
-			)}
+			<EncryptedImage
+				photo={photo}
+				style={{
+					width: COLUMN_WIDTH,
+					height: photo.calculatedHeight
+				}}
+				shouldUseThumbnail={true}
+				loadDelay={photoIndex * 100} // Stagger loading by 100ms per photo
+			/>
 		</View>
 	)
 })
@@ -205,11 +190,12 @@ export const PhotoGallery = ({photos, isLoading, error, headerComponent}: Props)
 				data={[{key: 'masonry-container'}]} // Single item to enable scrolling
 				renderItem={() => (
 					<View style={{height: totalHeight, position: 'relative'}}>
-						{masonryPhotos.map(photo => (
+						{masonryPhotos.map((photo, index) => (
 							<MasonryPhotoItem
 								key={photo.id}
 								photo={photo}
 								memoryPhotos={renderablePhotos}
+								photoIndex={index}
 							/>
 						))}
 					</View>
