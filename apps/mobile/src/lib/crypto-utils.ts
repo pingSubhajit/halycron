@@ -1,5 +1,6 @@
 import crypto from 'react-native-quick-crypto'
 import {Buffer} from 'buffer'
+import {fileCacheManager} from './file-cache-manager'
 
 // Cache algorithm lookup to avoid repeated switch statements
 const getAlgorithmForKeyLength = (() => {
@@ -19,6 +20,12 @@ const getAlgorithmForKeyLength = (() => {
 
 export const downloadAndDecryptFile = async (fileUrl: string, key: string, iv: string, mimeType: string, id: string) => {
 	try {
+		// Check if we have a cached file first
+		const cachedFilePath = await fileCacheManager.getCachedFile(id, fileUrl)
+		if (cachedFilePath) {
+			return cachedFilePath
+		}
+
 		// Pre-parse key and IV to avoid doing it in the decrypt function
 		const keyBuffer = Buffer.from(key, 'base64')
 		const ivBuffer = Buffer.from(iv, 'hex')
@@ -41,9 +48,9 @@ export const downloadAndDecryptFile = async (fileUrl: string, key: string, iv: s
 			decipher.final() as Uint8Array
 		])
 
-		// Convert to base64 and create data URL
-		const base64Data = decryptedData.toString('base64')
-		return `data:${mimeType};base64,${base64Data}`
+		// Cache the decrypted file and return the file path
+		const filePath = await fileCacheManager.cacheDecryptedFile(id, fileUrl, decryptedData, mimeType)
+		return filePath
 	} catch (error) {
 		console.error('Download and decrypt failed:', error)
 		throw error

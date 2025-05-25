@@ -1,12 +1,14 @@
-import React from 'react'
-import {Dimensions, ScrollView, Text, View} from 'react-native'
+import React, {useCallback, useMemo, useState} from 'react'
+import {Dimensions, FlatList, Text, View} from 'react-native'
 import {Photo} from '../lib/types'
 import {EncryptedImage} from './encrypted-image'
+import {useMemoryLimitedPhotos} from '../hooks/use-memory-limited-photos'
 
 type Props = {
 	photos: Photo[]
 	isLoading?: boolean
 	error?: string | null
+	headerComponent?: () => React.ReactElement
 }
 
 const {width: screenWidth} = Dimensions.get('window')
@@ -41,41 +43,150 @@ const EmptyState = () => (
 	</View>
 )
 
-type PhotoWithHeight = Photo & {
+type PhotoWithLayout = Photo & {
 	calculatedHeight: number
+	column: number
+	yPosition: number
+	absolutePosition: { x: number; y: number }
 }
 
-const distributePhotosIntoColumns = (photos: Photo[]): PhotoWithHeight[][] => {
-	// Calculate height for each photo based on aspect ratio
-	const photosWithHeights: PhotoWithHeight[] = photos.map(photo => {
-		const hasValidDimensions = photo.imageWidth != null && photo.imageHeight != null && photo.imageWidth > 0 && photo.imageHeight > 0
+const calculateMasonryLayout = (photos: Photo[]): PhotoWithLayout[] => {
+	const photosWithLayout: PhotoWithLayout[] = []
+	const columnHeights = Array.from({length: COLUMNS}, () => 0)
+
+	photos.forEach((photo, index) => {
+		const hasValidDimensions = photo.imageWidth != null && photo.imageHeight != null &&
+			photo.imageWidth > 0 && photo.imageHeight > 0
 
 		const aspectRatio = hasValidDimensions
 			? (photo.imageWidth as number) / (photo.imageHeight as number)
 			: 1
 		const calculatedHeight = COLUMN_WIDTH / aspectRatio
 
-		return {
-			...photo,
-			calculatedHeight
-		}
-	})
-
-	// Initialize columns
-	const columns: PhotoWithHeight[][] = Array.from({length: COLUMNS}, () => [])
-	const columnHeights = Array.from({length: COLUMNS}, () => 0)
-
-	// Distribute photos to columns, always choosing the shortest column
-	photosWithHeights.forEach(photo => {
+		// Find the shortest column
 		const shortestColumnIndex = columnHeights.indexOf(Math.min(...columnHeights))
-		columns[shortestColumnIndex]!.push(photo)
-		columnHeights[shortestColumnIndex]! += photo.calculatedHeight + PHOTO_MARGIN
+		const yPosition = columnHeights[shortestColumnIndex]!
+
+		// Calculate absolute position
+		const x = PHOTO_MARGIN + (shortestColumnIndex * (COLUMN_WIDTH + PHOTO_MARGIN))
+		const y = yPosition + PHOTO_MARGIN
+
+		const photoWithLayout: PhotoWithLayout = {
+			...photo,
+			calculatedHeight,
+			column: shortestColumnIndex,
+			yPosition,
+			absolutePosition: {x, y}
+		}
+
+		photosWithLayout.push(photoWithLayout)
+		columnHeights[shortestColumnIndex]! += calculatedHeight + PHOTO_MARGIN
 	})
 
-	return columns
+	return photosWithLayout
 }
 
-export const PhotoGallery = ({photos, isLoading, error}: Props) => {
+const MasonryPhotoItem = React.memo(({photo, memoryPhotos}: { photo: PhotoWithLayout; memoryPhotos: any[] }) => {
+	const memoryMap = useMemo(() => {
+		const map = new Map()
+		memoryPhotos.forEach(p => map.set(p.id, p))
+		return map
+	}, [memoryPhotos])
+
+	const memoryPhoto = memoryMap.get(photo.id)
+	const shouldRender = memoryPhoto?.shouldLoad
+
+	return (
+		<View
+			style={{
+				position: 'absolute',
+				left: photo.absolutePosition.x,
+				top: photo.absolutePosition.y,
+				width: COLUMN_WIDTH,
+				height: photo.calculatedHeight
+			}}
+		>
+			{shouldRender ? (
+				<EncryptedImage
+					photo={photo}
+					style={{
+						width: COLUMN_WIDTH,
+						height: photo.calculatedHeight
+					}}
+					shouldUseThumbnail={true}
+				/>
+			) : (
+				<View
+					style={{
+						width: COLUMN_WIDTH,
+						height: photo.calculatedHeight,
+						backgroundColor: '#1a1a1a',
+						borderRadius: 8
+					}}
+				/>
+			)}
+		</View>
+	)
+})
+
+MasonryPhotoItem.displayName = 'MasonryPhotoItem'
+
+export const PhotoGallery = ({photos, isLoading, error, headerComponent}: Props) => {
+	const [visibleRange, setVisibleRange] = useState<{ start: number; end: number }>({start: 0, end: 10})
+
+	// Use memory-limited photos hook - always call hooks at top level
+	const {memoryPhotos, renderablePhotos, getStats} = useMemoryLimitedPhotos({
+		photos: photos || [],
+		maxInMemory: 50,
+		visibleRange,
+		preloadBuffer: 5
+	})
+
+	const masonryPhotos = useMemo(() => {
+		if (!photos || photos.length === 0) return []
+		return calculateMasonryLayout(photos)
+	}, [photos])
+
+	// Calculate total height for the container
+	const totalHeight = useMemo(() => {
+		if (masonryPhotos.length === 0) return 0
+
+		const columnHeights = Array.from({length: COLUMNS}, () => 0)
+		masonryPhotos.forEach(photo => {
+			const columnHeight = photo.yPosition + photo.calculatedHeight + PHOTO_MARGIN
+			columnHeights[photo.column] = Math.max(columnHeights[photo.column]!, columnHeight)
+		})
+
+		return Math.max(...columnHeights) + PHOTO_MARGIN
+	}, [masonryPhotos])
+
+	// Track visible items based on scroll position
+	const onScroll = useCallback((event: any) => {
+		const scrollY = event.nativeEvent.contentOffset.y
+		const containerHeight = event.nativeEvent.layoutMeasurement.height
+
+		const visibleTop = scrollY - 200 // Buffer
+		const visibleBottom = scrollY + containerHeight + 200
+
+		// Find visible photos
+		const visiblePhotos = masonryPhotos.filter(photo => {
+			const photoTop = photo.absolutePosition.y
+			const photoBottom = photoTop + photo.calculatedHeight
+			return photoBottom >= visibleTop && photoTop <= visibleBottom
+		})
+
+		if (visiblePhotos.length > 0) {
+			const firstIndex = masonryPhotos.indexOf(visiblePhotos[0]!)
+			const lastIndex = masonryPhotos.indexOf(visiblePhotos[visiblePhotos.length - 1]!)
+
+			setVisibleRange({
+				start: Math.max(0, firstIndex),
+				end: Math.min(masonryPhotos.length - 1, lastIndex)
+			})
+		}
+	}, [masonryPhotos])
+
+	// Handle loading/error states after hooks
 	if (isLoading) {
 		return <LoadingState/>
 	}
@@ -88,47 +199,30 @@ export const PhotoGallery = ({photos, isLoading, error}: Props) => {
 		return <EmptyState/>
 	}
 
-	const photoColumns = distributePhotosIntoColumns(photos)
-
-	const renderColumn = (columnPhotos: PhotoWithHeight[], columnIndex: number) => (
-		<View
-			key={columnIndex}
-			style={{
-				flex: 1,
-				paddingHorizontal: PHOTO_MARGIN / 2
-			}}
-		>
-			{columnPhotos.map((photo, photoIndex) => (
-				<View
-					key={photo.id}
-					style={{
-						marginBottom: PHOTO_MARGIN
-					}}
-				>
-					<EncryptedImage
-						photo={photo}
-						style={{
-							width: COLUMN_WIDTH,
-							height: photo.calculatedHeight
-						}}
-					/>
-				</View>
-			))}
-		</View>
-	)
-
 	return (
-		<ScrollView
-			className="flex-1"
-			contentContainerStyle={{
-				padding: PHOTO_MARGIN / 2,
-				paddingBottom: 100
-			}}
-			showsVerticalScrollIndicator={false}
-		>
-			<View className="flex-row items-start">
-				{photoColumns.map((columnPhotos, columnIndex) => renderColumn(columnPhotos, columnIndex))}
-			</View>
-		</ScrollView>
+		<View style={{flex: 1, position: 'relative'}}>
+			<FlatList
+				data={[{key: 'masonry-container'}]} // Single item to enable scrolling
+				renderItem={() => (
+					<View style={{height: totalHeight, position: 'relative'}}>
+						{masonryPhotos.map(photo => (
+							<MasonryPhotoItem
+								key={photo.id}
+								photo={photo}
+								memoryPhotos={renderablePhotos}
+							/>
+						))}
+					</View>
+				)}
+				keyExtractor={(item) => item.key}
+				onScroll={onScroll}
+				scrollEventThrottle={16}
+				showsVerticalScrollIndicator={false}
+				contentContainerStyle={{
+					paddingBottom: 100
+				}}
+				ListHeaderComponent={headerComponent}
+			/>
+		</View>
 	)
 }

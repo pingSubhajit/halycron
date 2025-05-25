@@ -1,6 +1,6 @@
 {
   "name": "@halycron/mobile",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "private": true,
   "main": "index.js",
   "scripts": {
@@ -32,6 +32,7 @@
     "expo-dev-client": "~5.1.8",
     "expo-file-system": "^18.1.10",
     "expo-image": "~2.1.7",
+    "expo-image-manipulator": "~13.1.0",
     "expo-linking": "~7.1.5",
     "expo-local-authentication": "~16.0.4",
     "expo-media-library": "^17.1.6",

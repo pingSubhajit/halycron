@@ -2,18 +2,6 @@ import {useEffect, useState} from 'react'
 import {Photo} from '../lib/types'
 import {downloadAndDecryptFile} from '../lib/crypto-utils'
 
-const getStableUrlPart = (url: string): string => {
-	try {
-		const urlObj = new URL(url)
-		return urlObj.pathname
-	} catch (e) {
-		return url
-	}
-}
-
-// Simple in-memory cache for decrypted URLs
-const decryptionCache = new Map<string, string>()
-
 export const useDecryptedUrl = (photo?: Photo | null) => {
 	const [decryptedUrl, setDecryptedUrl] = useState<string | null>(null)
 	const [isLoading, setIsLoading] = useState(false)
@@ -27,22 +15,9 @@ export const useDecryptedUrl = (photo?: Photo | null) => {
 			return
 		}
 
-		const cacheKey = `${photo.id}-${getStableUrlPart(photo.url)}`
 		let mounted = true
 
 		const decryptUrl = async () => {
-			// Check cache first
-			const cachedUrl = decryptionCache.get(cacheKey)
-			if (cachedUrl) {
-				if (mounted) {
-					setDecryptedUrl(cachedUrl)
-					setIsLoading(false)
-					setError(null)
-				}
-				return
-			}
-
-			// If not in cache, decrypt and cache
 			if (mounted) {
 				setDecryptedUrl(null)
 				setIsLoading(true)
@@ -50,7 +25,8 @@ export const useDecryptedUrl = (photo?: Photo | null) => {
 			}
 
 			try {
-				const url = await downloadAndDecryptFile(
+				// downloadAndDecryptFile now returns a file path instead of data URL
+				const filePath = await downloadAndDecryptFile(
 					photo.url,
 					photo.encryptedFileKey,
 					photo.fileKeyIv,
@@ -59,13 +35,9 @@ export const useDecryptedUrl = (photo?: Photo | null) => {
 				)
 
 				if (mounted) {
-					decryptionCache.set(cacheKey, url)
-					setDecryptedUrl(url)
+					setDecryptedUrl(filePath)
 					setIsLoading(false)
 					setError(null)
-				} else {
-					// If component unmounted before decryption completed, revoke the URL
-					URL.revokeObjectURL(url)
 				}
 			} catch (err) {
 				if (mounted) {

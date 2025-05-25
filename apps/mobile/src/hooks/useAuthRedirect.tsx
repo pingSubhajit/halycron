@@ -8,7 +8,7 @@ import {useSession} from '@/src/components/session-provider'
  * @param redirectAuthenticatedTo - Path to redirect to if already authenticated
  * @param skipInitialRedirect - If true, only handles redirects on auth state changes, not on initial load
  */
-export function useAuthRedirect({
+export const useAuthRedirect = ({
 	requireAuth = false,
 	redirectAuthenticatedTo = '',
 	skipInitialRedirect = false
@@ -16,7 +16,7 @@ export function useAuthRedirect({
 	requireAuth?: boolean
 	redirectAuthenticatedTo?: string
 	skipInitialRedirect?: boolean
-}) {
+}) => {
 	const router = useRouter()
 	const {status} = useSession()
 	const isInitialMount = useRef(true)
