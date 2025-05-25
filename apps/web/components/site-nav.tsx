@@ -5,12 +5,9 @@ import Link from 'next/link'
 import {auth} from '@/lib/auth/config'
 import {headers} from 'next/headers'
 import {Button} from '@halycron/ui/components/button'
+import {Suspense} from 'react'
 
 export const SiteNav = async ({className}: { className?: string }) => {
-	const session = await auth.api.getSession({
-		headers: await headers()
-	})
-
 	return (
 		<header
 			className={cn('absolute mx-auto px-8 lg:px-20 max-w-[1400px] py-6 top-0 inset-x-0 flex justify-between items-center z-10', className)}>
@@ -18,12 +15,27 @@ export const SiteNav = async ({className}: { className?: string }) => {
 
 			<nav className="flex items-center gap-4">
 				<Link prefetch={true} href="/about">About</Link>
-				{!session ? <Link prefetch={true} href="/login">Log in</Link> :
-					<Link href="/api/auth/logout">Log out</Link>}
 
-				{!session ? <Link prefetch={true} href="/register"><Button size="sm">Get started</Button></Link> :
-					<Link prefetch={true} href="/app"><Button size="sm">Dashboard</Button></Link>}
+				<Suspense fallback={null}>
+					<AuthLinks/>
+				</Suspense>
 			</nav>
 		</header>
+	)
+}
+
+const AuthLinks = async () => {
+	const session = await auth.api.getSession({
+		headers: await headers()
+	})
+
+	return (
+		<>
+			{!session ? <Link prefetch={true} href="/login">Log in</Link> :
+				<Link href="/api/auth/logout">Log out</Link>}
+
+			{!session ? <Link prefetch={true} href="/register"><Button size="sm">Get started</Button></Link> :
+				<Link prefetch={true} href="/app"><Button size="sm">Dashboard</Button></Link>}
+		</>
 	)
 }
