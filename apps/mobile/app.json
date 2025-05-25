@@ -2,7 +2,7 @@
   "expo": {
     "name": "Halycron",
     "slug": "halycron",
-    "version": "0.0.4",
+    "version": "0.0.5",
     "scheme": "halycron",
     "orientation": "portrait",
     "icon": "../../packages/ui/src/media/icons/Mac/512@2x.png",
@@ -44,6 +44,16 @@
     },
     "plugins": [
       "expo-router",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "enableProguardInReleaseBuilds": true,
+            "enableShrinkResourcesInReleaseBuilds": true,
+            "useLegacyPackaging": true
+          }
+        }
+      ],
       [
         "expo-media-library",
         {

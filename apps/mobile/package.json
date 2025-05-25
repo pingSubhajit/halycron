@@ -1,6 +1,6 @@
 {
   "name": "@halycron/mobile",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "private": true,
   "main": "index.js",
   "scripts": {
@@ -8,7 +8,8 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
-    "eject": "expo eject",
+    "build:preview": "eas build --profile preview",
+    "build:production": "eas build --profile production",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix"
   },
@@ -47,7 +48,6 @@
     "react": "19.0.0",
     "react-dom": "19.0.0",
     "react-native": "0.79.2",
-    "react-native-aes-crypto": "^3.2.1",
     "react-native-edge-to-edge": "1.6.0",
     "react-native-gesture-handler": "~2.24.0",
     "react-native-get-random-values": "^1.11.0",
