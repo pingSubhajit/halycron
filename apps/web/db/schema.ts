@@ -83,6 +83,8 @@ export const verification = pgTable('verification', {
 })
 
 export const twoFactor = pgTable('two_factor', {
+	id: uuid('id').primaryKey().default(sql`gen_random_uuid
+    ()`),
 	secret: text('secret'),
 	backupCodes: text('backup_codes'),
 	userId: uuid('user_id').notNull().references(() => user.id, {onDelete: 'cascade'})

@@ -50,6 +50,13 @@
       "when": 1741658489528,
       "tag": "0006_milky_white_queen",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1748170404098,
+      "tag": "0007_exotic_bushwacker",
+      "breakpoints": true
     }
   ]
 }
