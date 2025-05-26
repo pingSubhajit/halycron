@@ -1,5 +1,5 @@
-import React from 'react'
-import {Text, TouchableOpacity, View} from 'react-native'
+import React, {useEffect, useRef} from 'react'
+import {Animated, Easing, Text, TouchableOpacity, View} from 'react-native'
 import {usePathname, useRouter} from 'expo-router'
 import {BlurView} from '@/src/components/interops'
 import Ionicons from '@expo/vector-icons/Ionicons'
@@ -12,9 +12,31 @@ interface TabBarProps {
 export const TabBar: React.FC<TabBarProps> = ({className}) => {
 	const router = useRouter()
 	const pathname = usePathname()
+	const slideAnim = useRef(new Animated.Value(0)).current
 
 	// Hide tab bar on modal screens
 	const shouldHideTabBar = pathname.includes('/upload')
+
+	useEffect(() => {
+		if (shouldHideTabBar) {
+			// Slide out animation
+			Animated.timing(slideAnim, {
+				toValue: 120, // Slide down by 120 pixels (enough to hide the tab bar)
+				duration: 200,
+				easing: Easing.out(Easing.cubic),
+				useNativeDriver: true
+			}).start()
+		} else {
+			// Slide in animation
+			Animated.timing(slideAnim, {
+				toValue: 0, // Slide back to original position
+				duration: 300,
+				delay: 200,
+				easing: Easing.out(Easing.back(1.2)), // Bouncy slide-in effect
+				useNativeDriver: true
+			}).start()
+		}
+	}, [shouldHideTabBar, slideAnim])
 
 	const handleTabPress = (route: string) => {
 		router.push(route as any)
@@ -27,12 +49,13 @@ export const TabBar: React.FC<TabBarProps> = ({className}) => {
 		return pathname === route
 	}
 
-	if (shouldHideTabBar) {
-		return null
-	}
-
 	return (
-		<View style={{position: 'relative'}}>
+		<Animated.View
+			style={{
+				position: 'relative',
+				transform: [{translateY: slideAnim}]
+			}}
+		>
 			<BlurView
 				tint="dark"
 				experimentalBlurMethod="dimezisBlurView"
@@ -138,6 +161,6 @@ export const TabBar: React.FC<TabBarProps> = ({className}) => {
 					<Ionicons name="add" size={36} color={darkTheme.primary}/>
 				</View>
 			</TouchableOpacity>
-		</View>
+		</Animated.View>
 	)
 }
