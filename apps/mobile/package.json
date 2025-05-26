@@ -17,6 +17,7 @@
     "@better-auth/expo": "^1.2.8",
     "@gorhom/bottom-sheet": "^5.1.4",
     "@halycron/ui": "workspace:*",
+    "@likashefqet/react-native-image-zoom": "^4.3.0",
     "@react-native-async-storage/async-storage": "^2.1.2",
     "@rn-primitives/accordion": "^1.1.0",
     "@rn-primitives/slot": "^1.1.0",

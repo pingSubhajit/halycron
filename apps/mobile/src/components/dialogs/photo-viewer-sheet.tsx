@@ -1,13 +1,15 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react'
+import {useSharedValue} from 'react-native-reanimated'
 import {ActivityIndicator, BackHandler, Dimensions, Text, View} from 'react-native'
 import BottomSheet, {BottomSheetView} from '@gorhom/bottom-sheet'
-import {Image} from 'expo-image'
 import {Photo} from '@/src/lib/types'
 import {darkTheme} from '@/src/theme/theme'
 import {SafeAreaView} from 'react-native-safe-area-context'
 import Carousel from 'react-native-reanimated-carousel'
 import {useAllPhotos} from '@/src/hooks/use-photos'
 import {useDecryptedUrl} from '@/src/hooks/use-decrypted-url'
+import {ImageZoom} from '@likashefqet/react-native-image-zoom'
+
 
 const {width: screenWidth, height: screenHeight} = Dimensions.get('window')
 
@@ -19,39 +21,20 @@ interface PhotoViewerSheetProps {
 
 
 // Virtualized photo item component with optimized memoization
-const PhotoItem = React.memo(({photo, isActive}: {
+const PhotoItem = React.memo(({photo, isActive, onZoomStateChange}: {
 	photo: Photo
 	isActive: boolean
+	onZoomStateChange?: (isZoomed: boolean) => void
 }) => {
+	const scaleValue = useSharedValue(1)
 	const hookResult = useDecryptedUrl(isActive ? photo : null)
 	const {decryptedUrl, isLoading, error} = hookResult
 
-	const imageDimensions = useMemo(() => {
-		if (!photo?.imageWidth || !photo?.imageHeight || photo.imageWidth <= 0 || photo.imageHeight <= 0) {
-			return {
-				width: screenWidth,
-				height: screenWidth * 0.75 // 4:3 aspect ratio fallback
-			}
-		}
-
-		const aspectRatio = photo.imageWidth / photo.imageHeight
-		const maxWidth = screenWidth
-		const maxHeight = screenHeight * 0.85
-
-		let width = maxWidth
-		let height = width / aspectRatio
-
-		if (height > maxHeight) {
-			height = maxHeight
-			width = height * aspectRatio
-		}
-
-		// Ensure minimum dimensions
-		const finalWidth = Math.max(width, 100)
-		const finalHeight = Math.max(height, 100)
-
-		return {width: finalWidth, height: finalHeight}
-	}, [photo?.imageWidth, photo?.imageHeight])
+	// Reset scale when photo changes
+	useEffect(() => {
+		scaleValue.value = 1
+		onZoomStateChange?.(false)
+	}, [photo.id, scaleValue, onZoomStateChange])
 
 	const containerStyle = useMemo(() => ({
 		width: screenWidth,
@@ -60,13 +43,19 @@ const PhotoItem = React.memo(({photo, isActive}: {
 		alignItems: 'center' as const
 	}), [])
 
-	const placeholderStyle = useMemo(() => ({
-		...imageDimensions,
-		backgroundColor: darkTheme.muted,
-		justifyContent: 'center' as const,
-		alignItems: 'center' as const,
-		borderRadius: 8
-	}), [imageDimensions])
+	const placeholderStyle = useMemo(() => {
+		const fallbackWidth = screenWidth
+		const fallbackHeight = screenWidth * 0.75 // 4:3 aspect ratio fallback
+
+		return {
+			width: fallbackWidth,
+			height: fallbackHeight,
+			backgroundColor: darkTheme.muted,
+			justifyContent: 'center' as const,
+			alignItems: 'center' as const,
+			borderRadius: 8
+		}
+	}, [])
 
 	if (error) {
 		return (
@@ -113,12 +102,46 @@ const PhotoItem = React.memo(({photo, isActive}: {
 
 	return (
 		<View style={containerStyle}>
-			<Image
-				source={{uri: decryptedUrl}}
-				style={imageDimensions}
-				// contentFit="contain"
-				transition={200}
-				cachePolicy="memory-disk"
+			<ImageZoom
+				uri={decryptedUrl}
+				minScale={1}
+				maxScale={5}
+				doubleTapScale={2}
+				maxPanPointers={2}
+				isPanEnabled={true}
+				isPinchEnabled={true}
+				isDoubleTapEnabled={true}
+				scale={scaleValue}
+				onPinchStart={() => {
+					// User started pinching
+					onZoomStateChange?.(true)
+				}}
+				onPinchEnd={() => {
+					// Check final scale after pinch ends
+					setTimeout(() => {
+						if (scaleValue.value > 1) {
+							onZoomStateChange?.(true)
+						} else {
+							onZoomStateChange?.(false)
+						}
+					}, 50)
+				}}
+				onDoubleTap={(zoomType) => {
+					// Double tap will change zoom state
+					setTimeout(() => {
+						// Check scale after animation
+						if (scaleValue.value > 1) {
+							onZoomStateChange?.(true)
+						} else {
+							onZoomStateChange?.(false)
+						}
+					}, 100)
+				}}
+				style={{
+					width: screenWidth,
+					height: screenHeight * 0.85
+				}}
+				resizeMode="contain"
 			/>
 		</View>
 	)
@@ -130,6 +153,7 @@ const PhotoItem = React.memo(({photo, isActive}: {
 	return isSamePhoto && isSameActiveState
 })
 
+
 const PhotoViewerSheet: React.FC<PhotoViewerSheetProps> = ({
 	isOpen,
 	onClose,
@@ -138,6 +162,7 @@ const PhotoViewerSheet: React.FC<PhotoViewerSheetProps> = ({
 	const bottomSheetRef = useRef<BottomSheet>(null)
 	const carouselRef = useRef<any>(null)
 	const [hasInitialized, setHasInitialized] = useState(false)
+	const [isImageZoomed, setIsImageZoomed] = useState(false)
 
 	// Fetch all photos
 	const {data: allPhotos = [], isLoading: isLoadingPhotos} = useAllPhotos()
@@ -167,7 +192,7 @@ const PhotoViewerSheet: React.FC<PhotoViewerSheetProps> = ({
 	// Calculate reliable carousel dimensions
 	const carouselDimensions = useMemo(() => {
 		// Header takes approximately 100px, leave some margin
-		const headerHeight = 120
+		const headerHeight = 0
 		const availableHeight = screenHeight - headerHeight
 
 		return {
@@ -191,6 +216,7 @@ const PhotoViewerSheet: React.FC<PhotoViewerSheetProps> = ({
 		bottomSheetRef.current?.close()
 		onClose()
 		setHasInitialized(false)
+		setIsImageZoomed(false)
 	}, [onClose])
 
 	// Handle sheet state changes
@@ -198,6 +224,7 @@ const PhotoViewerSheet: React.FC<PhotoViewerSheetProps> = ({
 		if (index === -1) {
 			onClose()
 			setHasInitialized(false)
+			setIsImageZoomed(false)
 		}
 	}, [onClose])
 
@@ -216,7 +243,15 @@ const PhotoViewerSheet: React.FC<PhotoViewerSheetProps> = ({
 	// Optimized carousel index change handler
 	const handleIndexChange = useCallback((index: number) => {
 		setCurrentIndex(index)
+		// Reset zoom state when navigating to a different photo
+		setIsImageZoomed(false)
 	}, [])
+
+	// Handle zoom state changes
+	const handleZoomStateChange = useCallback((isZoomed: boolean) => {
+		setIsImageZoomed(isZoomed)
+	}, [])
+
 
 	// Jump to initial photo ONCE when carousel is ready and sheet opens
 	useEffect(() => {
@@ -236,6 +271,7 @@ const PhotoViewerSheet: React.FC<PhotoViewerSheetProps> = ({
 	useEffect(() => {
 		if (!isOpen) {
 			setHasInitialized(false)
+			setIsImageZoomed(false)
 		}
 	}, [isOpen])
 
@@ -264,9 +300,10 @@ const PhotoViewerSheet: React.FC<PhotoViewerSheetProps> = ({
 				key={item.id}
 				photo={item}
 				isActive={isActive}
+				onZoomStateChange={index === currentIndex ? handleZoomStateChange : undefined}
 			/>
 		)
-	}, [activeIndices, currentIndex])
+	}, [activeIndices, currentIndex, handleZoomStateChange])
 
 	// Don't render if not open
 	if (!isOpen) {
@@ -286,7 +323,7 @@ const PhotoViewerSheet: React.FC<PhotoViewerSheetProps> = ({
 				handleIndicatorStyle={{backgroundColor: darkTheme.accent}}
 			>
 				<BottomSheetView style={{flex: 1}}>
-					<SafeAreaView className="flex-1">
+					<SafeAreaView style={{flex: 1}}>
 						<View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
 							<ActivityIndicator size="large" color={darkTheme.primary}/>
 							<Text style={{color: darkTheme.mutedForeground, fontSize: 16, marginTop: 12}}>
@@ -312,7 +349,7 @@ const PhotoViewerSheet: React.FC<PhotoViewerSheetProps> = ({
 				handleIndicatorStyle={{backgroundColor: darkTheme.accent}}
 			>
 				<BottomSheetView style={{flex: 1}}>
-					<SafeAreaView className="flex-1">
+					<SafeAreaView style={{flex: 1}}>
 						<View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
 							<Text style={{color: darkTheme.mutedForeground, fontSize: 16}}>
 								No photos available
@@ -350,6 +387,7 @@ const PhotoViewerSheet: React.FC<PhotoViewerSheetProps> = ({
 							renderItem={renderItem}
 							windowSize={3}
 							pagingEnabled={true}
+							enabled={!isImageZoomed}
 						/>
 					</View>
 				</SafeAreaView>

@@ -19,6 +19,7 @@
         "@better-auth/expo": "^1.2.8",
         "@gorhom/bottom-sheet": "^5.1.4",
         "@halycron/ui": "workspace:*",
+        "@likashefqet/react-native-image-zoom": "^4.3.0",
         "@react-native-async-storage/async-storage": "^2.1.2",
         "@rn-primitives/accordion": "^1.1.0",
         "@rn-primitives/slot": "^1.1.0",
@@ -717,6 +718,8 @@
     "@jridgewell/trace-mapping": ["@jridgewell/trace-mapping@0.3.25", "", { "dependencies": { "@jridgewell/resolve-uri": "^3.1.0", "@jridgewell/sourcemap-codec": "^1.4.14" } }, "sha512-vNk6aEwybGtawWmy/PzwnGDOjCkLWSD2wqvjGGAgOAwCGWySYXfYoxt00IJkTF+8Lb57DwOb3Aa0o9CApepiYQ=="],
 
     "@levischuck/tiny-cbor": ["@levischuck/tiny-cbor@0.2.11", "", {}, "sha512-llBRm4dT4Z89aRsm6u2oEZ8tfwL/2l6BwpZ7JcyieouniDECM5AqNgr/y08zalEIvW3RSK4upYyybDcmjXqAow=="],
+
+    "@likashefqet/react-native-image-zoom": ["@likashefqet/react-native-image-zoom@4.3.0", "", { "peerDependencies": { "react": ">=16.x.x", "react-native": ">=0.62.x", "react-native-gesture-handler": ">=2.x.x", "react-native-reanimated": ">=2.x.x" } }, "sha512-bRH26+Kq9m7y0rsBIwa0KI6XH/kujf7hZG0wz4gPu1kGsSb6KbLdZaR1ksGvaZm08JkNd2+JIUaHSb68eh4YEg=="],
 
     "@neondatabase/serverless": ["@neondatabase/serverless@0.10.4", "", { "dependencies": { "@types/pg": "8.11.6" } }, "sha512-2nZuh3VUO9voBauuh+IGYRhGU/MskWHt1IuZvHcJw6GLjDgtqj/KViKo7SIrLdGLdot7vFbiRRw+BgEy3wT9HA=="],
 
