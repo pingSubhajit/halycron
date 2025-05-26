@@ -11,7 +11,7 @@ const Albums = () => {
 				contentContainerStyle={{paddingBottom: 100}}
 			>
 				{/* Header */}
-				<View className="p-6">
+				<View className="p-6 mt-16">
 					<Text className="text-primary-foreground opacity-80 text-3xl font-semibold mb-2">Albums</Text>
 					<Text className="text-primary-foreground text-6xl font-bold mb-4">Coming Soon</Text>
 				</View>

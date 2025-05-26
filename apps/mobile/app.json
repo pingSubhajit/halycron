@@ -9,7 +9,7 @@
     "newArchEnabled": true,
     "userInterfaceStyle": "dark",
     "splash": {
-      "image": "../../packages/ui/src/media/icons/Mac/512@2x.png",
+      "image": "../../packages/ui/src/media/icons/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#0a0a0a"
     },

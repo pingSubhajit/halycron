@@ -11,7 +11,7 @@ const UploadScreen = () => {
 				contentContainerStyle={{paddingBottom: 100}}
 			>
 				{/* Header */}
-				<View className="mt-8 p-6">
+				<View className="mt-16 p-6">
 					<Text className="text-primary-foreground opacity-80 text-3xl font-semibold mb-2">Upload</Text>
 					<Text className="text-primary-foreground text-6xl font-bold mb-4">Coming Soon</Text>
 				</View>

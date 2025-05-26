@@ -40,7 +40,11 @@ const Home = () => {
 
 // Separate component that handles the async photo loading
 const AsyncPhotoGallery = ({headerComponent}: { headerComponent: () => React.ReactElement }) => {
-	const {data: photos, isLoading, error} = useAllPhotos()
+	const {data: photos, isLoading, error, refetch, isRefetching} = useAllPhotos()
+
+	const handleRefresh = () => {
+		refetch()
+	}
 
 	return (
 		<PhotoGallery
@@ -48,6 +52,8 @@ const AsyncPhotoGallery = ({headerComponent}: { headerComponent: () => React.Rea
 			isLoading={isLoading}
 			error={error?.message || null}
 			headerComponent={headerComponent}
+			onRefresh={handleRefresh}
+			isRefreshing={isRefetching}
 		/>
 	)
 }

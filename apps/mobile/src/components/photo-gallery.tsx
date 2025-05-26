@@ -1,5 +1,5 @@
 import React, {useCallback, useMemo, useState} from 'react'
-import {Dimensions, FlatList, Text, View} from 'react-native'
+import {Dimensions, FlatList, RefreshControl, Text, View} from 'react-native'
 import {Photo} from '../lib/types'
 import {EncryptedImage} from './encrypted-image'
 import {useMemoryLimitedPhotos} from '../hooks/use-memory-limited-photos'
@@ -9,6 +9,8 @@ type Props = {
 	isLoading?: boolean
 	error?: string | null
 	headerComponent?: () => React.ReactElement
+	onRefresh?: () => void
+	isRefreshing?: boolean
 }
 
 const {width: screenWidth} = Dimensions.get('window')
@@ -116,7 +118,7 @@ const MasonryPhotoItem = React.memo(({photo, memoryPhotos, photoIndex}: {
 
 MasonryPhotoItem.displayName = 'MasonryPhotoItem'
 
-export const PhotoGallery = ({photos, isLoading, error, headerComponent}: Props) => {
+export const PhotoGallery = ({photos, isLoading, error, headerComponent, onRefresh, isRefreshing}: Props) => {
 	const [visibleRangeState, setVisibleRangeState] = useState<{ start: number; end: number }>({start: 0, end: 10})
 
 	// Stabilize the visibleRange object to prevent unnecessary re-renders
@@ -184,16 +186,103 @@ export const PhotoGallery = ({photos, isLoading, error, headerComponent}: Props)
 	}, [masonryPhotos])
 
 	// Handle loading/error states after hooks
-	if (isLoading) {
-		return <LoadingState/>
+	if (isLoading && (!photos || photos.length === 0)) {
+		return (
+			<View style={{flex: 1}}>
+				<FlatList
+					data={[]}
+					renderItem={() => null}
+					ListHeaderComponent={headerComponent}
+					refreshControl={
+						onRefresh ? (
+							<RefreshControl
+								refreshing={isRefreshing || false}
+								onRefresh={onRefresh}
+							/>
+						) : undefined
+					}
+					contentContainerStyle={{flex: 1}}
+				/>
+				<View style={{
+					position: 'absolute',
+					top: 0,
+					left: 0,
+					right: 0,
+					bottom: 0,
+					justifyContent: 'center',
+					alignItems: 'center',
+					padding: 24
+				}}>
+					<LoadingState/>
+				</View>
+			</View>
+		)
 	}
 
 	if (error) {
-		return <ErrorState error={error}/>
+		return (
+			<View style={{flex: 1}}>
+				<FlatList
+					data={[]}
+					renderItem={() => null}
+					ListHeaderComponent={headerComponent}
+					refreshControl={
+						onRefresh ? (
+							<RefreshControl
+								refreshing={isRefreshing || false}
+								onRefresh={onRefresh}
+							/>
+						) : undefined
+					}
+					contentContainerStyle={{flex: 1}}
+				/>
+				<View style={{
+					position: 'absolute',
+					top: 0,
+					left: 0,
+					right: 0,
+					bottom: 0,
+					justifyContent: 'center',
+					alignItems: 'center',
+					padding: 24
+				}}>
+					<ErrorState error={error}/>
+				</View>
+			</View>
+		)
 	}
 
 	if (!photos || photos.length === 0) {
-		return <EmptyState/>
+		return (
+			<View style={{flex: 1}}>
+				<FlatList
+					data={[]}
+					renderItem={() => null}
+					ListHeaderComponent={headerComponent}
+					refreshControl={
+						onRefresh ? (
+							<RefreshControl
+								refreshing={isRefreshing || false}
+								onRefresh={onRefresh}
+							/>
+						) : undefined
+					}
+					contentContainerStyle={{flex: 1}}
+				/>
+				<View style={{
+					position: 'absolute',
+					top: 0,
+					left: 0,
+					right: 0,
+					bottom: 0,
+					justifyContent: 'center',
+					alignItems: 'center',
+					padding: 24
+				}}>
+					<EmptyState/>
+				</View>
+			</View>
+		)
 	}
 
 	return (
@@ -220,6 +309,14 @@ export const PhotoGallery = ({photos, isLoading, error, headerComponent}: Props)
 					paddingBottom: 100
 				}}
 				ListHeaderComponent={headerComponent}
+				refreshControl={
+					onRefresh ? (
+						<RefreshControl
+							refreshing={isRefreshing || false}
+							onRefresh={onRefresh}
+						/>
+					) : undefined
+				}
 			/>
 		</View>
 	)
