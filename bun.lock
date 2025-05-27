@@ -14,7 +14,7 @@
     },
     "apps/mobile": {
       "name": "@halycron/mobile",
-      "version": "0.0.7",
+      "version": "0.0.8",
       "dependencies": {
         "@better-auth/expo": "^1.2.8",
         "@gorhom/bottom-sheet": "^5.1.4",
