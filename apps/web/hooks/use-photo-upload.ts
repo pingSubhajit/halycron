@@ -6,133 +6,133 @@ import {photoQueryKeys} from '@/app/api/photos/keys'
 import {FileRejection} from 'react-dropzone'
 
 interface UsePhotoUploadOptions {
-  onPhotoUploaded?: (photo: Photo) => void
-  showProgressInitially?: boolean
+	onPhotoUploaded?: (photo: Photo) => void
+	showProgressInitially?: boolean
 }
 
 interface UsePhotoUploadResult {
-  uploadStates: Record<string, UploadState>
-  showProgress: boolean
-  setShowProgress: (show: boolean) => void
-  onDrop: (acceptedFiles: File[], rejectedFiles: FileRejection[]) => void
-  fileRejections: FileRejection[]
-  onProgressHoverChange: (isHovering: boolean) => void
+	uploadStates: Record<string, UploadState>
+	showProgress: boolean
+	setShowProgress: (show: boolean) => void
+	onDrop: (acceptedFiles: File[], rejectedFiles: FileRejection[]) => void
+	fileRejections: FileRejection[]
+	onProgressHoverChange: (isHovering: boolean) => void
 }
 
 export const usePhotoUpload = ({
-  onPhotoUploaded,
-  showProgressInitially = false
+	onPhotoUploaded,
+	showProgressInitially = false
 }: UsePhotoUploadOptions = {}): UsePhotoUploadResult => {
-  const [uploadStates, setUploadStates] = useState<Record<string, UploadState>>({})
-  const [showProgress, setShowProgress] = useState(showProgressInitially)
-  const [fileRejections, setFileRejections] = useState<FileRejection[]>([])
-  const [isHovering, setIsHovering] = useState(false)
-  const uploadQueue = useRef<File[]>([])
-  const processingFiles = useRef<Set<string>>(new Set())
-  const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null)
-  const queryClient = useQueryClient()
-  const hasSuccessfulUploads = useRef(false)
+	const [uploadStates, setUploadStates] = useState<Record<string, UploadState>>({})
+	const [showProgress, setShowProgress] = useState(showProgressInitially)
+	const [fileRejections, setFileRejections] = useState<FileRejection[]>([])
+	const [isHovering, setIsHovering] = useState(false)
+	const uploadQueue = useRef<File[]>([])
+	const processingFiles = useRef<Set<string>>(new Set())
+	const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+	const queryClient = useQueryClient()
+	const hasSuccessfulUploads = useRef(false)
 
-  const {mutate: uploadFile} = useUploadPhoto(setUploadStates, {
-    onSuccess: (photo) => {
-      onPhotoUploaded?.(photo)
-    }
-  })
+	const {mutate: uploadFile} = useUploadPhoto(setUploadStates, {
+		onSuccess: (photo) => {
+			onPhotoUploaded?.(photo)
+		}
+	})
 
-  const checkAndInvalidateQueries = useCallback(() => {
-    if (processingFiles.current.size === 0 && hasSuccessfulUploads.current) {
-      queryClient.invalidateQueries({queryKey: photoQueryKeys.allPhotos()})
-      hasSuccessfulUploads.current = false
-    }
-  }, [queryClient])
+	const checkAndInvalidateQueries = useCallback(() => {
+		if (processingFiles.current.size === 0 && hasSuccessfulUploads.current) {
+			queryClient.invalidateQueries({queryKey: photoQueryKeys.allPhotos()})
+			hasSuccessfulUploads.current = false
+		}
+	}, [queryClient])
 
-  const processQueue = useCallback(() => {
-    if (!showProgress) setShowProgress(true)
+	const processQueue = useCallback(() => {
+		if (!showProgress) setShowProgress(true)
 
-    const availableSlots = 10 - processingFiles.current.size
-    if (availableSlots <= 0 || uploadQueue.current.length === 0) return
+		const availableSlots = 10 - processingFiles.current.size
+		if (availableSlots <= 0 || uploadQueue.current.length === 0) return
 
-    const filesToProcess = uploadQueue.current.slice(0, availableSlots)
-    uploadQueue.current = uploadQueue.current.slice(availableSlots)
+		const filesToProcess = uploadQueue.current.slice(0, availableSlots)
+		uploadQueue.current = uploadQueue.current.slice(availableSlots)
 
-    filesToProcess.forEach(file => {
-      processingFiles.current.add(file.name)
-      uploadFile(file)
-      setUploadStates(prev => ({
-        ...prev,
-        [file.name]: {progress: 0, status: 'idle'}
-      }))
-    })
-  }, [uploadFile, showProgress])
+		filesToProcess.forEach(file => {
+			processingFiles.current.add(file.name)
+			uploadFile(file)
+			setUploadStates(prev => ({
+				...prev,
+				[file.name]: {progress: 0, status: 'idle'}
+			}))
+		})
+	}, [uploadFile, showProgress])
 
-  useEffect(() => {
-    const completedFiles = Object.entries(uploadStates).filter(
-      ([_, state]) => state.status === 'uploaded' || state.status === 'error'
-    )
+	useEffect(() => {
+		const completedFiles = Object.entries(uploadStates).filter(
+			([_, state]) => state.status === 'uploaded' || state.status === 'error'
+		)
 
-    if (completedFiles.length > 0) {
-      completedFiles.forEach(([fileName, state]) => {
-        processingFiles.current.delete(fileName)
-        if (state.status === 'uploaded') {
-          hasSuccessfulUploads.current = true
-        }
-      })
+		if (completedFiles.length > 0) {
+			completedFiles.forEach(([fileName, state]) => {
+				processingFiles.current.delete(fileName)
+				if (state.status === 'uploaded') {
+					hasSuccessfulUploads.current = true
+				}
+			})
 
-      checkAndInvalidateQueries()
-    }
+			checkAndInvalidateQueries()
+		}
 
-    if (uploadQueue.current.length > 0) {
-      processQueue()
-    }
-  }, [uploadStates, processQueue, checkAndInvalidateQueries])
+		if (uploadQueue.current.length > 0) {
+			processQueue()
+		}
+	}, [uploadStates, processQueue, checkAndInvalidateQueries])
 
-  // Handle progress window visibility
-  useEffect(() => {
-    // Clear any existing timeout
-    if (hideTimeoutRef.current) {
-      clearTimeout(hideTimeoutRef.current)
-      hideTimeoutRef.current = null
-    }
+	// Handle progress window visibility
+	useEffect(() => {
+		// Clear any existing timeout
+		if (hideTimeoutRef.current) {
+			clearTimeout(hideTimeoutRef.current)
+			hideTimeoutRef.current = null
+		}
 
-    // Only start the hide timeout if:
-    // 1. The progress window is shown
-    // 2. We're not hovering over it
-    // 3. All uploads are complete (either success or error)
-    if (
-      showProgress &&
-      !isHovering &&
-      !Object.entries(uploadStates).find(
-        ([_, state]) => state.status !== 'uploaded' && state.status !== 'error'
-      )
-    ) {
-      hideTimeoutRef.current = setTimeout(() => {
-        setShowProgress(false)
-      }, 3000)
-    }
+		/*
+		 * Only start the hide timeout if:
+		 * 1. The progress window is shown
+		 * 2. We're not hovering over it
+		 * 3. All uploads are complete (either success or error)
+		 */
+		if (
+			showProgress && !isHovering && !Object.entries(uploadStates).find(
+				([_, state]) => state.status !== 'uploaded' && state.status !== 'error'
+			)
+		) {
+			hideTimeoutRef.current = setTimeout(() => {
+				setShowProgress(false)
+			}, 3000)
+		}
 
-    return () => {
-      if (hideTimeoutRef.current) {
-        clearTimeout(hideTimeoutRef.current)
-      }
-    }
-  }, [uploadStates, showProgress, isHovering])
+		return () => {
+			if (hideTimeoutRef.current) {
+				clearTimeout(hideTimeoutRef.current)
+			}
+		}
+	}, [uploadStates, showProgress, isHovering])
 
-  const onDrop = useCallback((acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
-    setFileRejections(rejectedFiles)
-    uploadQueue.current.push(...acceptedFiles)
-    processQueue()
-  }, [processQueue])
+	const onDrop = useCallback((acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
+		setFileRejections(rejectedFiles)
+		uploadQueue.current.push(...acceptedFiles)
+		processQueue()
+	}, [processQueue])
 
-  const onProgressHoverChange = useCallback((isHovering: boolean) => {
-    setIsHovering(isHovering)
-  }, [])
+	const onProgressHoverChange = useCallback((isHovering: boolean) => {
+		setIsHovering(isHovering)
+	}, [])
 
-  return {
-    uploadStates,
-    showProgress,
-    setShowProgress,
-    onDrop,
-    fileRejections,
-    onProgressHoverChange
-  }
-} 
+	return {
+		uploadStates,
+		showProgress,
+		setShowProgress,
+		onDrop,
+		fileRejections,
+		onProgressHoverChange
+	}
+}

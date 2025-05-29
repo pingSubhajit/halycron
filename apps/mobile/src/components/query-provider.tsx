@@ -12,9 +12,9 @@ const queryClient = new QueryClient({
 			// More conservative retry logic for mobile
 			retry: 2,
 			// Longer stale time for mobile to reduce unnecessary requests
-			staleTime: 5 * 60 * 1000, // 5 minutes
-		},
-	},
+			staleTime: 5 * 60 * 1000 // 5 minutes
+		}
+	}
 })
 
 type Props = {
@@ -27,4 +27,4 @@ export const QueryProvider = ({children}: Props) => {
 			{children}
 		</QueryClientProvider>
 	)
-} 
+}

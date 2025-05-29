@@ -69,7 +69,7 @@ const calculateMasonryLayout = (photos: Photo[]): PhotoWithLayout[] => {
 		const shortestColumnIndex = columnHeights.indexOf(Math.min(...columnHeights))
 		const yPosition = columnHeights[shortestColumnIndex]!
 
-		// Calculate absolute position
+		// Calculate absolute position - start from top of container (no additional offset)
 		const x = PHOTO_MARGIN + (shortestColumnIndex * (COLUMN_WIDTH + PHOTO_MARGIN))
 		const y = yPosition + PHOTO_MARGIN
 
@@ -120,6 +120,11 @@ MasonryPhotoItem.displayName = 'MasonryPhotoItem'
 
 export const PhotoGallery = ({photos, isLoading, error, headerComponent, onRefresh, isRefreshing}: Props) => {
 	const [visibleRangeState, setVisibleRangeState] = useState<{ start: number; end: number }>({start: 0, end: 10})
+
+	// Reset visible range when photos change to ensure proper layout
+	React.useEffect(() => {
+		setVisibleRangeState({start: 0, end: 10})
+	}, [photos?.length])
 
 	// Stabilize the visibleRange object to prevent unnecessary re-renders
 	const visibleRange = useMemo(() => ({
@@ -286,11 +291,16 @@ export const PhotoGallery = ({photos, isLoading, error, headerComponent, onRefre
 	}
 
 	return (
-		<View style={{flex: 1, position: 'relative'}}>
+		<View style={{flex: 1}}>
 			<FlatList
 				data={[{key: 'masonry-container'}]} // Single item to enable scrolling
 				renderItem={() => (
-					<View style={{height: totalHeight, position: 'relative'}}>
+					<View style={{
+						height: totalHeight,
+						position: 'relative',
+						marginTop: 0, // Ensure no extra margin at top
+						minHeight: totalHeight // Ensure consistent height
+					}}>
 						{masonryPhotos.map((photo, index) => (
 							<MasonryPhotoItem
 								key={photo.id}
@@ -306,7 +316,8 @@ export const PhotoGallery = ({photos, isLoading, error, headerComponent, onRefre
 				scrollEventThrottle={16}
 				showsVerticalScrollIndicator={false}
 				contentContainerStyle={{
-					paddingBottom: 100
+					paddingBottom: 100,
+					flexGrow: 1 // Ensure proper layout
 				}}
 				ListHeaderComponent={headerComponent}
 				refreshControl={
@@ -317,6 +328,14 @@ export const PhotoGallery = ({photos, isLoading, error, headerComponent, onRefre
 						/>
 					) : undefined
 				}
+				// Add key to force re-render when photos change significantly
+				key={`gallery-${photos.length}`}
+				// Additional props to ensure proper layout
+				removeClippedSubviews={false}
+				maintainVisibleContentPosition={{
+					minIndexForVisible: 0,
+					autoscrollToTopThreshold: 0
+				}}
 			/>
 		</View>
 	)
