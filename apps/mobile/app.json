@@ -76,6 +76,12 @@
         {
           "faceIDPermission": "Allow $(PRODUCT_NAME) to use Face ID."
         }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "../../packages/ui/src/media/icons/Android/notification-badge.png"
+        }
       ]
     ],
     "extra": {

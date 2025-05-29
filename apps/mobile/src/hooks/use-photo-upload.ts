@@ -3,6 +3,7 @@ import {useCallback, useEffect, useRef, useState} from 'react'
 import * as ImagePicker from 'expo-image-picker'
 import {Photo, UploadState} from '../lib/types'
 import {photoQueryKeys} from '../lib/photo-keys'
+import {uploadNotificationManager} from '../lib/notification-utils'
 import {
 	encryptFile,
 	generateEncryptionKey,
@@ -39,6 +40,16 @@ export const usePhotoUpload = ({
 	const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 	const queryClient = useQueryClient()
 	const hasSuccessfulUploads = useRef(false)
+	const [notificationsInitialized, setNotificationsInitialized] = useState(false)
+
+	// Initialize notifications on first use
+	useEffect(() => {
+		const initNotifications = async () => {
+			const success = await uploadNotificationManager.initialize()
+			setNotificationsInitialized(success)
+		}
+		initNotifications()
+	}, [])
 
 	const {mutate: uploadFile} = useMutation({
 		mutationFn: async (asset: ImagePicker.ImagePickerAsset) => {
@@ -62,6 +73,11 @@ export const usePhotoUpload = ({
 					[fileName]: {progress: 0, status: 'encrypting'}
 				}))
 
+				// Update notification for encrypting
+				if (notificationsInitialized) {
+					await uploadNotificationManager.updateFileProgress(fileName, 0, 'encrypting')
+				}
+
 				// Encrypt the file
 				const {encryptedData, iv, key} = await encryptFile(asset.uri, encryptionKey)
 
@@ -74,8 +90,23 @@ export const usePhotoUpload = ({
 					[fileName]: {progress: 0, status: 'uploading'}
 				}))
 
+				// Update notification for upload progress
+				if (notificationsInitialized) {
+					await uploadNotificationManager.updateFileProgress(fileName, 0, 'uploading')
+				}
+
 				// Upload encrypted file
 				await uploadEncryptedPhoto(encryptedData, uploadUrl, asset.mimeType || 'image/jpeg')
+
+				// Update progress to 90% after upload complete (before DB save)
+				setUploadStates(prev => ({
+					...prev,
+					[fileName]: {progress: 90, status: 'uploading'}
+				}))
+
+				if (notificationsInitialized) {
+					await uploadNotificationManager.updateFileProgress(fileName, 90, 'uploading')
+				}
 
 				// Save encryption details to database
 				const response = await savePhotoToDB(
@@ -94,17 +125,29 @@ export const usePhotoUpload = ({
 					[fileName]: {progress: 100, status: 'uploaded'}
 				}))
 
+				// Update notification for completion
+				if (notificationsInitialized) {
+					await uploadNotificationManager.updateFileProgress(fileName, 100, 'uploaded')
+				}
+
 				return response
 			} catch (error) {
 				const fileName = asset.fileName || `photo_${Date.now()}.jpg`
+				const errorMessage = error instanceof Error ? error.message : 'Upload failed'
+
 				setUploadStates(prev => ({
 					...prev,
 					[fileName]: {
 						progress: 0,
 						status: 'error',
-						error: error instanceof Error ? error.message : 'Upload failed'
+						error: errorMessage
 					}
 				}))
+
+				// Update notification for error
+				if (notificationsInitialized) {
+					await uploadNotificationManager.updateFileProgress(fileName, 0, 'error')
+				}
 
 				throw error
 			}
@@ -160,7 +203,21 @@ export const usePhotoUpload = ({
 		if (uploadQueue.current.length > 0) {
 			processQueue()
 		}
-	}, [uploadStates, processQueue, checkAndInvalidateQueries])
+
+		// Check if all uploads are complete and show completion notification
+		const totalFiles = Object.keys(uploadStates).length
+		const completedCount = Object.values(uploadStates).filter(
+			state => state.status === 'uploaded' || state.status === 'error'
+		).length
+		const successCount = Object.values(uploadStates).filter(
+			state => state.status === 'uploaded'
+		).length
+
+		if (totalFiles > 0 && completedCount === totalFiles && notificationsInitialized) {
+			// All uploads are complete, show completion notification
+			uploadNotificationManager.showUploadCompleted(successCount, totalFiles)
+		}
+	}, [uploadStates, processQueue, checkAndInvalidateQueries, notificationsInitialized])
 
 	// Handle progress window visibility
 	useEffect(() => {
@@ -212,6 +269,11 @@ export const usePhotoUpload = ({
 			})
 
 			if (!result.canceled && result.assets) {
+				// Start upload session with total number of files
+				if (notificationsInitialized) {
+					await uploadNotificationManager.startUploadSession(result.assets.length)
+				}
+
 				// Add selected images to upload queue
 				uploadQueue.current.push(...result.assets)
 				processQueue()
@@ -222,7 +284,7 @@ export const usePhotoUpload = ({
 				error: error instanceof Error ? error.message : 'Failed to select photos'
 			}])
 		}
-	}, [processQueue])
+	}, [processQueue, notificationsInitialized])
 
 	const onProgressHoverChange = useCallback((isHovering: boolean) => {
 		setIsHovering(isHovering)
