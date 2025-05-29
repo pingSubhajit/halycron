@@ -9,10 +9,25 @@ import {QueryProvider} from '@/src/components/query-provider'
 import {SystemBars} from 'react-native-edge-to-edge'
 import {SafeAreaProvider} from 'react-native-safe-area-context'
 import {GestureHandlerRootView} from 'react-native-gesture-handler'
+import {useAppShareIntent} from '@/src/hooks/use-share-intent'
 
 // Prevent the splash screen from auto-hiding
 SplashScreen.preventAutoHideAsync()
 SystemBars.setStyle('light')
+
+const ShareIntentHandler = () => {
+	// Handle share intent at the top level
+	useAppShareIntent({
+		onSharedPhotosReceived: (photos) => {
+			console.log(`Received ${photos.length} shared photos for upload`)
+			/*
+			 * Optionally navigate to upload screen or show a toast
+			 * router.push('/(app)/upload')
+			 */
+		}
+	})
+	return null
+}
 
 const AppLayout = () => {
 	return (
@@ -23,6 +38,7 @@ const AppLayout = () => {
 						<SessionProvider>
 							<BiometricProvider>
 								<DialogProvider>
+									<ShareIntentHandler/>
 									<SystemBars style="light"/>
 
 									<RootNavigator/>

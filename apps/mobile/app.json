@@ -82,6 +82,23 @@
         {
           "icon": "../../packages/ui/src/media/icons/Android/notification-badge.png"
         }
+      ],
+      [
+        "expo-share-intent",
+        {
+          "iosActivationRules": {
+            "NSExtensionActivationSupportsImageWithMaxCount": 10,
+            "NSExtensionActivationSupportsFileWithMaxCount": 10,
+            "NSExtensionActivationSupportsWebURLWithMaxCount": 1
+          },
+          "androidIntentFilters": [
+            "image/*"
+          ],
+          "androidMultiIntentFilters": [
+            "image/*"
+          ],
+          "iosShareExtensionName": "Halycron Share Extension"
+        }
       ]
     ],
     "extra": {

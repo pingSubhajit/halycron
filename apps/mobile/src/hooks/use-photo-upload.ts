@@ -23,6 +23,7 @@ interface UsePhotoUploadResult {
 	showProgress: boolean
 	setShowProgress: (show: boolean) => void
 	selectAndUploadPhotos: () => Promise<void>
+	uploadSharedPhotos: (assets: ImagePicker.ImagePickerAsset[]) => Promise<void>
 	fileRejections: Array<{ fileName: string, error: string }>
 	onProgressHoverChange: (isHovering: boolean) => void
 }
@@ -287,6 +288,24 @@ export const usePhotoUpload = ({
 		}
 	}, [processQueue, notificationsInitialized])
 
+	const uploadSharedPhotos = useCallback(async (assets: ImagePicker.ImagePickerAsset[]) => {
+		try {
+			// Start upload session with total number of files
+			if (notificationsInitialized) {
+				await uploadNotificationManager.startUploadSession(assets.length)
+			}
+
+			// Add selected images to upload queue
+			uploadQueue.current.push(...assets)
+			processQueue()
+		} catch (error) {
+			setFileRejections([{
+				fileName: 'Shared',
+				error: error instanceof Error ? error.message : 'Failed to upload shared photos'
+			}])
+		}
+	}, [processQueue, notificationsInitialized])
+
 	const onProgressHoverChange = useCallback((isHovering: boolean) => {
 		setIsHovering(isHovering)
 	}, [])
@@ -296,6 +315,7 @@ export const usePhotoUpload = ({
 		showProgress,
 		setShowProgress,
 		selectAndUploadPhotos,
+		uploadSharedPhotos,
 		fileRejections,
 		onProgressHoverChange
 	}

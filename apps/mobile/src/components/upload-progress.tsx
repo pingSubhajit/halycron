@@ -30,23 +30,6 @@ const getStatusIcon = (status: UploadState['status']) => {
 	}
 }
 
-const getStatusText = (status: UploadState['status']) => {
-	switch (status) {
-	case 'idle':
-		return 'Queued'
-	case 'encrypting':
-		return 'Encrypting...'
-	case 'uploading':
-		return 'Uploading...'
-	case 'uploaded':
-		return 'Uploaded'
-	case 'error':
-		return 'Failed'
-	default:
-		return 'Unknown'
-	}
-}
-
 const calculateEstimatedTime = (uploadStates: Record<string, UploadState>): string => {
 	const files = Object.entries(uploadStates)
 	const activeFiles = files.filter(([_, state]) => state.status === 'encrypting' || state.status === 'uploading')
@@ -229,7 +212,6 @@ export const UploadProgress: React.FC<UploadProgressProps> = ({
 
 	const totalFiles = files.length
 	const completedFiles = files.filter(([_, state]) => state.status === 'uploaded' || state.status === 'error').length
-	const successfulFiles = files.filter(([_, state]) => state.status === 'uploaded').length
 
 	// Show first 5 images, then "+X more"
 	const visibleFiles = files.slice(0, 5)
@@ -277,7 +259,7 @@ export const UploadProgress: React.FC<UploadProgressProps> = ({
 
 			{/* Overall Progress */}
 			<View className="">
-				<View className="h-2 bg-muted rounded-full overflow-hidden mb-4">
+				<View className="h-2 bg-neutral-900 rounded-full overflow-hidden mb-4">
 					<Animated.View
 						className="h-full bg-primary rounded-full"
 						style={{

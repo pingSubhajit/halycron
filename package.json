@@ -6,12 +6,14 @@
     "dev": "turbo dev",
     "lint": "turbo lint",
     "lint:fix": "turbo lint:fix",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "postinstall": "patch-package"
   },
   "devDependencies": {
     "@halycron/eslint-config": "workspace:*",
     "@halycron/typescript-config": "workspace:*",
     "eslint": "^9.20.1",
+    "patch-package": "^8.0.0",
     "prettier": "^3.2.5",
     "turbo": "^2.4.4",
     "typescript": "5.5.4"
