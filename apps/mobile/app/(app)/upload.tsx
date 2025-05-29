@@ -1,28 +1,21 @@
 import React, {useEffect} from 'react'
 import {SafeAreaView} from 'react-native-safe-area-context'
 import {Alert, Text, View} from 'react-native'
-import {usePhotoUpload} from '@/src/hooks/use-photo-upload'
+import {useUploadContext} from '@/src/components/upload-provider'
 import {UploadProgress} from '@/src/components/upload-progress'
 import {Lock, Shield, Upload} from 'lucide-react-native'
-import {useQueryClient} from '@tanstack/react-query'
-import {photoQueryKeys} from '@/src/lib/photo-keys'
 import {Button} from '@/src/components/ui/button'
 
 const UploadScreen = () => {
-	const queryClient = useQueryClient()
-
 	const {
 		uploadStates,
 		showProgress,
+		setShowProgress,
 		selectAndUploadPhotos,
 		fileRejections,
-		onProgressHoverChange
-	} = usePhotoUpload({
-		onPhotoUploaded: (photo) => {
-			// Invalidate queries to refresh the gallery
-			queryClient.invalidateQueries({queryKey: photoQueryKeys.allPhotos()})
-		}
-	})
+		onProgressHoverChange,
+		hasActiveUploads
+	} = useUploadContext()
 
 	// Show error alerts for file rejections
 	useEffect(() => {
@@ -32,9 +25,12 @@ const UploadScreen = () => {
 		}
 	}, [fileRejections])
 
-	const hasActiveUploads = Object.values(uploadStates).some(
-		state => state.status === 'encrypting' || state.status === 'uploading'
-	)
+	// Automatically show progress if there are active uploads
+	useEffect(() => {
+		if (hasActiveUploads && !showProgress) {
+			setShowProgress(true)
+		}
+	}, [hasActiveUploads, showProgress, setShowProgress])
 
 	return (
 		<SafeAreaView className="flex-1 bg-background" edges={{bottom: 'off'}}>

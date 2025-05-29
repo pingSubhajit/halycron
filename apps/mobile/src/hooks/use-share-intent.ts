@@ -1,6 +1,7 @@
 import {useEffect} from 'react'
 import {useShareIntent} from 'expo-share-intent'
-import {usePhotoUpload} from './use-photo-upload'
+import {useUploadContext} from '@/src/components/upload-provider'
+import {getImageDimensions} from '@/src/lib/upload-utils'
 import * as ImagePicker from 'expo-image-picker'
 
 interface UseAppShareIntentOptions {
@@ -37,7 +38,7 @@ const isLikelyImageUrl = (url: string): boolean => {
 
 export const useAppShareIntent = ({onSharedPhotosReceived}: UseAppShareIntentOptions = {}) => {
 	const {hasShareIntent, shareIntent, resetShareIntent, error} = useShareIntent()
-	const {uploadSharedPhotos} = usePhotoUpload()
+	const {uploadSharedPhotos} = useUploadContext()
 
 	useEffect(() => {
 		if (hasShareIntent && shareIntent) {
@@ -51,21 +52,47 @@ export const useAppShareIntent = ({onSharedPhotosReceived}: UseAppShareIntentOpt
 		try {
 			// Handle shared files (images only)
 			if (shareIntent.files && shareIntent.files.length > 0) {
-				const photoAssets: ImagePicker.ImagePickerAsset[] = shareIntent.files
-					.filter(file => file.mimeType?.startsWith('image/')) // Only images, no videos
-					.map(file => ({
-						uri: file.path,
-						fileName: file.fileName || `shared_${Date.now()}.jpg`,
-						mimeType: file.mimeType || 'image/jpeg',
-						width: file.width || null,
-						height: file.height || null,
-						assetId: null,
-						duration: null, // Always null for images
-						type: 'image',
-						fileSize: file.size || null,
-						exif: null,
-						base64: null
-					})) as ImagePicker.ImagePickerAsset[]
+				const imageFiles = shareIntent.files.filter(file => file.mimeType?.startsWith('image/'))
+
+				// Get actual dimensions for each image
+				const photoAssets: ImagePicker.ImagePickerAsset[] = await Promise.all(
+					imageFiles.map(async (file) => {
+						try {
+							// Get actual image dimensions
+							const dimensions = await getImageDimensions(file.path)
+
+							return {
+								uri: file.path,
+								fileName: file.fileName || `shared_${Date.now()}.jpg`,
+								mimeType: file.mimeType || 'image/jpeg',
+								width: dimensions.width,
+								height: dimensions.height,
+								assetId: null,
+								duration: null, // Always null for images
+								type: 'image',
+								fileSize: file.size || null,
+								exif: null,
+								base64: null
+							} as ImagePicker.ImagePickerAsset
+						} catch (error) {
+							console.warn('Failed to get dimensions for shared image:', file.path, error)
+							// Fallback to file dimensions or defaults if dimension fetching fails
+							return {
+								uri: file.path,
+								fileName: file.fileName || `shared_${Date.now()}.jpg`,
+								mimeType: file.mimeType || 'image/jpeg',
+								width: file.width || 1920,
+								height: file.height || 1080,
+								assetId: null,
+								duration: null,
+								type: 'image',
+								fileSize: file.size || null,
+								exif: null,
+								base64: null
+							} as ImagePicker.ImagePickerAsset
+						}
+					})
+				)
 
 				if (photoAssets.length > 0) {
 					// Notify about received photos
