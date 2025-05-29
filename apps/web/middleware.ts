@@ -8,6 +8,7 @@ type Session = typeof auth.$Infer.Session
 // Declaring a type for the session user with twoFactorEnabled property
 type UserWithTwoFactor = {
 	twoFactorEnabled: boolean;
+	email: string;
 }
 
 export const middleware = async (request: NextRequest) => {
@@ -56,7 +57,11 @@ export const middleware = async (request: NextRequest) => {
 			return NextResponse.redirect(new URL('/login', request.url))
 		}
 
-		if (!(session.user as unknown as UserWithTwoFactor).twoFactorEnabled) {
+		const user = session.user as unknown as UserWithTwoFactor
+		const isDemoAccount = process.env.DEMO_ACCOUNT_EMAIL && user.email === process.env.DEMO_ACCOUNT_EMAIL
+
+		// Bypass two-factor authentication mandate for demo accounts
+		if (!user.twoFactorEnabled && !isDemoAccount) {
 			return NextResponse.redirect(new URL('/register?twoFa=2fa', request.url))
 		}
 	}

@@ -51,8 +51,15 @@ const LoginForm = () => {
 			// Check if 2FA is required
 			const has2FA = (data as unknown as {twoFactorRedirect: boolean}).twoFactorRedirect
 
+			// Check if this is a demo account
+			const isDemoAccount = process.env.NEXT_PUBLIC_DEMO_ACCOUNT_EMAIL && values.email === process.env.NEXT_PUBLIC_DEMO_ACCOUNT_EMAIL
+
 			if (has2FA) {
 				setShowTwoFactorVerify(true)
+			} else if (isDemoAccount) {
+				// Demo accounts bypass two-factor setup and go directly to the app
+				toast.success('Welcome to the demo!')
+				window.location.href = '/app'
 			} else {
 				toast.success('One more step for extra safety! Let\'s set up two-factor authentication to keep your memories extra secure.')
 				router.push('/register?twoFa=2fa')

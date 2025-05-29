@@ -12,6 +12,8 @@ declare namespace NodeJS {
     BETTER_AUTH_SECRET
     BETTER_AUTH_URL: string
     NEXT_PUBLIC_BETTER_AUTH_URL: string
+	  DEMO_ACCOUNT_EMAIL?: string
+	  NEXT_PUBLIC_DEMO_ACCOUNT_EMAIL?: string
     [key: string]: string | undefined
   }
 }
