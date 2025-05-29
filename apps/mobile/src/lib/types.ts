@@ -19,4 +19,5 @@ export type UploadState = {
 	progress: number
 	status: 'idle' | 'encrypting' | 'uploading' | 'uploaded' | 'error'
 	error?: string
+	imageUri?: string
 }

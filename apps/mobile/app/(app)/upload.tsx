@@ -1,11 +1,12 @@
 import React, {useEffect} from 'react'
 import {SafeAreaView} from 'react-native-safe-area-context'
-import {Alert, Pressable, ScrollView, Text, View} from 'react-native'
+import {Alert, Text, View} from 'react-native'
 import {usePhotoUpload} from '@/src/hooks/use-photo-upload'
 import {UploadProgress} from '@/src/components/upload-progress'
-import {CheckCircle, Lock, Shield, Upload} from 'lucide-react-native'
+import {Lock, Shield, Upload} from 'lucide-react-native'
 import {useQueryClient} from '@tanstack/react-query'
 import {photoQueryKeys} from '@/src/lib/photo-keys'
+import {Button} from '@/src/components/ui/button'
 
 const UploadScreen = () => {
 	const queryClient = useQueryClient()
@@ -37,11 +38,7 @@ const UploadScreen = () => {
 
 	return (
 		<SafeAreaView className="flex-1 bg-background" edges={{bottom: 'off'}}>
-			<ScrollView
-				className="flex-1"
-				contentInsetAdjustmentBehavior="automatic"
-				contentContainerStyle={{paddingBottom: 100}}
-			>
+			<View className="flex-1">
 				{/* Header */}
 				<View className="mt-16 p-6">
 					<Text className="text-primary-foreground opacity-80 text-3xl font-semibold mb-2">Upload</Text>
@@ -50,128 +47,76 @@ const UploadScreen = () => {
 					</Text>
 				</View>
 
-				{/* Main Content */}
-				<View className="flex-1 p-6">
+				{/* Upload Progress */}
+				{showProgress && (
+					<View className="px-6 mt-8 mb-4">
+						<UploadProgress
+							uploadStates={uploadStates}
+							showProgress={showProgress}
+							onHoverChange={onProgressHoverChange}
+						/>
+					</View>
+				)}
+
+				{!showProgress && (
+					<View className="flex-1 px-6 items-center justify-center">
+						<View className="items-center justify-center">
+							{/* Main Upload Icon */}
+							<View className="relative mb-6">
+								<View className="bg-primary/10 rounded-full p-8 mb-4">
+									<Upload
+										size={48}
+										color="rgba(255, 255, 255, 0.8)"
+										strokeWidth={1.5}
+									/>
+								</View>
+
+								{/* Security badges */}
+								<View className="absolute -top-2 -right-2 bg-primary/20 rounded-full p-2">
+									<Lock size={16} color="rgba(255, 255, 255, 0.6)" strokeWidth={1.5}/>
+								</View>
+								<View className="absolute -bottom-2 -left-2 bg-primary/20 rounded-full p-2">
+									<Shield size={16} color="rgba(255, 255, 255, 0.6)" strokeWidth={1.5}/>
+								</View>
+							</View>
+
+							{/* Upload messaging */}
+							<Text className="text-primary-foreground opacity-60 text-lg font-medium text-center mb-2">
+								Ready to Upload
+							</Text>
+							<Text className="text-primary-foreground opacity-40 text-sm text-center leading-5 max-w-64">
+								Your photos will be encrypted before upload, ensuring maximum privacy and security
+							</Text>
+						</View>
+					</View>
+				)}
+
+				{/* Spacer to push content to bottom - only when showing progress */}
+				{showProgress && <View className="flex-1"/>}
+
+				{/* Main Content - Stuck at bottom */}
+				<View className="p-6 pb-8">
 					{/* Upload Button */}
 					<View className="items-center mb-8">
-						<Pressable
+						<Button
 							onPress={selectAndUploadPhotos}
 							disabled={hasActiveUploads}
-							className={`w-32 h-32 border-2 border-primary/20 rounded-3xl items-center justify-center mb-6 ${
-								hasActiveUploads ? 'bg-primary/5 opacity-50' : 'bg-primary/10 active:bg-primary/20'
-							}`}
+							className="h-16 w-full"
 						>
-							<View className="w-16 h-16 bg-primary/20 rounded-2xl items-center justify-center">
-								{hasActiveUploads ? (
-									<Lock color="#3b82f6" size={32}/>
-								) : (
-									<Upload color="#3b82f6" size={32}/>
-								)}
-							</View>
-						</Pressable>
-
-						<Pressable
-							onPress={selectAndUploadPhotos}
-							disabled={hasActiveUploads}
-							className={`px-8 py-4 bg-primary rounded-2xl ${
-								hasActiveUploads ? 'opacity-50' : 'active:bg-primary/90'
-							}`}
-						>
-							<Text className="text-primary-foreground text-lg font-semibold text-center">
+							<Text className="text-primary-foreground font-semibold">
 								{hasActiveUploads ? 'Uploading Photos...' : 'Select Photos to Upload'}
 							</Text>
-						</Pressable>
-					</View>
-
-					{/* Security Notice */}
-					<View className="mb-8 p-4 bg-primary/10 border border-primary/20 rounded-2xl">
-						<View className="flex-row items-center mb-2">
-							<Shield color="#3b82f6" size={20}/>
-							<Text className="text-primary-foreground text-lg font-semibold ml-2">
-								End-to-End Encryption
-							</Text>
-						</View>
-						<Text className="text-primary-foreground opacity-80 text-base leading-6">
-							Your photos are encrypted on your device before upload. Only you have the keys to decrypt
-							them.
-						</Text>
-					</View>
-
-					{/* Upload Progress */}
-					{showProgress && (
-						<View className="mb-8">
-							<UploadProgress
-								uploadStates={uploadStates}
-								showProgress={showProgress}
-								onHoverChange={onProgressHoverChange}
-								className="bg-card border-border"
-							/>
-						</View>
-					)}
-
-					{/* Features */}
-					<View className="mb-8">
-						<Text className="text-primary-foreground text-xl font-semibold mb-4">Security Features:</Text>
-
-						<View className="space-y-4">
-							<View className="flex-row items-center">
-								<View className="w-8 h-8 bg-green-500/20 rounded-full items-center justify-center mr-3">
-									<CheckCircle color="#22c55e" size={16}/>
-								</View>
-								<Text className="text-primary-foreground opacity-80 text-base flex-1">
-									AES-256 encryption on device
-								</Text>
-							</View>
-
-							<View className="flex-row items-center">
-								<View className="w-8 h-8 bg-green-500/20 rounded-full items-center justify-center mr-3">
-									<CheckCircle color="#22c55e" size={16}/>
-								</View>
-								<Text className="text-primary-foreground opacity-80 text-base flex-1">
-									Zero-knowledge architecture
-								</Text>
-							</View>
-
-							<View className="flex-row items-center">
-								<View className="w-8 h-8 bg-green-500/20 rounded-full items-center justify-center mr-3">
-									<CheckCircle color="#22c55e" size={16}/>
-								</View>
-								<Text className="text-primary-foreground opacity-80 text-base flex-1">
-									Automatic organization & tagging
-								</Text>
-							</View>
-
-							<View className="flex-row items-center">
-								<View className="w-8 h-8 bg-green-500/20 rounded-full items-center justify-center mr-3">
-									<CheckCircle color="#22c55e" size={16}/>
-								</View>
-								<Text className="text-primary-foreground opacity-80 text-base flex-1">
-									Secure cloud backup
-								</Text>
-							</View>
-						</View>
+						</Button>
 					</View>
 
 					{/* Supported Formats */}
-					<View className="mb-8">
-						<Text className="text-primary-foreground text-lg font-semibold mb-3">Supported Formats:</Text>
-						<Text className="text-primary-foreground opacity-70 text-base leading-6">
-							JPEG, PNG, HEIC, HEIF, AVIF, WEBP, and RAW formats (ARW, CR2, NEF, ORF, RW2)
+					<View className="mb-4">
+						<Text className="text-primary-foreground opacity-40 text-center leading-6">
+							We welcome JPEG, PNG, HEIC, HEIF, AVIF, AVIS, WEBP and RAW formats
 						</Text>
 					</View>
-
-					{/* Progress Indicator */}
-					<View className="mb-8">
-						<View className="flex-row items-center justify-between mb-2">
-							<Text className="text-primary-foreground opacity-70 text-sm">Feature Completeness</Text>
-							<Text className="text-primary text-sm font-semibold">100%</Text>
-						</View>
-						<View className="h-2 bg-muted rounded-full overflow-hidden">
-							<View className="h-full w-full bg-green-500 rounded-full"/>
-						</View>
-					</View>
 				</View>
-			</ScrollView>
+			</View>
 		</SafeAreaView>
 	)
 }

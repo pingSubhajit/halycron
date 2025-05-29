@@ -70,7 +70,7 @@ export const usePhotoUpload = ({
 				// Update state to encrypting
 				setUploadStates(prev => ({
 					...prev,
-					[fileName]: {progress: 0, status: 'encrypting'}
+					[fileName]: {progress: 0, status: 'encrypting', imageUri: asset.uri}
 				}))
 
 				// Update notification for encrypting
@@ -87,7 +87,7 @@ export const usePhotoUpload = ({
 				// Update state to uploading
 				setUploadStates(prev => ({
 					...prev,
-					[fileName]: {progress: 0, status: 'uploading'}
+					[fileName]: {progress: 0, status: 'uploading', imageUri: asset.uri}
 				}))
 
 				// Update notification for upload progress
@@ -101,7 +101,7 @@ export const usePhotoUpload = ({
 				// Update progress to 90% after upload complete (before DB save)
 				setUploadStates(prev => ({
 					...prev,
-					[fileName]: {progress: 90, status: 'uploading'}
+					[fileName]: {progress: 90, status: 'uploading', imageUri: asset.uri}
 				}))
 
 				if (notificationsInitialized) {
@@ -122,7 +122,7 @@ export const usePhotoUpload = ({
 				// Update state to success
 				setUploadStates(prev => ({
 					...prev,
-					[fileName]: {progress: 100, status: 'uploaded'}
+					[fileName]: {progress: 100, status: 'uploaded', imageUri: asset.uri}
 				}))
 
 				// Update notification for completion
@@ -140,7 +140,8 @@ export const usePhotoUpload = ({
 					[fileName]: {
 						progress: 0,
 						status: 'error',
-						error: errorMessage
+						error: errorMessage,
+						imageUri: asset.uri
 					}
 				}))
 
@@ -179,7 +180,7 @@ export const usePhotoUpload = ({
 			uploadFile(asset)
 			setUploadStates(prev => ({
 				...prev,
-				[fileName]: {progress: 0, status: 'idle'}
+				[fileName]: {progress: 0, status: 'idle', imageUri: asset.uri}
 			}))
 		})
 	}, [uploadFile, showProgress])
