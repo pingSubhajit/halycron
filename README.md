@@ -1,3 +1,5 @@
+![Halycron - Truly private photo storage on cloud](packages/ui/src/media/promotion.png)
+
 # Halycron
 
 A highly secure, private photo vault service that allows users to store and manage their photos with end-to-end encryption. Similar to Google Photos in functionality but with a primary focus on security and privacy. Users can store photos in their own S3 bucket or use the provided storage solution.
