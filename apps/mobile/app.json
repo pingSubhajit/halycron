@@ -108,15 +108,7 @@
               "foregroundImage": "../../packages/ui/src/media/icons/Mac/512@2x.png",
               "backgroundColor": "#0a0a0a"
             }
-          },
-          "iosActions": [
-            {
-              "title": "Upload Photos",
-              "subtitle": "Quickly upload secure photos",
-              "icon": "symbol:photo.badge.plus",
-              "id": "upload"
-            }
-          ]
+          }
         }
       ]
     ],
