@@ -35,6 +35,7 @@
     "expo-image": "~2.1.7",
     "expo-image-manipulator": "~13.1.0",
     "expo-image-picker": "^16.1.4",
+    "expo-insights": "~0.9.3",
     "expo-linking": "~7.1.5",
     "expo-local-authentication": "~16.0.4",
     "expo-media-library": "^17.1.6",
