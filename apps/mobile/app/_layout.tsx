@@ -23,7 +23,7 @@ SplashScreen.preventAutoHideAsync()
 
 // Splash screen fade animation
 SplashScreen.setOptions({
-	duration: 1000,
+	duration: 500,
 	fade: true
 })
 
