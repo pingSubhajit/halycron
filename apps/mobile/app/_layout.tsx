@@ -12,6 +12,7 @@ import {SystemBars} from 'react-native-edge-to-edge'
 import {SafeAreaProvider} from 'react-native-safe-area-context'
 import {GestureHandlerRootView} from 'react-native-gesture-handler'
 import {useAppShareIntent} from '@/src/hooks/use-share-intent'
+import {useQuickActions} from '@/src/hooks/use-quick-actions'
 import {useQueryClient} from '@tanstack/react-query'
 import {photoQueryKeys} from '@/src/lib/photo-keys'
 import * as Notifications from 'expo-notifications'
@@ -28,6 +29,12 @@ const ShareIntentHandler = () => {
 			router.push('/(app)/upload')
 		}
 	})
+	return null
+}
+
+const QuickActionsHandler = () => {
+	// Handle quick actions at the top level
+	useQuickActions()
 	return null
 }
 
@@ -110,6 +117,7 @@ const AppContent = () => {
 						}}
 					>
 						<ShareIntentHandler/>
+						<QuickActionsHandler/>
 						<NotificationHandler/>
 						<UploadCompletionHandler/>
 						<SystemBars style="light"/>
