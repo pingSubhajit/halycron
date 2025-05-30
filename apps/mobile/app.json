@@ -8,11 +8,6 @@
     "icon": "../../packages/ui/src/media/icons/Mac/512@2x.png",
     "newArchEnabled": true,
     "userInterfaceStyle": "dark",
-    "splash": {
-      "image": "../../packages/ui/src/media/icons/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#0a0a0a"
-    },
     "updates": {
       "fallbackToCacheTimeout": 0
     },
@@ -26,7 +21,8 @@
     "android": {
       "edgeToEdgeEnabled": true,
       "adaptiveIcon": {
-        "foregroundImage": "../../packages/ui/src/media/icons/Mac/512@2x.png",
+        "foregroundImage": "../../packages/ui/src/media/icons/Android/adaptive-foreground.png",
+        "monochromeImage": "../../packages/ui/src/media/icons/Android/adaptive-foreground.png",
         "backgroundColor": "#0a0a0a"
       },
       "package": "com.halycron.app",
@@ -44,6 +40,15 @@
     },
     "plugins": [
       "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "image": "../../packages/ui/src/media/icons/splash.png",
+          "resizeMode": "contain",
+          "backgroundColor": "#0a0a0a",
+          "imageWidth": 125
+        }
+      ],
       [
         "expo-build-properties",
         {

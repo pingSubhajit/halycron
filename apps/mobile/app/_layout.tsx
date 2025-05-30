@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react'
-import {router, SplashScreen, Stack} from 'expo-router'
+import {router, Stack} from 'expo-router'
 import {BackHandler, Platform} from 'react-native'
 import CustomSplashScreen from '@/src/components/splash-screen'
 import {ThemeProvider} from '@/src/theme/ThemeProvider'
@@ -16,9 +16,18 @@ import {useQuickActions} from '@/src/hooks/use-quick-actions'
 import {useQueryClient} from '@tanstack/react-query'
 import {photoQueryKeys} from '@/src/lib/photo-keys'
 import * as Notifications from 'expo-notifications'
+import * as SplashScreen from 'expo-splash-screen'
 
 // Prevent the splash screen from auto-hiding
 SplashScreen.preventAutoHideAsync()
+
+// Splash screen fade animation
+SplashScreen.setOptions({
+	duration: 1000,
+	fade: true
+})
+
+
 SystemBars.setStyle('light')
 
 const ShareIntentHandler = () => {
