@@ -14,7 +14,8 @@ const UploadScreen = () => {
 		selectAndUploadPhotos,
 		fileRejections,
 		onProgressHoverChange,
-		hasActiveUploads
+		hasActiveUploads,
+		uploadSource
 	} = useUploadContext()
 
 	// Show error alerts for file rejections

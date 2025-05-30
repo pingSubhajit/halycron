@@ -1,12 +1,13 @@
 import React, {useEffect, useState} from 'react'
 import {router, SplashScreen, Stack} from 'expo-router'
+import {BackHandler, Platform} from 'react-native'
 import CustomSplashScreen from '@/src/components/splash-screen'
 import {ThemeProvider} from '@/src/theme/ThemeProvider'
 import {SessionProvider, useSession} from '@/src/components/session-provider'
 import {BiometricProvider} from '@/src/components/biometric-provider'
 import {DialogProvider} from '@/src/components/dialog-provider'
 import {QueryProvider} from '@/src/components/query-provider'
-import {UploadProvider} from '@/src/components/upload-provider'
+import {UploadProvider, useUploadContext} from '@/src/components/upload-provider'
 import {SystemBars} from 'react-native-edge-to-edge'
 import {SafeAreaProvider} from 'react-native-safe-area-context'
 import {GestureHandlerRootView} from 'react-native-gesture-handler'
@@ -23,7 +24,6 @@ const ShareIntentHandler = () => {
 	// Handle share intent at the top level
 	useAppShareIntent({
 		onSharedPhotosReceived: (photos) => {
-			console.log(`Received ${photos.length} shared photos for upload`)
 			// Navigate to upload screen when photos are shared
 			router.push('/(app)/upload')
 		}
@@ -32,6 +32,8 @@ const ShareIntentHandler = () => {
 }
 
 const NotificationHandler = () => {
+	const {setUploadSource} = useUploadContext()
+
 	useEffect(() => {
 		// Handle notification taps
 		const subscription = Notifications.addNotificationResponseReceivedListener(response => {
@@ -39,12 +41,57 @@ const NotificationHandler = () => {
 
 			// If it's any upload-related notification, navigate to upload screen
 			if (data?.type === 'upload-progress' || data?.type === 'upload-complete' || data?.type === 'upload') {
+				setUploadSource('notification')
 				router.push('/(app)/upload')
 			}
 		})
 
 		return () => subscription.remove()
-	}, [])
+	}, [setUploadSource])
+
+	return null
+}
+
+const UploadCompletionHandler = () => {
+	const {hasActiveUploads, uploadSource, setUploadSource} = useUploadContext()
+	const [wasUploading, setWasUploading] = useState(false)
+
+	useEffect(() => {
+		// Track when uploads start
+		if (hasActiveUploads && !wasUploading) {
+			setWasUploading(true)
+		}
+
+		// Handle upload completion
+		if (!hasActiveUploads && wasUploading) {
+			setWasUploading(false)
+
+			// If the upload was from share intent, navigate back to the original app
+			if (uploadSource === 'share-intent') {
+				// Reset upload source
+				setUploadSource('manual')
+
+				// Add a small delay to let the user see the completion, then exit app
+				setTimeout(() => {
+					try {
+						if (Platform.OS === 'android') {
+							// On Android, use BackHandler to exit the app
+							BackHandler.exitApp()
+						} else {
+							/*
+							 * On iOS, we can't force close the app, so we'll navigate to a minimal state
+							 * and the user can tap the home button or swipe up
+							 */
+							router.dismissAll()
+						}
+					} catch (error) {
+						// Fallback: navigate to home if we can't exit
+						router.replace('/(app)')
+					}
+				}, 1500) // Give 1.5 seconds to see the completion
+			}
+		}
+	}, [hasActiveUploads, wasUploading, uploadSource, setUploadSource])
 
 	return null
 }
@@ -64,6 +111,7 @@ const AppContent = () => {
 					>
 						<ShareIntentHandler/>
 						<NotificationHandler/>
+						<UploadCompletionHandler/>
 						<SystemBars style="light"/>
 
 						<RootNavigator/>

@@ -141,7 +141,7 @@ const ImagePreview: React.FC<{
 	const isActive = state.status === 'encrypting' || state.status === 'uploading'
 
 	return (
-		<View className="mr-3">
+		<View className="mr-3" style={{marginRight: 12}}>
 			<PulsingBorder isActive={isActive} status={state.status}>
 				<View className="w-16 h-16 rounded-lg overflow-hidden bg-muted relative">
 					{state.imageUri ? (
@@ -247,7 +247,7 @@ export const UploadProgress: React.FC<UploadProgressProps> = ({
 
 				{/* Show remaining count if more than 5 */}
 				{remainingCount > 0 && (
-					<View className="mr-3">
+					<View className="mr-3" style={{marginRight: 12}}>
 						<View className="w-16 h-16 rounded-lg bg-muted/50 border-2 border-muted-foreground items-center justify-center">
 							<Text className="text-primary-foreground opacity-70 text-xs font-medium text-center">
 								+{remainingCount}{'\n'}more
