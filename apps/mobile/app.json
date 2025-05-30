@@ -2,7 +2,7 @@
   "expo": {
     "name": "Halycron",
     "slug": "halycron",
-    "version": "0.0.10",
+    "version": "0.0.11",
     "scheme": "halycron",
     "orientation": "portrait",
     "icon": "../../packages/ui/src/media/icons/Mac/512@2x.png",
