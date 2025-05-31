@@ -1,6 +1,15 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react'
-import {useSharedValue} from 'react-native-reanimated'
-import {ActivityIndicator, BackHandler, Dimensions, Text, View} from 'react-native'
+import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated'
+import {
+	ActivityIndicator,
+	BackHandler,
+	Dimensions,
+	Platform,
+	Text,
+	TouchableOpacity,
+	TouchableWithoutFeedback,
+	View
+} from 'react-native'
 import BottomSheet, {BottomSheetView} from '@gorhom/bottom-sheet'
 import {Photo} from '@/src/lib/types'
 import {darkTheme} from '@/src/theme/theme'
@@ -9,6 +18,10 @@ import Carousel from 'react-native-reanimated-carousel'
 import {useAllPhotos} from '@/src/hooks/use-photos'
 import {useDecryptedUrl} from '@/src/hooks/use-decrypted-url'
 import {ImageZoom} from '@likashefqet/react-native-image-zoom'
+import {Share} from '@/lib/icons/Share'
+import {Download} from '@/lib/icons/Download'
+import {Heart} from '@/lib/icons/Heart'
+import {Trash2} from '@/lib/icons/Trash2'
 
 
 const {width: screenWidth, height: screenHeight} = Dimensions.get('window')
@@ -19,12 +32,91 @@ interface PhotoViewerSheetProps {
 	initialPhoto: Photo | null
 }
 
+interface ActionBarProps {
+	isVisible: boolean
+}
+
+// Action bar component with share, download, favorite, and delete options
+const ActionBar: React.FC<ActionBarProps> = React.memo(({isVisible}) => {
+	const opacity = useSharedValue(isVisible ? 1 : 0)
+
+	const handleActionPress = useCallback((action: string) => {
+		console.log(`${action} pressed`)
+	}, [])
+
+	// Animate opacity when visibility changes
+	useEffect(() => {
+		opacity.value = withTiming(isVisible ? 1 : 0, {
+			duration: 100
+		})
+	}, [isVisible, opacity])
+
+	const animatedStyle = useAnimatedStyle(() => {
+		return {
+			opacity: opacity.value
+		}
+	})
+
+	return (
+		<Animated.View style={[
+			{
+				position: 'absolute',
+				bottom: -55,
+				left: 20,
+				right: 20,
+				marginBottom: Platform.OS === 'ios' ? 50 : 25,
+				pointerEvents: isVisible ? 'box-none' : 'none' // Disable touches when not visible
+			},
+			animatedStyle
+		]}>
+			<View style={{
+				flexDirection: 'row',
+				justifyContent: 'space-around',
+				alignItems: 'center'
+			}}>
+				<TouchableOpacity
+					onPress={() => handleActionPress('Share')}
+					className="p-3 items-center gap-2"
+				>
+					<Share size={20} color="white"/>
+					<Text className="text-primary-foreground font-medium">Share</Text>
+				</TouchableOpacity>
+
+				<TouchableOpacity
+					onPress={() => handleActionPress('Download')}
+					className="p-3 items-center gap-2"
+				>
+					<Download size={20} color="white"/>
+					<Text className="text-primary-foreground font-medium">Download</Text>
+				</TouchableOpacity>
+
+				<TouchableOpacity
+					onPress={() => handleActionPress('Favorite')}
+					className="p-3 items-center gap-2"
+				>
+					<Heart size={20} color="white"/>
+					<Text className="text-primary-foreground font-medium">Favourite</Text>
+				</TouchableOpacity>
+
+				<TouchableOpacity
+					onPress={() => handleActionPress('Delete')}
+					className="p-3 items-center gap-2"
+				>
+					<Trash2 size={20} color="white"/>
+					<Text className="text-primary-foreground font-medium">Trash</Text>
+				</TouchableOpacity>
+			</View>
+		</Animated.View>
+	)
+})
+
 
 // Virtualized photo item component with optimized memoization
-const PhotoItem = React.memo(({photo, isActive, onZoomStateChange}: {
+const PhotoItem = React.memo(({photo, isActive, onZoomStateChange, onImagePress}: {
 	photo: Photo
 	isActive: boolean
 	onZoomStateChange?: (isZoomed: boolean) => void
+	onImagePress?: () => void
 }) => {
 	const scaleValue = useSharedValue(1)
 	const hookResult = useDecryptedUrl(isActive ? photo : null)
@@ -101,56 +193,59 @@ const PhotoItem = React.memo(({photo, isActive, onZoomStateChange}: {
 	}
 
 	return (
-		<View style={containerStyle}>
-			<ImageZoom
-				uri={decryptedUrl}
-				minScale={1}
-				maxScale={5}
-				doubleTapScale={2}
-				maxPanPointers={2}
-				isPanEnabled={true}
-				isPinchEnabled={true}
-				isDoubleTapEnabled={true}
-				scale={scaleValue}
-				onPinchStart={() => {
-					// User started pinching
-					onZoomStateChange?.(true)
-				}}
-				onPinchEnd={() => {
-					// Check final scale after pinch ends
-					setTimeout(() => {
-						if (scaleValue.value > 1) {
-							onZoomStateChange?.(true)
-						} else {
-							onZoomStateChange?.(false)
-						}
-					}, 50)
-				}}
-				onDoubleTap={(zoomType) => {
-					// Double tap will change zoom state
-					setTimeout(() => {
-						// Check scale after animation
-						if (scaleValue.value > 1) {
-							onZoomStateChange?.(true)
-						} else {
-							onZoomStateChange?.(false)
-						}
-					}, 100)
-				}}
-				style={{
-					width: screenWidth,
-					height: screenHeight * 0.85
-				}}
-				resizeMode="contain"
-			/>
-		</View>
+		<TouchableWithoutFeedback onPress={onImagePress}>
+			<View style={containerStyle}>
+				<ImageZoom
+					uri={decryptedUrl}
+					minScale={1}
+					maxScale={5}
+					doubleTapScale={2}
+					maxPanPointers={2}
+					isPanEnabled={true}
+					isPinchEnabled={true}
+					isDoubleTapEnabled={true}
+					scale={scaleValue}
+					onPinchStart={() => {
+						// User started pinching
+						onZoomStateChange?.(true)
+					}}
+					onPinchEnd={() => {
+						// Check final scale after pinch ends
+						setTimeout(() => {
+							if (scaleValue.value > 1) {
+								onZoomStateChange?.(true)
+							} else {
+								onZoomStateChange?.(false)
+							}
+						}, 50)
+					}}
+					onDoubleTap={(zoomType) => {
+						// Double tap will change zoom state
+						setTimeout(() => {
+							// Check scale after animation
+							if (scaleValue.value > 1) {
+								onZoomStateChange?.(true)
+							} else {
+								onZoomStateChange?.(false)
+							}
+						}, 100)
+					}}
+					style={{
+						width: screenWidth,
+						height: screenHeight * 0.85
+					}}
+					resizeMode="contain"
+				/>
+			</View>
+		</TouchableWithoutFeedback>
 	)
 }, (prevProps, nextProps) => {
 	// Custom comparison for better performance - ensure we're comparing the right photo
 	const isSamePhoto = prevProps.photo.id === nextProps.photo.id
 	const isSameActiveState = prevProps.isActive === nextProps.isActive
+	const isSameImagePress = prevProps.onImagePress === nextProps.onImagePress
 
-	return isSamePhoto && isSameActiveState
+	return isSamePhoto && isSameActiveState && isSameImagePress
 })
 
 
@@ -163,6 +258,7 @@ const PhotoViewerSheet: React.FC<PhotoViewerSheetProps> = ({
 	const carouselRef = useRef<any>(null)
 	const [hasInitialized, setHasInitialized] = useState(false)
 	const [isImageZoomed, setIsImageZoomed] = useState(false)
+	const [isActionBarVisible, setIsActionBarVisible] = useState(true)
 
 	// Fetch all photos
 	const {data: allPhotos = [], isLoading: isLoadingPhotos} = useAllPhotos()
@@ -217,6 +313,7 @@ const PhotoViewerSheet: React.FC<PhotoViewerSheetProps> = ({
 		onClose()
 		setHasInitialized(false)
 		setIsImageZoomed(false)
+		setIsActionBarVisible(true)
 	}, [onClose])
 
 	// Handle sheet state changes
@@ -225,6 +322,7 @@ const PhotoViewerSheet: React.FC<PhotoViewerSheetProps> = ({
 			onClose()
 			setHasInitialized(false)
 			setIsImageZoomed(false)
+			setIsActionBarVisible(true)
 		}
 	}, [onClose])
 
@@ -252,6 +350,11 @@ const PhotoViewerSheet: React.FC<PhotoViewerSheetProps> = ({
 		setIsImageZoomed(isZoomed)
 	}, [])
 
+	// Handle action bar visibility
+	const handleImagePress = useCallback(() => {
+		setIsActionBarVisible(prev => !prev)
+	}, [])
+
 
 	// Jump to initial photo ONCE when carousel is ready and sheet opens
 	useEffect(() => {
@@ -272,6 +375,7 @@ const PhotoViewerSheet: React.FC<PhotoViewerSheetProps> = ({
 		if (!isOpen) {
 			setHasInitialized(false)
 			setIsImageZoomed(false)
+			setIsActionBarVisible(true)
 		}
 	}, [isOpen])
 
@@ -301,9 +405,10 @@ const PhotoViewerSheet: React.FC<PhotoViewerSheetProps> = ({
 				photo={item}
 				isActive={isActive}
 				onZoomStateChange={index === currentIndex ? handleZoomStateChange : undefined}
+				onImagePress={index === currentIndex ? handleImagePress : undefined}
 			/>
 		)
-	}, [activeIndices, currentIndex, handleZoomStateChange])
+	}, [activeIndices, currentIndex, handleZoomStateChange, handleImagePress])
 
 	// Don't render if not open
 	if (!isOpen) {
@@ -371,9 +476,9 @@ const PhotoViewerSheet: React.FC<PhotoViewerSheetProps> = ({
 			backgroundStyle={{backgroundColor: darkTheme.dark}}
 			handleIndicatorStyle={{backgroundColor: darkTheme.accent}}
 		>
-			<BottomSheetView style={{flex: 1}}>
-				<SafeAreaView style={{flex: 1}}>
-					<View style={{flex: 1, justifyContent: 'center'}}>
+			<BottomSheetView>
+				<SafeAreaView>
+					<View className="justify-center">
 						<Carousel
 							key={`${carouselDimensions.width}-${carouselDimensions.height}`}
 							ref={carouselRef}
@@ -388,6 +493,9 @@ const PhotoViewerSheet: React.FC<PhotoViewerSheetProps> = ({
 							windowSize={3}
 							pagingEnabled={true}
 							enabled={!isImageZoomed}
+						/>
+						<ActionBar
+							isVisible={isActionBarVisible}
 						/>
 					</View>
 				</SafeAreaView>
