@@ -4,26 +4,27 @@ import BottomSheet, {BottomSheetBackdrop, BottomSheetView} from '@gorhom/bottom-
 import {Photo} from '@/src/lib/types'
 import {darkTheme} from '@/src/theme/theme'
 import {SafeAreaView} from 'react-native-safe-area-context'
-import {Download} from '@/lib/icons/Download'
+import {Trash2} from '@/lib/icons/Trash2'
 import {Button} from '@/src/components/ui/button'
-import {downloadImageToGallery} from '@/src/lib/download-utils'
-import {showDownloadNotification} from '@/src/lib/notification-utils'
+import {deletePhoto} from '@/src/lib/delete-utils'
 
-interface DownloadConfirmationSheetProps {
+interface DeleteConfirmationSheetProps {
 	isOpen: boolean
 	onClose: () => void
 	photo: Photo | null
+	onPhotoDeleted?: (photo: Photo) => void
 }
 
-const DownloadConfirmationSheet: React.FC<DownloadConfirmationSheetProps> = ({
+const DeleteConfirmationSheet: React.FC<DeleteConfirmationSheetProps> = ({
 	isOpen,
 	onClose,
-	photo
+	photo,
+	onPhotoDeleted
 }) => {
 	const bottomSheetRef = useRef<BottomSheet>(null)
 
 	// Calculate snap points
-	const snapPoints = useMemo(() => ['50%'], [])
+	const snapPoints = useMemo(() => ['40%'], [])
 
 	// Handle sheet close
 	const handleClose = useCallback(() => {
@@ -38,25 +39,26 @@ const DownloadConfirmationSheet: React.FC<DownloadConfirmationSheetProps> = ({
 		}
 	}, [onClose])
 
-	// Handle download confirmation
+	// Handle delete confirmation
 	const handleConfirm = useCallback(async () => {
 		if (!photo) return
 
 		// Close the sheet immediately
 		handleClose()
 
-		// Process download in background and show notification when complete
+		// Process deletion in background
 		try {
-			const result = await downloadImageToGallery(photo)
-			await showDownloadNotification(result.success, result.message)
+			const result = await deletePhoto(photo)
+
+			// If deletion was successful and callback is provided, call it
+			if (result.success && onPhotoDeleted) {
+				onPhotoDeleted(photo)
+			}
 		} catch (error) {
-			// Fallback error handling
-			await showDownloadNotification(
-				false,
-				'An unexpected error occurred while downloading the image.'
-			)
+			// Fallback error handling - could log error but no notification
+			console.error('Failed to delete photo:', error)
 		}
-	}, [photo, handleClose])
+	}, [photo, handleClose, onPhotoDeleted])
 
 	// Backdrop component that handles backdrop touches
 	const renderBackdrop = useCallback(
@@ -97,7 +99,7 @@ const DownloadConfirmationSheet: React.FC<DownloadConfirmationSheetProps> = ({
 								borderRadius: 50,
 								padding: 16
 							}}>
-								<Download size={32} color="white"/>
+								<Trash2 size={32} color="white"/>
 							</View>
 
 							<Text style={{
@@ -106,7 +108,7 @@ const DownloadConfirmationSheet: React.FC<DownloadConfirmationSheetProps> = ({
 								fontWeight: 'bold',
 								textAlign: 'center'
 							}}>
-								Download Image?
+								Delete Photo?
 							</Text>
 
 							<Text style={{
@@ -115,8 +117,8 @@ const DownloadConfirmationSheet: React.FC<DownloadConfirmationSheetProps> = ({
 								textAlign: 'center',
 								lineHeight: 24
 							}}>
-								Downloading images may pose security risks. The image will be saved to your device's
-								gallery where other apps may access it.
+								This action cannot be undone. The photo will be permanently removed from your account
+								and all albums.
 							</Text>
 						</View>
 
@@ -124,29 +126,16 @@ const DownloadConfirmationSheet: React.FC<DownloadConfirmationSheetProps> = ({
 						<View style={{marginBottom: 64, gap: 24}}>
 							<Button
 								onPress={handleConfirm}
+								variant="ghost"
 								className="h-16 flex-row justify-center items-center"
 							>
-								<Download size={20} color="white" style={{marginRight: 8}}/>
+								<Trash2 size={20} color="white" style={{marginRight: 8}}/>
 								<Text style={{
 									color: 'white',
 									fontSize: 16,
 									fontWeight: '600'
 								}}>
-									Download Anyway
-								</Text>
-							</Button>
-
-							<Button
-								variant="outline"
-								onPress={handleClose}
-								className="h-16 flex-row justify-center items-center"
-							>
-								<Text style={{
-									color: darkTheme.mutedForeground,
-									fontSize: 16,
-									fontWeight: '500'
-								}}>
-									Cancel
+									Delete Forever
 								</Text>
 							</Button>
 						</View>
@@ -157,4 +146,4 @@ const DownloadConfirmationSheet: React.FC<DownloadConfirmationSheetProps> = ({
 	)
 }
 
-export default DownloadConfirmationSheet
+export default DeleteConfirmationSheet

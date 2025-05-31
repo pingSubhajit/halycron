@@ -297,7 +297,7 @@ export const uploadNotificationManager = UploadNotificationManager.getInstance()
 
 // Generic photo action notification function
 export const showPhotoActionNotification = async (
-	action: 'download' | 'share',
+	action: 'download' | 'share' | 'delete',
 	success: boolean,
 	message: string
 ): Promise<void> => {
@@ -311,12 +311,14 @@ export const showPhotoActionNotification = async (
 
 		const titles = {
 			download: success ? 'Download Complete' : 'Download Failed',
-			share: success ? 'Share Complete' : 'Share Failed'
+			share: success ? 'Share Complete' : 'Share Failed',
+			delete: success ? 'Delete Complete' : 'Delete Failed'
 		}
 
 		const emojis = {
 			download: success ? '📥' : '❌',
-			share: success ? '📤' : '❌'
+			share: success ? '📤' : '❌',
+			delete: success ? '🗑️' : '❌'
 		}
 
 		const title = titles[action]

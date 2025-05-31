@@ -1,5 +1,6 @@
 import React, {createContext, ReactNode, useContext, useState} from 'react'
 import {DownloadConfirmationSheet, ExampleDialog, PhotoViewerSheet} from './dialogs'
+import DeleteConfirmationSheet from './dialogs/delete-confirmation-sheet'
 import {Photo} from '@/src/lib/types'
 
 // Dialog Context Interface
@@ -23,6 +24,15 @@ interface DialogContextType {
 		photo: Photo | null
 	}
 	setDownloadConfirmationData: (data: { photo: Photo | null }) => void
+
+	// Delete Confirmation Sheet
+	isDeleteConfirmationSheetOpen: boolean
+	setDeleteConfirmationSheetOpen: (open: boolean) => void
+	deleteConfirmationData: {
+		photo: Photo | null
+		onPhotoDeleted?: (photo: Photo) => void
+	}
+	setDeleteConfirmationData: (data: { photo: Photo | null; onPhotoDeleted?: (photo: Photo) => void }) => void
 }
 
 // Create the context
@@ -54,6 +64,16 @@ export const DialogProvider: React.FC<DialogProviderProps> = ({children}) => {
 		photo: null
 	})
 
+	// State for Delete Confirmation Sheet
+	const [isDeleteConfirmationSheetOpen, setDeleteConfirmationSheetOpen] = useState(false)
+	const [deleteConfirmationData, setDeleteConfirmationData] = useState<{
+		photo: Photo | null
+		onPhotoDeleted?:(photo: Photo) => void
+			}>({
+				photo: null,
+				onPhotoDeleted: undefined
+			})
+
 	// Context value containing all dialog states and setters
 	const contextValue: DialogContextType = {
 		// Example Dialog
@@ -70,7 +90,13 @@ export const DialogProvider: React.FC<DialogProviderProps> = ({children}) => {
 		isDownloadConfirmationSheetOpen,
 		setDownloadConfirmationSheetOpen,
 		downloadConfirmationData,
-		setDownloadConfirmationData
+		setDownloadConfirmationData,
+
+		// Delete Confirmation Sheet
+		isDeleteConfirmationSheetOpen,
+		setDeleteConfirmationSheetOpen,
+		deleteConfirmationData,
+		setDeleteConfirmationData
 	}
 
 	return (
@@ -94,6 +120,13 @@ export const DialogProvider: React.FC<DialogProviderProps> = ({children}) => {
 				isOpen={isDownloadConfirmationSheetOpen}
 				onClose={() => setDownloadConfirmationSheetOpen(false)}
 				photo={downloadConfirmationData.photo}
+			/>
+
+			<DeleteConfirmationSheet
+				isOpen={isDeleteConfirmationSheetOpen}
+				onClose={() => setDeleteConfirmationSheetOpen(false)}
+				photo={deleteConfirmationData.photo}
+				onPhotoDeleted={deleteConfirmationData.onPhotoDeleted}
 			/>
 
 			{/* Future dialogs can be added here following the same pattern */}
@@ -214,6 +247,48 @@ export const useDownloadConfirmation = () => {
 		downloadConfirmationData,
 		openDownloadConfirmation,
 		closeDownloadConfirmation
+	}
+}
+
+/**
+ * Hook to control the Delete Confirmation Sheet
+ * Returns methods to open and close the delete confirmation dialog
+ *
+ * Usage:
+ * const { openDeleteConfirmation, closeDeleteConfirmation } = useDeleteConfirmation()
+ *
+ * // To open the delete confirmation with a specific photo
+ * openDeleteConfirmation(photo)
+ *
+ * // To close the delete confirmation
+ * closeDeleteConfirmation()
+ */
+export const useDeleteConfirmation = () => {
+	const {
+		isDeleteConfirmationSheetOpen,
+		setDeleteConfirmationSheetOpen,
+		deleteConfirmationData,
+		setDeleteConfirmationData
+	} = useDialogContext()
+
+	const openDeleteConfirmation = (photo: Photo, onPhotoDeleted?: (photo: Photo) => void) => {
+		setDeleteConfirmationData({photo, onPhotoDeleted})
+		setDeleteConfirmationSheetOpen(true)
+	}
+
+	const closeDeleteConfirmation = () => {
+		setDeleteConfirmationSheetOpen(false)
+		// Clear data after a short delay to allow closing animation
+		setTimeout(() => {
+			setDeleteConfirmationData({photo: null, onPhotoDeleted: undefined})
+		}, 300)
+	}
+
+	return {
+		isDeleteConfirmationSheetOpen,
+		deleteConfirmationData,
+		openDeleteConfirmation,
+		closeDeleteConfirmation
 	}
 }
 

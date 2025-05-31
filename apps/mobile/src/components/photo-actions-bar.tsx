@@ -3,21 +3,22 @@ import {Platform, Text, TouchableOpacity, View} from 'react-native'
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated'
 import {Share} from '@/lib/icons/Share'
 import {Download} from '@/lib/icons/Download'
-import {Heart} from '@/lib/icons/Heart'
 import {Trash2} from '@/lib/icons/Trash2'
 import {Photo} from '@/src/lib/types'
-import {useDownloadConfirmation} from './dialog-provider'
+import {useDeleteConfirmation, useDownloadConfirmation} from './dialog-provider'
 import {shareImage} from '@/src/lib/share-utils'
 import {showPhotoActionNotification} from '@/src/lib/notification-utils'
 
 interface PhotoActionsBarProps {
 	isVisible: boolean
 	currentPhoto: Photo | null
+	onPhotoDeleted?: (photo: Photo) => void
 }
 
-const PhotoActionsBar: React.FC<PhotoActionsBarProps> = ({isVisible, currentPhoto}) => {
+const PhotoActionsBar: React.FC<PhotoActionsBarProps> = ({isVisible, currentPhoto, onPhotoDeleted}) => {
 	const opacity = useSharedValue(isVisible ? 1 : 0)
 	const {openDownloadConfirmation} = useDownloadConfirmation()
+	const {openDeleteConfirmation} = useDeleteConfirmation()
 
 	// Animate opacity when visibility changes
 	useEffect(() => {
@@ -59,11 +60,10 @@ const PhotoActionsBar: React.FC<PhotoActionsBarProps> = ({isVisible, currentPhot
 			// TODO: Implement favorite functionality
 			break
 		case 'Delete':
-			console.log('Delete pressed for photo:', currentPhoto.id)
-			// TODO: Implement delete functionality
+			openDeleteConfirmation(currentPhoto, onPhotoDeleted)
 			break
 		}
-	}, [currentPhoto, openDownloadConfirmation])
+	}, [currentPhoto, openDownloadConfirmation, openDeleteConfirmation, onPhotoDeleted])
 
 	return (
 		<Animated.View style={[
@@ -98,13 +98,13 @@ const PhotoActionsBar: React.FC<PhotoActionsBarProps> = ({isVisible, currentPhot
 					<Text className="text-primary-foreground font-medium">Download</Text>
 				</TouchableOpacity>
 
-				<TouchableOpacity
-					onPress={() => handleActionPress('Favorite')}
-					className="p-3 items-center gap-2"
-				>
-					<Heart size={20} color="white"/>
-					<Text className="text-primary-foreground font-medium">Favourite</Text>
-				</TouchableOpacity>
+				{/* <TouchableOpacity*/}
+				{/*	onPress={() => handleActionPress('Favorite')}*/}
+				{/*	className="p-3 items-center gap-2"*/}
+				{/* >*/}
+				{/*	<Heart size={20} color="white"/>*/}
+				{/*	<Text className="text-primary-foreground font-medium">Favourite</Text>*/}
+				{/* </TouchableOpacity>*/}
 
 				<TouchableOpacity
 					onPress={() => handleActionPress('Delete')}
