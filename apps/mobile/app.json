@@ -126,24 +126,7 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "1a399942-c9ed-4348-ac51-0730f2d541fa",
-        "build": {
-          "experimental": {
-            "ios": {
-              "appExtensions": [
-                {
-                  "targetName": "HalycronShareExtension",
-                  "bundleIdentifier": "com.halycron.app.share-extension",
-                  "entitlements": {
-                    "com.apple.security.application-groups": [
-                      "group.com.halycron.app"
-                    ]
-                  }
-                }
-              ]
-            }
-          }
-        }
+        "projectId": "1a399942-c9ed-4348-ac51-0730f2d541fa"
       }
     },
     "runtimeVersion": {
