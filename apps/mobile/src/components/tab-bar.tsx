@@ -28,7 +28,7 @@ export const TabBar: React.FC<TabBarProps> = ({className}) => {
 		} else {
 			// Slide in animation
 			Animated.timing(slideAnim, {
-				toValue: 0, // Slide back to original position
+				toValue: 0, // Slide back to the original position
 				duration: 300,
 				delay: 200,
 				easing: Easing.out(Easing.back(1.2)), // Bouncy slide-in effect
@@ -58,11 +58,11 @@ export const TabBar: React.FC<TabBarProps> = ({className}) => {
 				style={{
 					position: 'absolute',
 					bottom: 20,
-					left: '20%',
-					right: '20%',
-					width: '60%',
+					left: '18%',
+					right: '18%',
+					width: '64%',
 					paddingVertical: 12,
-					paddingHorizontal: 36,
+					paddingHorizontal: 40,
 					elevation: 8,
 					borderWidth: 1,
 					borderColor: 'rgba(0, 0, 0, 0.1)'
@@ -95,11 +95,11 @@ export const TabBar: React.FC<TabBarProps> = ({className}) => {
 					className="justify-center items-center py-1"
 				>
 					<View className="items-center">
-						<Ionicons name="albums" size={25} color={isActive('/albums')
+						<Ionicons name="albums" size={26} color={isActive('/albums')
 							? 'white'
 							: '#bcbcbc'}/>
 						<Text
-							className={`text-sm mt-2 font-medium text-primary-foreground ${
+							className={`text-sm mt-1 font-medium text-primary-foreground ${
 								isActive('/albums')
 									? 'opacity-100'
 									: 'opacity-70'
