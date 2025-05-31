@@ -94,10 +94,6 @@ export const DialogProvider: React.FC<DialogProviderProps> = ({children}) => {
 				isOpen={isDownloadConfirmationSheetOpen}
 				onClose={() => setDownloadConfirmationSheetOpen(false)}
 				photo={downloadConfirmationData.photo}
-				onConfirm={(photo) => {
-					console.log('Download confirmed for photo:', photo.id)
-					// TODO: Implement actual download logic here
-				}}
 			/>
 
 			{/* Future dialogs can be added here following the same pattern */}

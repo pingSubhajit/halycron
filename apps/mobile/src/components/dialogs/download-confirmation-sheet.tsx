@@ -6,19 +6,19 @@ import {darkTheme} from '@/src/theme/theme'
 import {SafeAreaView} from 'react-native-safe-area-context'
 import {Download} from '@/lib/icons/Download'
 import {Button} from '@/src/components/ui/button'
+import {downloadImageToGallery} from '@/src/lib/download-utils'
+import {showDownloadNotification} from '@/src/lib/notification-utils'
 
 interface DownloadConfirmationSheetProps {
 	isOpen: boolean
 	onClose: () => void
 	photo: Photo | null
-	onConfirm: (photo: Photo) => void
 }
 
 const DownloadConfirmationSheet: React.FC<DownloadConfirmationSheetProps> = ({
 	isOpen,
 	onClose,
-	photo,
-	onConfirm
+	photo
 }) => {
 	const bottomSheetRef = useRef<BottomSheet>(null)
 
@@ -39,12 +39,24 @@ const DownloadConfirmationSheet: React.FC<DownloadConfirmationSheetProps> = ({
 	}, [onClose])
 
 	// Handle download confirmation
-	const handleConfirm = useCallback(() => {
-		if (photo) {
-			onConfirm(photo)
-			handleClose()
+	const handleConfirm = useCallback(async () => {
+		if (!photo) return
+
+		// Close the sheet immediately
+		handleClose()
+
+		// Process download in background and show notification when complete
+		try {
+			const result = await downloadImageToGallery(photo)
+			await showDownloadNotification(result.success, result.message)
+		} catch (error) {
+			// Fallback error handling
+			await showDownloadNotification(
+				false,
+				'An unexpected error occurred while downloading the image.'
+			)
 		}
-	}, [photo, onConfirm, handleClose])
+	}, [photo, handleClose])
 
 	// Backdrop component that handles backdrop touches
 	const renderBackdrop = useCallback(

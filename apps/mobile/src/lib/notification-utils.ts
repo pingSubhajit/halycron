@@ -294,3 +294,47 @@ export class UploadNotificationManager {
 
 // Export singleton instance
 export const uploadNotificationManager = UploadNotificationManager.getInstance()
+
+// Simple download notification functions
+export const showDownloadNotification = async (success: boolean, message: string): Promise<void> => {
+	try {
+		// Check if notifications are permitted
+		const {status} = await Notifications.getPermissionsAsync()
+		if (status !== 'granted') {
+			console.log('Notifications not permitted, skipping download notification')
+			return
+		}
+
+		const title = success ? 'Download Complete' : 'Download Failed'
+		const emoji = success ? '📥' : '❌'
+
+		const notificationContent: any = {
+			title: `${emoji} ${title}`,
+			body: message,
+			data: {
+				type: 'download-complete',
+				success
+			},
+			sticky: false
+		}
+
+		// Configure for Android
+		if (Platform.OS === 'android') {
+			notificationContent.android = {
+				channelId: 'upload-progress', // Reuse existing channel
+				autoCancel: true,
+				ongoing: false,
+				priority: success ? 'default' : 'high',
+				visibility: 'public'
+			}
+		}
+
+		await Notifications.scheduleNotificationAsync({
+			identifier: `download-${Date.now()}`, // Unique ID for each download
+			content: notificationContent,
+			trigger: null
+		})
+	} catch (error) {
+		console.error('Failed to show download notification:', error)
+	}
+}
