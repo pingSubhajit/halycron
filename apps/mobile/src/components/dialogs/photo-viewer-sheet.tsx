@@ -1,15 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react'
-import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated'
-import {
-	ActivityIndicator,
-	BackHandler,
-	Dimensions,
-	Platform,
-	Text,
-	TouchableOpacity,
-	TouchableWithoutFeedback,
-	View
-} from 'react-native'
+import {useSharedValue} from 'react-native-reanimated'
+import {ActivityIndicator, BackHandler, Dimensions, Text, TouchableWithoutFeedback, View} from 'react-native'
 import BottomSheet, {BottomSheetView} from '@gorhom/bottom-sheet'
 import {Photo} from '@/src/lib/types'
 import {darkTheme} from '@/src/theme/theme'
@@ -18,11 +9,9 @@ import Carousel from 'react-native-reanimated-carousel'
 import {useAllPhotos} from '@/src/hooks/use-photos'
 import {useDecryptedUrl} from '@/src/hooks/use-decrypted-url'
 import {ImageZoom} from '@likashefqet/react-native-image-zoom'
-import {Share} from '@/lib/icons/Share'
-import {Download} from '@/lib/icons/Download'
-import {Heart} from '@/lib/icons/Heart'
-import {Trash2} from '@/lib/icons/Trash2'
 import {SystemBars} from 'react-native-edge-to-edge'
+import PhotoActionsBar from '@/src/components/photo-actions-bar'
+import {useDownloadConfirmation} from '@/src/components/dialog-provider'
 
 
 const {width: screenWidth, height: screenHeight} = Dimensions.get('window')
@@ -32,84 +21,6 @@ interface PhotoViewerSheetProps {
 	onClose: () => void
 	initialPhoto: Photo | null
 }
-
-interface ActionBarProps {
-	isVisible: boolean
-}
-
-// Action bar component with share, download, favorite, and delete options
-const ActionBar: React.FC<ActionBarProps> = React.memo(({isVisible}) => {
-	const opacity = useSharedValue(isVisible ? 1 : 0)
-
-	const handleActionPress = useCallback((action: string) => {
-		console.log(`${action} pressed`)
-	}, [])
-
-	// Animate opacity when visibility changes
-	useEffect(() => {
-		opacity.value = withTiming(isVisible ? 1 : 0, {
-			duration: 100
-		})
-	}, [isVisible, opacity])
-
-	const animatedStyle = useAnimatedStyle(() => {
-		return {
-			opacity: opacity.value
-		}
-	})
-
-	return (
-		<Animated.View style={[
-			{
-				position: 'absolute',
-				bottom: -55,
-				left: 20,
-				right: 20,
-				marginBottom: Platform.OS === 'ios' ? 50 : 25,
-				pointerEvents: isVisible ? 'box-none' : 'none' // Disable touches when not visible
-			},
-			animatedStyle
-		]}>
-			<View style={{
-				flexDirection: 'row',
-				justifyContent: 'space-around',
-				alignItems: 'center'
-			}}>
-				<TouchableOpacity
-					onPress={() => handleActionPress('Share')}
-					className="p-3 items-center gap-2"
-				>
-					<Share size={20} color="white"/>
-					<Text className="text-primary-foreground font-medium">Share</Text>
-				</TouchableOpacity>
-
-				<TouchableOpacity
-					onPress={() => handleActionPress('Download')}
-					className="p-3 items-center gap-2"
-				>
-					<Download size={20} color="white"/>
-					<Text className="text-primary-foreground font-medium">Download</Text>
-				</TouchableOpacity>
-
-				<TouchableOpacity
-					onPress={() => handleActionPress('Favorite')}
-					className="p-3 items-center gap-2"
-				>
-					<Heart size={20} color="white"/>
-					<Text className="text-primary-foreground font-medium">Favourite</Text>
-				</TouchableOpacity>
-
-				<TouchableOpacity
-					onPress={() => handleActionPress('Delete')}
-					className="p-3 items-center gap-2"
-				>
-					<Trash2 size={20} color="white"/>
-					<Text className="text-primary-foreground font-medium">Trash</Text>
-				</TouchableOpacity>
-			</View>
-		</Animated.View>
-	)
-})
 
 
 // Virtualized photo item component with optimized memoization
@@ -261,6 +172,9 @@ const PhotoViewerSheet: React.FC<PhotoViewerSheetProps> = ({
 	const [isImageZoomed, setIsImageZoomed] = useState(false)
 	const [isActionBarVisible, setIsActionBarVisible] = useState(true)
 
+	// Check if download confirmation is open
+	const {isDownloadConfirmationSheetOpen} = useDownloadConfirmation()
+
 	// Fetch all photos
 	const {data: allPhotos = [], isLoading: isLoadingPhotos} = useAllPhotos()
 
@@ -353,8 +267,10 @@ const PhotoViewerSheet: React.FC<PhotoViewerSheetProps> = ({
 
 	// Handle action bar visibility
 	const handleImagePress = useCallback(() => {
+		// Don't toggle action bar if download confirmation is open
+		if (isDownloadConfirmationSheetOpen) return
 		setIsActionBarVisible(prev => !prev)
-	}, [])
+	}, [isDownloadConfirmationSheetOpen])
 
 
 	// Jump to initial photo ONCE when carousel is ready and sheet opens
@@ -406,10 +322,10 @@ const PhotoViewerSheet: React.FC<PhotoViewerSheetProps> = ({
 				photo={item}
 				isActive={isActive}
 				onZoomStateChange={index === currentIndex ? handleZoomStateChange : undefined}
-				onImagePress={index === currentIndex ? handleImagePress : undefined}
+				onImagePress={index === currentIndex && !isDownloadConfirmationSheetOpen ? handleImagePress : undefined}
 			/>
 		)
-	}, [activeIndices, currentIndex, handleZoomStateChange, handleImagePress])
+	}, [activeIndices, currentIndex, handleZoomStateChange, handleImagePress, isDownloadConfirmationSheetOpen])
 
 	// Don't render if not open
 	if (!isOpen) {
@@ -501,8 +417,9 @@ const PhotoViewerSheet: React.FC<PhotoViewerSheetProps> = ({
 							pagingEnabled={true}
 							enabled={!isImageZoomed}
 						/>
-						<ActionBar
+						<PhotoActionsBar
 							isVisible={isActionBarVisible}
+							currentPhoto={allPhotos[currentIndex] || null}
 						/>
 					</View>
 				</SafeAreaView>

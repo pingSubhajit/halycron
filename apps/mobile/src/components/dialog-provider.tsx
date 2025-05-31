@@ -1,5 +1,5 @@
 import React, {createContext, ReactNode, useContext, useState} from 'react'
-import {ExampleDialog, PhotoViewerSheet} from './dialogs'
+import {DownloadConfirmationSheet, ExampleDialog, PhotoViewerSheet} from './dialogs'
 import {Photo} from '@/src/lib/types'
 
 // Dialog Context Interface
@@ -15,6 +15,14 @@ interface DialogContextType {
 		initialPhoto: Photo | null
 	}
 	setPhotoViewerData: (data: { initialPhoto: Photo | null }) => void
+
+	// Download Confirmation Sheet
+	isDownloadConfirmationSheetOpen: boolean
+	setDownloadConfirmationSheetOpen: (open: boolean) => void
+	downloadConfirmationData: {
+		photo: Photo | null
+	}
+	setDownloadConfirmationData: (data: { photo: Photo | null }) => void
 }
 
 // Create the context
@@ -38,6 +46,14 @@ export const DialogProvider: React.FC<DialogProviderProps> = ({children}) => {
 		initialPhoto: null
 	})
 
+	// State for Download Confirmation Sheet
+	const [isDownloadConfirmationSheetOpen, setDownloadConfirmationSheetOpen] = useState(false)
+	const [downloadConfirmationData, setDownloadConfirmationData] = useState<{
+		photo: Photo | null
+	}>({
+		photo: null
+	})
+
 	// Context value containing all dialog states and setters
 	const contextValue: DialogContextType = {
 		// Example Dialog
@@ -48,7 +64,13 @@ export const DialogProvider: React.FC<DialogProviderProps> = ({children}) => {
 		isPhotoViewerSheetOpen,
 		setPhotoViewerSheetOpen,
 		photoViewerData,
-		setPhotoViewerData
+		setPhotoViewerData,
+
+		// Download Confirmation Sheet
+		isDownloadConfirmationSheetOpen,
+		setDownloadConfirmationSheetOpen,
+		downloadConfirmationData,
+		setDownloadConfirmationData
 	}
 
 	return (
@@ -66,6 +88,16 @@ export const DialogProvider: React.FC<DialogProviderProps> = ({children}) => {
 				isOpen={isPhotoViewerSheetOpen}
 				onClose={() => setPhotoViewerSheetOpen(false)}
 				initialPhoto={photoViewerData.initialPhoto}
+			/>
+
+			<DownloadConfirmationSheet
+				isOpen={isDownloadConfirmationSheetOpen}
+				onClose={() => setDownloadConfirmationSheetOpen(false)}
+				photo={downloadConfirmationData.photo}
+				onConfirm={(photo) => {
+					console.log('Download confirmed for photo:', photo.id)
+					// TODO: Implement actual download logic here
+				}}
 			/>
 
 			{/* Future dialogs can be added here following the same pattern */}
@@ -144,6 +176,48 @@ export const usePhotoViewer = () => {
 		photoViewerData,
 		openPhotoViewer,
 		closePhotoViewer
+	}
+}
+
+/**
+ * Hook to control the Download Confirmation Sheet
+ * Returns methods to open and close the download confirmation dialog
+ *
+ * Usage:
+ * const { openDownloadConfirmation, closeDownloadConfirmation } = useDownloadConfirmation()
+ *
+ * // To open the download confirmation with a specific photo
+ * openDownloadConfirmation(photo)
+ *
+ * // To close the download confirmation
+ * closeDownloadConfirmation()
+ */
+export const useDownloadConfirmation = () => {
+	const {
+		isDownloadConfirmationSheetOpen,
+		setDownloadConfirmationSheetOpen,
+		downloadConfirmationData,
+		setDownloadConfirmationData
+	} = useDialogContext()
+
+	const openDownloadConfirmation = (photo: Photo) => {
+		setDownloadConfirmationData({photo})
+		setDownloadConfirmationSheetOpen(true)
+	}
+
+	const closeDownloadConfirmation = () => {
+		setDownloadConfirmationSheetOpen(false)
+		// Clear data after a short delay to allow closing animation
+		setTimeout(() => {
+			setDownloadConfirmationData({photo: null})
+		}, 300)
+	}
+
+	return {
+		isDownloadConfirmationSheetOpen,
+		downloadConfirmationData,
+		openDownloadConfirmation,
+		closeDownloadConfirmation
 	}
 }
 
