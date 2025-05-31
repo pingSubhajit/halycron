@@ -1,5 +1,5 @@
 import React, {useEffect, useRef} from 'react'
-import {Animated, Easing, Text, View} from 'react-native'
+import {Animated, Easing, Text, TouchableOpacity, View} from 'react-native'
 import {Link, usePathname, useRouter} from 'expo-router'
 import {BlurView} from '@/src/components/interops'
 import Ionicons from '@expo/vector-icons/Ionicons'
@@ -38,6 +38,10 @@ export const TabBar: React.FC<TabBarProps> = ({className}) => {
 		}
 	}, [shouldHideTabBar, slideAnim])
 
+	const handleTabPress = (route: string) => {
+		router.push(route)
+	}
+
 	const isActive = (route: string) => {
 		if (route === '/') {
 			return pathname === '/' || pathname === '/index'
@@ -55,7 +59,7 @@ export const TabBar: React.FC<TabBarProps> = ({className}) => {
 			<BlurView
 				tint="dark"
 				experimentalBlurMethod="dimezisBlurView"
-				className={`flex-row rounded-full mx-auto overflow-hidden ${className}`}
+				className={`flex-row rounded-full mx-auto overflow-hidden justify-between items-center ${className}`}
 				style={{
 					position: 'absolute',
 					bottom: 20,
@@ -63,7 +67,7 @@ export const TabBar: React.FC<TabBarProps> = ({className}) => {
 					right: '15%',
 					width: '70%',
 					paddingVertical: 12,
-					paddingHorizontal: 20,
+					paddingHorizontal: 56,
 					elevation: 8,
 					borderWidth: 1,
 					borderColor: 'rgba(0, 0, 0, 0.1)'
@@ -73,7 +77,7 @@ export const TabBar: React.FC<TabBarProps> = ({className}) => {
 					key={'gallery'}
 					href="/"
 					// onPress={() => handleTabPress('/')}
-					className="flex-1 justify-center items-center py-1"
+					className="justify-center items-center py-1"
 					// activeOpacity={0.7}
 				>
 					<View className="items-center">
@@ -93,12 +97,12 @@ export const TabBar: React.FC<TabBarProps> = ({className}) => {
 				</Link>
 
 				{/* Spacer for the middle upload button */}
-				<View className="flex-1"/>
+				{/* <View className="flex-1"/>*/}
 
 				<Link
 					key={'albums'}
 					href="/albums"
-					className="flex-1 justify-center items-center py-2"
+					className="justify-center items-center py-1"
 				>
 					<View className="items-center">
 						<Ionicons name="albums" size={24} color={isActive('/albums')
@@ -118,7 +122,9 @@ export const TabBar: React.FC<TabBarProps> = ({className}) => {
 			</BlurView>
 
 			{/* Plus Upload Button */}
-			<View
+			<TouchableOpacity
+				onPress={() => handleTabPress('/upload')}
+				activeOpacity={0.8}
 				style={{
 					position: 'absolute',
 					bottom: 56, // Elevated above the tab bar
@@ -142,21 +148,19 @@ export const TabBar: React.FC<TabBarProps> = ({className}) => {
 					borderColor: 'rgba(255, 255, 255, 0.1)'
 				}}
 			>
-				<Link href="/upload">
-					<View
-						style={{
-							width: 68,
-							height: 68,
-							borderRadius: 34,
-							backgroundColor: darkTheme.background,
-							justifyContent: 'center',
-							alignItems: 'center'
-						}}
-					>
-						<Ionicons name="add" size={36} color={darkTheme.primary}/>
-					</View>
-				</Link>
-			</View>
+				<View
+					style={{
+						width: 68,
+						height: 68,
+						borderRadius: 34,
+						backgroundColor: darkTheme.background,
+						justifyContent: 'center',
+						alignItems: 'center'
+					}}
+				>
+					<Ionicons name="add" size={36} color={darkTheme.primary}/>
+				</View>
+			</TouchableOpacity>
 		</Animated.View>
 	)
 }

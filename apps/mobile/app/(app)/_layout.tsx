@@ -1,5 +1,5 @@
 import {Stack} from 'expo-router'
-import {View} from 'react-native'
+import {Platform, View} from 'react-native'
 import React, {useEffect} from 'react'
 import {useSession} from '@/src/components/session-provider'
 import {BiometricGuard} from '@/src/components/biometric-guard'
@@ -39,8 +39,12 @@ const AuthenticatedAppLayout = () => {
 						<Stack.Screen
 							name="upload"
 							options={{
-								presentation: 'modal',
-								animation: 'default'
+								presentation: Platform.OS === 'android' ? 'fullScreenModal' : 'modal',
+								animation: 'slide_from_bottom',
+								animationDuration: 50,
+								gestureEnabled: true,
+								gestureDirection: 'vertical',
+								headerShown: false
 							}}
 						/>
 					</Stack.Protected>
