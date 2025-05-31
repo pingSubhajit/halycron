@@ -477,14 +477,14 @@ const PhotoViewerSheet: React.FC<PhotoViewerSheetProps> = ({
 			backgroundStyle={{backgroundColor: darkTheme.dark}}
 			handleIndicatorStyle={{backgroundColor: darkTheme.accent}}
 		>
-			<BottomSheetView>
+			<BottomSheetView className="flex-1">
 				<SystemBars
 					hidden={{
 						statusBar: !isActionBarVisible,
 						navigationBar: !isActionBarVisible
 					}}
 				/>
-				<SafeAreaView>
+				<SafeAreaView className="flex-1">
 					<View className="justify-center">
 						<Carousel
 							key={`${carouselDimensions.width}-${carouselDimensions.height}`}
