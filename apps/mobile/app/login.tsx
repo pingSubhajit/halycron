@@ -55,7 +55,7 @@ const Login = () => {
 			if (session.data) {
 				router.push('/')
 			} else {
-				setError('Login succeeded but no session was created')
+				setError('That doesn\'t look right. Try again?')
 			}
 		} catch (err: any) {
 			// Show a more detailed error

@@ -1,6 +1,6 @@
 import React, {useEffect, useRef} from 'react'
-import {Animated, Easing, Text, TouchableOpacity, View} from 'react-native'
-import {usePathname, useRouter} from 'expo-router'
+import {Animated, Easing, Text, View} from 'react-native'
+import {Link, usePathname, useRouter} from 'expo-router'
 import {BlurView} from '@/src/components/interops'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import {darkTheme} from '@/src/theme/theme'
@@ -38,10 +38,6 @@ export const TabBar: React.FC<TabBarProps> = ({className}) => {
 		}
 	}, [shouldHideTabBar, slideAnim])
 
-	const handleTabPress = (route: string) => {
-		router.push(route as any)
-	}
-
 	const isActive = (route: string) => {
 		if (route === '/') {
 			return pathname === '/' || pathname === '/index'
@@ -73,11 +69,12 @@ export const TabBar: React.FC<TabBarProps> = ({className}) => {
 					borderColor: 'rgba(0, 0, 0, 0.1)'
 				}}
 			>
-				<TouchableOpacity
+				<Link
 					key={'gallery'}
-					onPress={() => handleTabPress('/')}
+					href="/"
+					// onPress={() => handleTabPress('/')}
 					className="flex-1 justify-center items-center py-1"
-					activeOpacity={0.7}
+					// activeOpacity={0.7}
 				>
 					<View className="items-center">
 						<Ionicons name="images" size={24} color={isActive('/')
@@ -93,16 +90,15 @@ export const TabBar: React.FC<TabBarProps> = ({className}) => {
 							Gallery
 						</Text>
 					</View>
-				</TouchableOpacity>
+				</Link>
 
 				{/* Spacer for the middle upload button */}
 				<View className="flex-1"/>
 
-				<TouchableOpacity
+				<Link
 					key={'albums'}
-					onPress={() => handleTabPress('/albums')}
+					href="/albums"
 					className="flex-1 justify-center items-center py-2"
-					activeOpacity={0.7}
 				>
 					<View className="items-center">
 						<Ionicons name="albums" size={24} color={isActive('/albums')
@@ -118,13 +114,11 @@ export const TabBar: React.FC<TabBarProps> = ({className}) => {
 							Albums
 						</Text>
 					</View>
-				</TouchableOpacity>
+				</Link>
 			</BlurView>
 
 			{/* Plus Upload Button */}
-			<TouchableOpacity
-				onPress={() => handleTabPress('/upload')}
-				activeOpacity={0.8}
+			<View
 				style={{
 					position: 'absolute',
 					bottom: 56, // Elevated above the tab bar
@@ -148,19 +142,21 @@ export const TabBar: React.FC<TabBarProps> = ({className}) => {
 					borderColor: 'rgba(255, 255, 255, 0.1)'
 				}}
 			>
-				<View
-					style={{
-						width: 68,
-						height: 68,
-						borderRadius: 34,
-						backgroundColor: darkTheme.background,
-						justifyContent: 'center',
-						alignItems: 'center'
-					}}
-				>
-					<Ionicons name="add" size={36} color={darkTheme.primary}/>
-				</View>
-			</TouchableOpacity>
+				<Link href="/upload">
+					<View
+						style={{
+							width: 68,
+							height: 68,
+							borderRadius: 34,
+							backgroundColor: darkTheme.background,
+							justifyContent: 'center',
+							alignItems: 'center'
+						}}
+					>
+						<Ionicons name="add" size={36} color={darkTheme.primary}/>
+					</View>
+				</Link>
+			</View>
 		</Animated.View>
 	)
 }
