@@ -10,6 +10,8 @@
     "web": "expo start --web",
     "build:preview": "eas build --profile preview",
     "build:production": "eas build --profile production",
+    "submit:android": "eas submit --platform android",
+    "submit:ios": "eas submit --platform ios",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix"
   },
