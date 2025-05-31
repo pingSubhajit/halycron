@@ -22,6 +22,7 @@ import {Share} from '@/lib/icons/Share'
 import {Download} from '@/lib/icons/Download'
 import {Heart} from '@/lib/icons/Heart'
 import {Trash2} from '@/lib/icons/Trash2'
+import {SystemBars} from 'react-native-edge-to-edge'
 
 
 const {width: screenWidth, height: screenHeight} = Dimensions.get('window')
@@ -477,6 +478,12 @@ const PhotoViewerSheet: React.FC<PhotoViewerSheetProps> = ({
 			handleIndicatorStyle={{backgroundColor: darkTheme.accent}}
 		>
 			<BottomSheetView>
+				<SystemBars
+					hidden={{
+						statusBar: !isActionBarVisible,
+						navigationBar: !isActionBarVisible
+					}}
+				/>
 				<SafeAreaView>
 					<View className="justify-center">
 						<Carousel
