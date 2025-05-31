@@ -9,7 +9,8 @@
     "newArchEnabled": true,
     "userInterfaceStyle": "dark",
     "updates": {
-      "fallbackToCacheTimeout": 0
+      "fallbackToCacheTimeout": 0,
+      "url": "https://u.expo.dev/1a399942-c9ed-4348-ac51-0730f2d541fa"
     },
     "assetBundlePatterns": [
       "**/*"
@@ -27,6 +28,11 @@
       },
       "package": "com.halycron.app",
       "permissions": [
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.ACCESS_MEDIA_LOCATION",
+        "android.permission.USE_BIOMETRIC",
+        "android.permission.USE_FINGERPRINT",
         "android.permission.READ_EXTERNAL_STORAGE",
         "android.permission.WRITE_EXTERNAL_STORAGE",
         "android.permission.ACCESS_MEDIA_LOCATION",
@@ -120,8 +126,28 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "1a399942-c9ed-4348-ac51-0730f2d541fa"
+        "projectId": "1a399942-c9ed-4348-ac51-0730f2d541fa",
+        "build": {
+          "experimental": {
+            "ios": {
+              "appExtensions": [
+                {
+                  "targetName": "HalycronShareExtension",
+                  "bundleIdentifier": "com.halycron.app.share-extension",
+                  "entitlements": {
+                    "com.apple.security.application-groups": [
+                      "group.com.halycron.app"
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        }
       }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
     }
   }
 }
