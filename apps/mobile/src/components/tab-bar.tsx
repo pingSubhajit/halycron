@@ -1,6 +1,6 @@
 import React, {useEffect, useRef} from 'react'
 import {Animated, Easing, Text, View} from 'react-native'
-import {Link, usePathname, useRouter} from 'expo-router'
+import {Link, usePathname} from 'expo-router'
 import {BlurView} from '@/src/components/interops'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import {darkTheme} from '@/src/theme/theme'
@@ -10,7 +10,6 @@ interface TabBarProps {
 }
 
 export const TabBar: React.FC<TabBarProps> = ({className}) => {
-	const router = useRouter()
 	const pathname = usePathname()
 	const slideAnim = useRef(new Animated.Value(0)).current
 
@@ -38,10 +37,6 @@ export const TabBar: React.FC<TabBarProps> = ({className}) => {
 		}
 	}, [shouldHideTabBar, slideAnim])
 
-	const handleTabPress = (route: string) => {
-		router.push(route)
-	}
-
 	const isActive = (route: string) => {
 		if (route === '/') {
 			return pathname === '/' || pathname === '/index'
@@ -63,25 +58,23 @@ export const TabBar: React.FC<TabBarProps> = ({className}) => {
 				style={{
 					position: 'absolute',
 					bottom: 20,
-					left: '15%',
-					right: '15%',
-					width: '70%',
+					left: '20%',
+					right: '20%',
+					width: '60%',
 					paddingVertical: 12,
-					paddingHorizontal: 56,
+					paddingHorizontal: 36,
 					elevation: 8,
 					borderWidth: 1,
 					borderColor: 'rgba(0, 0, 0, 0.1)'
 				}}
 			>
 				<Link
-					key={'gallery'}
 					href="/"
-					// onPress={() => handleTabPress('/')}
+					replace
 					className="justify-center items-center py-1"
-					// activeOpacity={0.7}
 				>
 					<View className="items-center">
-						<Ionicons name="images" size={24} color={isActive('/')
+						<Ionicons name="images" size={25} color={isActive('/')
 							? 'white'
 							: '#bcbcbc'}/>
 						<Text
@@ -96,16 +89,13 @@ export const TabBar: React.FC<TabBarProps> = ({className}) => {
 					</View>
 				</Link>
 
-				{/* Spacer for the middle upload button */}
-				{/* <View className="flex-1"/>*/}
-
 				<Link
-					key={'albums'}
 					href="/albums"
+					replace
 					className="justify-center items-center py-1"
 				>
 					<View className="items-center">
-						<Ionicons name="albums" size={24} color={isActive('/albums')
+						<Ionicons name="albums" size={25} color={isActive('/albums')
 							? 'white'
 							: '#bcbcbc'}/>
 						<Text
