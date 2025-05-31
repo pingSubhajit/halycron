@@ -78,7 +78,7 @@ export const TabBar: React.FC<TabBarProps> = ({className}) => {
 							? 'white'
 							: '#bcbcbc'}/>
 						<Text
-							className={`text-sm mt-2 font-medium text-primary-foreground ${
+							className={`text-sm mt-2 font-medium text-primary-foreground whitespace-nowrap ${
 								isActive('/')
 									? 'opacity-100'
 									: 'opacity-70'
@@ -99,7 +99,7 @@ export const TabBar: React.FC<TabBarProps> = ({className}) => {
 							? 'white'
 							: '#bcbcbc'}/>
 						<Text
-							className={`text-sm mt-1 font-medium text-primary-foreground ${
+							className={`text-sm mt-1 font-medium text-primary-foreground whitespace-nowrap ${
 								isActive('/albums')
 									? 'opacity-100'
 									: 'opacity-70'
