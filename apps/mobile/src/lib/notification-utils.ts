@@ -295,24 +295,38 @@ export class UploadNotificationManager {
 // Export singleton instance
 export const uploadNotificationManager = UploadNotificationManager.getInstance()
 
-// Simple download notification functions
-export const showDownloadNotification = async (success: boolean, message: string): Promise<void> => {
+// Generic photo action notification function
+export const showPhotoActionNotification = async (
+	action: 'download' | 'share',
+	success: boolean,
+	message: string
+): Promise<void> => {
 	try {
 		// Check if notifications are permitted
 		const {status} = await Notifications.getPermissionsAsync()
 		if (status !== 'granted') {
-			console.log('Notifications not permitted, skipping download notification')
+			console.log('Notifications not permitted, skipping notification')
 			return
 		}
 
-		const title = success ? 'Download Complete' : 'Download Failed'
-		const emoji = success ? '📥' : '❌'
+		const titles = {
+			download: success ? 'Download Complete' : 'Download Failed',
+			share: success ? 'Share Complete' : 'Share Failed'
+		}
+
+		const emojis = {
+			download: success ? '📥' : '❌',
+			share: success ? '📤' : '❌'
+		}
+
+		const title = titles[action]
+		const emoji = emojis[action]
 
 		const notificationContent: any = {
 			title: `${emoji} ${title}`,
 			body: message,
 			data: {
-				type: 'download-complete',
+				type: `${action}-complete`,
 				success
 			},
 			sticky: false
@@ -330,11 +344,16 @@ export const showDownloadNotification = async (success: boolean, message: string
 		}
 
 		await Notifications.scheduleNotificationAsync({
-			identifier: `download-${Date.now()}`, // Unique ID for each download
+			identifier: `${action}-${Date.now()}`, // Unique ID for each action
 			content: notificationContent,
 			trigger: null
 		})
 	} catch (error) {
-		console.error('Failed to show download notification:', error)
+		console.error(`Failed to show ${action} notification:`, error)
 	}
+}
+
+// Backward compatibility for download notifications
+export const showDownloadNotification = async (success: boolean, message: string): Promise<void> => {
+	return showPhotoActionNotification('download', success, message)
 }

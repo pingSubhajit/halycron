@@ -7,6 +7,8 @@ import {Heart} from '@/lib/icons/Heart'
 import {Trash2} from '@/lib/icons/Trash2'
 import {Photo} from '@/src/lib/types'
 import {useDownloadConfirmation} from './dialog-provider'
+import {shareImage} from '@/src/lib/share-utils'
+import {showPhotoActionNotification} from '@/src/lib/notification-utils'
 
 interface PhotoActionsBarProps {
 	isVisible: boolean
@@ -30,13 +32,24 @@ const PhotoActionsBar: React.FC<PhotoActionsBarProps> = ({isVisible, currentPhot
 		}
 	})
 
-	const handleActionPress = useCallback((action: string) => {
+	const handleActionPress = useCallback(async (action: string) => {
 		if (!currentPhoto) return
 
 		switch (action) {
 		case 'Share':
-			console.log('Share pressed for photo:', currentPhoto.id)
-			// TODO: Implement share functionality
+			try {
+				const result = await shareImage(currentPhoto)
+				if (!result.success) {
+					// Only show notification for errors - success is handled by the native share dialog
+					await showPhotoActionNotification('share', false, result.message)
+				}
+			} catch (error) {
+				await showPhotoActionNotification(
+					'share',
+					false,
+					'An unexpected error occurred while sharing the image.'
+				)
+			}
 			break
 		case 'Download':
 			openDownloadConfirmation(currentPhoto)
