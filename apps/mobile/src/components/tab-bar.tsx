@@ -1,5 +1,5 @@
 import React, {useEffect, useRef} from 'react'
-import {Animated, Easing, Text, TouchableOpacity, View} from 'react-native'
+import {Animated, Easing, Text, View} from 'react-native'
 import {Link, usePathname, useRouter} from 'expo-router'
 import {BlurView} from '@/src/components/interops'
 import Ionicons from '@expo/vector-icons/Ionicons'
@@ -122,9 +122,7 @@ export const TabBar: React.FC<TabBarProps> = ({className}) => {
 			</BlurView>
 
 			{/* Plus Upload Button */}
-			<TouchableOpacity
-				onPress={() => handleTabPress('/upload')}
-				activeOpacity={0.8}
+			<View
 				style={{
 					position: 'absolute',
 					bottom: 56, // Elevated above the tab bar
@@ -148,19 +146,21 @@ export const TabBar: React.FC<TabBarProps> = ({className}) => {
 					borderColor: 'rgba(255, 255, 255, 0.1)'
 				}}
 			>
-				<View
-					style={{
-						width: 68,
-						height: 68,
-						borderRadius: 34,
-						backgroundColor: darkTheme.background,
-						justifyContent: 'center',
-						alignItems: 'center'
-					}}
-				>
-					<Ionicons name="add" size={36} color={darkTheme.primary}/>
-				</View>
-			</TouchableOpacity>
+				<Link href="/upload">
+					<View
+						style={{
+							width: 68,
+							height: 68,
+							borderRadius: 34,
+							backgroundColor: darkTheme.background,
+							justifyContent: 'center',
+							alignItems: 'center'
+						}}
+					>
+						<Ionicons name="add" size={36} color={darkTheme.primary}/>
+					</View>
+				</Link>
+			</View>
 		</Animated.View>
 	)
 }
