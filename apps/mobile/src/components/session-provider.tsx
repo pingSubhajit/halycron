@@ -12,6 +12,8 @@ interface SessionContextValue {
 	initialRoute: Route | null;
 	status: 'loading' | 'authenticated' | 'unauthenticated';
 	signOut: () => Promise<void>;
+	pendingSharedRoute: string | null;
+	setPendingSharedRoute: (route: string | null) => void;
 }
 
 const SessionContext = createContext<SessionContextValue | undefined>(undefined)
@@ -25,6 +27,7 @@ export function SessionProvider({children}: { children: React.ReactNode }) {
 	const [sessionState, setSessionState] = useState<Session | null>(null)
 	const [userState, setUserState] = useState<User | null>(null)
 	const [initialRoute, setInitialRoute] = useState<string | null>(null)
+	const [pendingSharedRoute, setPendingSharedRoute] = useState<string | null>(null)
 
 	const {data: sessionData, isPending} = authClient.useSession()
 
@@ -126,18 +129,42 @@ export function SessionProvider({children}: { children: React.ReactNode }) {
 
 					if (isSharedLink) {
 						/*
-						 * If opened from shared link, go directly to shared route immediately
-						 * Don't wait for auth state to be determined
+						 * If opened from shared link, check authentication status
 						 */
 						const token = parsed.path?.replace('/shared/', '')
 						if (token) {
-							console.log('🔗 App opened from shared link, setting initial route immediately to:', `/shared/${token}`)
-							setInitialRoute(`/shared/${token}`)
-							// Hide splash screen with a minimal delay for better UX
-							setTimeout(() => {
-								SplashScreen.hideAsync()
-							}, 1500)
-							return
+							const sharedRoute = `/shared/${token}`
+							console.log('🔗 App opened from shared link:', sharedRoute)
+
+							// Check if user is already authenticated (has valid session)
+							const storedSession = await AsyncStorage.getItem(SESSION_STORAGE_KEY)
+							let isAuthenticated = false
+							if (storedSession) {
+								try {
+									const sessionObj = JSON.parse(storedSession)
+									isAuthenticated = sessionObj.expiresAt && sessionObj.expiresAt > Date.now()
+								} catch (error) {
+									console.error('Error parsing stored session:', error)
+								}
+							}
+
+							if (isAuthenticated) {
+								/*
+								 * User is authenticated, set pending shared route and go through normal auth flow
+								 * This will trigger biometric auth, and after success, we'll navigate to shared route
+								 */
+								console.log('🔗 User authenticated, setting pending shared route and going through auth flow')
+								setPendingSharedRoute(sharedRoute)
+								// Continue with normal authenticated flow (will trigger biometric)
+							} else {
+								// User not authenticated, go directly to shared route
+								console.log('🔗 User not authenticated, going directly to shared route')
+								setInitialRoute(sharedRoute)
+								setTimeout(() => {
+									SplashScreen.hideAsync()
+								}, 1500)
+								return
+							}
 						}
 					}
 				}
@@ -177,7 +204,9 @@ export function SessionProvider({children}: { children: React.ReactNode }) {
 				user: userState,
 				initialRoute,
 				status,
-				signOut
+				signOut,
+				pendingSharedRoute,
+				setPendingSharedRoute
 			}}
 		>
 			{!initialRoute && <CustomSplashScreen/>}

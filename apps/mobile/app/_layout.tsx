@@ -72,6 +72,7 @@ const NotificationHandler = () => {
 
 const DeepLinkHandler = () => {
 	const {closeAllDialogs} = useCloseAllDialogs()
+	const {setPendingSharedRoute} = useSession()
 
 	useEffect(() => {
 		// Handle deep links when app is opened from a link
@@ -85,7 +86,8 @@ const DeepLinkHandler = () => {
 			if (isHttpsSharedLink || isCustomSchemeSharedLink) {
 				const token = parsed.path?.replace('/shared/', '')
 				if (token) {
-					console.log('🔗 Deep link detected while app running, navigating to:', `/shared/${token}`)
+					const sharedRoute = `/shared/${token}`
+					console.log('🔗 Deep link detected while app running, navigating to:', sharedRoute)
 
 					// Close any open dialogs first to ensure shared content isn't hidden
 					console.log('🔗 Calling closeAllDialogs() from deep link handler...')
@@ -108,7 +110,7 @@ const DeepLinkHandler = () => {
 					// Navigate to shared route with replace to avoid stack issues
 					setTimeout(() => {
 						console.log('🔗 Navigating to shared route...')
-						router.replace(`/shared/${token}`)
+						router.replace(sharedRoute)
 					}, 200)
 				}
 			}

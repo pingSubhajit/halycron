@@ -5,6 +5,8 @@ import fingerprint from '@halycron/ui/media/fingerprint.png'
 import {Image} from '@/src/components/interops'
 import {Button} from '@/src/components/ui/button'
 import {darkTheme} from '@/src/theme/theme'
+import {useSession} from './session-provider'
+import {router} from 'expo-router'
 
 interface BiometricGuardProps {
 	children: React.ReactNode;
@@ -20,6 +22,7 @@ export const BiometricGuard = ({children, fallback}: BiometricGuardProps) => {
 		isBiometricRequired
 	} = useBiometric()
 
+	const {pendingSharedRoute, setPendingSharedRoute} = useSession()
 	const [isAuthenticating, setIsAuthenticating] = useState(false)
 	const [shouldPromptOnMount, setShouldPromptOnMount] = useState(true)
 
@@ -57,8 +60,17 @@ export const BiometricGuard = ({children, fallback}: BiometricGuardProps) => {
 		return <>{children}</>
 	}
 
-	// If authenticated, show the protected content
+	// If authenticated, handle pending shared route or show protected content
 	if (isAuthenticated) {
+		// Check if there's a pending shared route to navigate to
+		if (pendingSharedRoute) {
+			console.log('🔗 Biometric auth complete, navigating to pending shared route:', pendingSharedRoute)
+			// Navigate to the pending shared route
+			setTimeout(() => {
+				router.replace(pendingSharedRoute)
+				setPendingSharedRoute(null)
+			}, 100)
+		}
 		return <>{children}</>
 	}
 
