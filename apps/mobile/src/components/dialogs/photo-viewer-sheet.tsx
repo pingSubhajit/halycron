@@ -181,32 +181,19 @@ const PhotoViewerSheet: React.FC<PhotoViewerSheetProps> = ({
 	// Fetch all photos
 	const {data: allPhotos = [], isLoading: isLoadingPhotos, refetch: refetchPhotos} = useAllPhotos()
 
-	// Local state for photos to handle deletions
-	const [localPhotos, setLocalPhotos] = useState<Photo[]>([])
+	// Use allPhotos directly instead of local state to avoid useEffect
+	const localPhotos = allPhotos
 
-	// Update local photos when server data changes
-	useEffect(() => {
-		setLocalPhotos(allPhotos)
-	}, [allPhotos])
 
-	// Find initial photo index - memoized for performance
-	const initialIndex = useMemo(() => {
-		if (!initialPhoto || !localPhotos.length) {
-			return 0
-		}
-		const index = localPhotos.findIndex(photo => photo.id === initialPhoto.id)
-		return index !== -1 ? index : 0
-	}, [initialPhoto?.id, localPhotos.length])
+	// Calculate the initial index for the carousel
+	const getInitialIndex = useCallback(() => {
+		if (!initialPhoto || !localPhotos.length) return 0
+		const foundIndex = localPhotos.findIndex(photo => photo.id === initialPhoto.id)
+		return foundIndex !== -1 ? foundIndex : 0
+	}, [initialPhoto?.id, localPhotos])
 
 	// Initialize currentIndex with the correct initial index
-	const [currentIndex, setCurrentIndex] = useState(0) // Start with 0, update when ready
-
-	// Update currentIndex when initialIndex changes and we have photos
-	useEffect(() => {
-		if (localPhotos.length > 0 && !hasInitialized) {
-			setCurrentIndex(initialIndex)
-		}
-	}, [initialIndex, hasInitialized, localPhotos.length])
+	const [currentIndex, setCurrentIndex] = useState(() => getInitialIndex())
 
 	// Calculate snap points - we want it to be full screen
 	const snapPoints = useMemo(() => ['100%'], [])
@@ -222,16 +209,6 @@ const PhotoViewerSheet: React.FC<PhotoViewerSheetProps> = ({
 			height: Math.max(availableHeight * 0.85, 400) // Ensure minimum height
 		}
 	}, [])
-
-	// Optimized active indices calculation - only current photo for better performance
-	const activeIndices = useMemo(() => {
-		const indices = new Set<number>()
-		// Only load current and immediate neighbors
-		indices.add(currentIndex)
-		if (currentIndex > 0) indices.add(currentIndex - 1)
-		if (currentIndex < localPhotos.length - 1) indices.add(currentIndex + 1)
-		return indices
-	}, [currentIndex, localPhotos.length])
 
 	// Handle sheet close
 	const handleClose = useCallback(() => {
@@ -278,38 +255,32 @@ const PhotoViewerSheet: React.FC<PhotoViewerSheetProps> = ({
 
 	// Handle photo deletion
 	const handlePhotoDeleted = useCallback((deletedPhoto: Photo) => {
-		// Remove photo from local state
-		setLocalPhotos(prevPhotos => {
-			const newPhotos = prevPhotos.filter(photo => photo.id !== deletedPhoto.id)
+		// Check if this was the last photo
+		if (localPhotos.length <= 1) {
+			handleClose()
+			return
+		}
 
-			// If this was the last photo, close the viewer
-			if (newPhotos.length === 0) {
-				handleClose()
-				return newPhotos
+		// Adjust current index if needed
+		setCurrentIndex(prevIndex => {
+			const newLength = localPhotos.length - 1
+			// If we deleted a photo before the current one, shift index back
+			if (prevIndex > 0 && prevIndex >= newLength) {
+				return newLength - 1
 			}
-
-			// Adjust current index if needed
-			setCurrentIndex(prevIndex => {
-				// If we deleted a photo before the current one, shift index back
-				if (prevIndex > 0 && prevIndex >= newPhotos.length) {
-					return newPhotos.length - 1
-				}
-				/*
-				 * If we deleted the current photo, stay at same index (showing next photo)
-				 * Unless we're at the end, then go to previous
-				 */
-				if (prevIndex >= newPhotos.length) {
-					return Math.max(0, newPhotos.length - 1)
-				}
-				return prevIndex
-			})
-
-			return newPhotos
+			/*
+			 * If we deleted the current photo, stay at same index (showing next photo)
+			 * Unless we're at the end, then go to previous
+			 */
+			if (prevIndex >= newLength) {
+				return Math.max(0, newLength - 1)
+			}
+			return prevIndex
 		})
 
 		// Refetch photos to update the gallery
 		refetchPhotos()
-	}, [handleClose, refetchPhotos])
+	}, [handleClose, refetchPhotos, localPhotos.length])
 
 	// Handle action bar visibility
 	const handleImagePress = useCallback(() => {
@@ -318,22 +289,22 @@ const PhotoViewerSheet: React.FC<PhotoViewerSheetProps> = ({
 		setIsActionBarVisible(prev => !prev)
 	}, [isDownloadConfirmationSheetOpen, isDeleteConfirmationSheetOpen])
 
-
-	// Jump to initial photo ONCE when carousel is ready and sheet opens
+	// Update currentIndex when the sheet opens and we have photos
 	useEffect(() => {
-		if (isOpen && !hasInitialized && carouselRef.current && localPhotos.length > 0) {
-			setCurrentIndex(initialIndex)
-
-			setTimeout(() => {
-				if (carouselRef.current) {
-					carouselRef.current.scrollTo({index: initialIndex, animated: false})
-					setHasInitialized(true)
-				}
-			}, 100)
+		if (isOpen && localPhotos.length > 0 && !hasInitialized) {
+			const newIndex = getInitialIndex()
+			setCurrentIndex(newIndex)
 		}
-	}, [isOpen, hasInitialized, localPhotos.length, initialIndex])
+	}, [isOpen, localPhotos.length, hasInitialized, getInitialIndex])
 
-	// Reset initialization flag when sheet closes
+	// Mark as initialized when opening
+	useEffect(() => {
+		if (isOpen) {
+			setHasInitialized(true)
+		}
+	}, [isOpen])
+
+	// Reset when sheet closes
 	useEffect(() => {
 		if (!isOpen) {
 			setHasInitialized(false)
@@ -344,7 +315,10 @@ const PhotoViewerSheet: React.FC<PhotoViewerSheetProps> = ({
 
 	// Optimized render item with stable reference
 	const renderItem = useCallback(({item, index}: { item: Photo; index: number }) => {
-		const isActive = activeIndices.has(index)
+		// Calculate isActive inline to avoid depending on activeIndices memo
+		const isActive = index === currentIndex ||
+			index === currentIndex - 1 ||
+			index === currentIndex + 1
 
 		// Safety check for invalid item
 		if (!item || !item.id) {
@@ -371,7 +345,7 @@ const PhotoViewerSheet: React.FC<PhotoViewerSheetProps> = ({
 				onImagePress={index === currentIndex && !isDownloadConfirmationSheetOpen && !isDeleteConfirmationSheetOpen ? handleImagePress : undefined}
 			/>
 		)
-	}, [activeIndices, currentIndex, handleZoomStateChange, handleImagePress, isDownloadConfirmationSheetOpen, isDeleteConfirmationSheetOpen])
+	}, [currentIndex, handleZoomStateChange, handleImagePress, isDownloadConfirmationSheetOpen, isDeleteConfirmationSheetOpen])
 
 	// Don't render if not open
 	if (!isOpen) {
@@ -457,7 +431,7 @@ const PhotoViewerSheet: React.FC<PhotoViewerSheetProps> = ({
 							data={localPhotos}
 							scrollAnimationDuration={200}
 							onSnapToItem={handleIndexChange}
-							defaultIndex={initialIndex}
+							defaultIndex={getInitialIndex()}
 							renderItem={renderItem}
 							windowSize={3}
 							pagingEnabled={true}

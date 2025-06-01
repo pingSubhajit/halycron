@@ -6,6 +6,7 @@ import {ThemeProvider} from '@/src/theme/ThemeProvider'
 import {SessionProvider, useSession} from '@/src/components/session-provider'
 import {BiometricProvider} from '@/src/components/biometric-provider'
 import {DialogProvider} from '@/src/components/dialog-provider'
+import {DialogRenderer} from '@/src/components/dialog-renderer'
 import {QueryProvider} from '@/src/components/query-provider'
 import {UploadProvider, useUploadContext} from '@/src/components/upload-provider'
 import {SystemBars} from 'react-native-edge-to-edge'
@@ -133,6 +134,9 @@ const AppContent = () => {
 
 						<RootNavigator/>
 					</UploadProvider>
+
+					{/* Render dialogs outside the main content but inside the provider */}
+					<DialogRenderer/>
 				</DialogProvider>
 			</BiometricProvider>
 		</SessionProvider>

@@ -5,7 +5,7 @@ import {Share} from '@/lib/icons/Share'
 import {Download} from '@/lib/icons/Download'
 import {Trash2} from '@/lib/icons/Trash2'
 import {Photo} from '@/src/lib/types'
-import {useDeleteConfirmation, useDownloadConfirmation} from './dialog-provider'
+import {useDeleteConfirmation, useDownloadConfirmation} from '@/src/components/dialog-provider'
 import {shareImage} from '@/src/lib/share-utils'
 import {showPhotoActionNotification} from '@/src/lib/notification-utils'
 

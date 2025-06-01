@@ -1,42 +1,6 @@
-import React, {createContext, ReactNode, useContext, useState} from 'react'
-import {DownloadConfirmationSheet, ExampleDialog, PhotoViewerSheet} from './dialogs'
-import DeleteConfirmationSheet from './dialogs/delete-confirmation-sheet'
+import React, {ReactNode, useContext, useState} from 'react'
+import {DialogContext, DialogContextType} from '@/src/contexts/dialog-context'
 import {Photo} from '@/src/lib/types'
-
-// Dialog Context Interface
-interface DialogContextType {
-	// Example Dialog
-	isExampleDialogOpen: boolean
-	setExampleDialogOpen: (open: boolean) => void
-
-	// Photo Viewer Sheet
-	isPhotoViewerSheetOpen: boolean
-	setPhotoViewerSheetOpen: (open: boolean) => void
-	photoViewerData: {
-		initialPhoto: Photo | null
-	}
-	setPhotoViewerData: (data: { initialPhoto: Photo | null }) => void
-
-	// Download Confirmation Sheet
-	isDownloadConfirmationSheetOpen: boolean
-	setDownloadConfirmationSheetOpen: (open: boolean) => void
-	downloadConfirmationData: {
-		photo: Photo | null
-	}
-	setDownloadConfirmationData: (data: { photo: Photo | null }) => void
-
-	// Delete Confirmation Sheet
-	isDeleteConfirmationSheetOpen: boolean
-	setDeleteConfirmationSheetOpen: (open: boolean) => void
-	deleteConfirmationData: {
-		photo: Photo | null
-		onPhotoDeleted?: (photo: Photo) => void
-	}
-	setDeleteConfirmationData: (data: { photo: Photo | null; onPhotoDeleted?: (photo: Photo) => void }) => void
-}
-
-// Create the context
-const DialogContext = createContext<DialogContextType | undefined>(undefined)
 
 // Dialog Provider Props
 interface DialogProviderProps {
@@ -103,39 +67,12 @@ export const DialogProvider: React.FC<DialogProviderProps> = ({children}) => {
 		<DialogContext.Provider value={contextValue}>
 			{/* Render children (app content) */}
 			{children}
-
-			{/* Render all dialogs - they are always mounted but controlled by state */}
-			<ExampleDialog
-				isOpen={isExampleDialogOpen}
-				onClose={() => setExampleDialogOpen(false)}
-			/>
-
-			<PhotoViewerSheet
-				isOpen={isPhotoViewerSheetOpen}
-				onClose={() => setPhotoViewerSheetOpen(false)}
-				initialPhoto={photoViewerData.initialPhoto}
-			/>
-
-			<DownloadConfirmationSheet
-				isOpen={isDownloadConfirmationSheetOpen}
-				onClose={() => setDownloadConfirmationSheetOpen(false)}
-				photo={downloadConfirmationData.photo}
-			/>
-
-			<DeleteConfirmationSheet
-				isOpen={isDeleteConfirmationSheetOpen}
-				onClose={() => setDeleteConfirmationSheetOpen(false)}
-				photo={deleteConfirmationData.photo}
-				onPhotoDeleted={deleteConfirmationData.onPhotoDeleted}
-			/>
-
-			{/* Future dialogs can be added here following the same pattern */}
 		</DialogContext.Provider>
 	)
 }
 
 // Hook to access the dialog context
-const useDialogContext = (): DialogContextType => {
+const useDialogContext = () => {
 	const context = useContext(DialogContext)
 	if (context === undefined) {
 		throw new Error('useDialogContext must be used within a DialogProvider')
@@ -291,15 +228,3 @@ export const useDeleteConfirmation = () => {
 		closeDeleteConfirmation
 	}
 }
-
-/*
- * Example of how to add more dialog hooks:
- *
- * export const useConfirmationDialog = () => {
- * 	const {isConfirmationDialogOpen, setConfirmationDialogOpen} = useDialogContext()
- * 	return {
- * 		isConfirmationDialogOpen,
- * 		setConfirmationDialogOpen,
- * 	}
- * }
- */
