@@ -1,6 +1,7 @@
 import React, {useCallback, useRef, useState} from 'react'
-import {Alert, Text, TextInput, TouchableOpacity, View} from 'react-native'
-import BottomSheet, {BottomSheetBackdrop, BottomSheetView} from '@gorhom/bottom-sheet'
+import {Alert, Text, TouchableOpacity, View} from 'react-native'
+import {TextInput} from 'react-native-gesture-handler'
+import BottomSheet, {BottomSheetBackdrop, BottomSheetTextInput, BottomSheetView} from '@gorhom/bottom-sheet'
 import {darkTheme} from '@/src/theme/theme'
 import {SafeAreaView} from 'react-native-safe-area-context'
 import {Lock} from '@/lib/icons/Lock'
@@ -182,7 +183,7 @@ export const SharedPinDialog: React.FC<SharedPinDialogProps> = ({
 						</View>
 
 						{/* Hidden input for PIN */}
-						<TextInput
+						<BottomSheetTextInput
 							ref={pinInputRef}
 							value={pin}
 							onChangeText={handlePinChange}

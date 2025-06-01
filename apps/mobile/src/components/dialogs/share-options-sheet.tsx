@@ -1,6 +1,7 @@
 import React, {useCallback, useMemo, useRef, useState} from 'react'
-import {ActivityIndicator, Alert, ScrollView, Text, TextInput, TouchableOpacity, View} from 'react-native'
-import BottomSheet, {BottomSheetBackdrop, BottomSheetScrollView} from '@gorhom/bottom-sheet'
+import {ActivityIndicator, Alert, ScrollView, Text, TouchableOpacity, View} from 'react-native'
+import {TextInput} from 'react-native-gesture-handler'
+import BottomSheet, {BottomSheetBackdrop, BottomSheetScrollView, BottomSheetTextInput} from '@gorhom/bottom-sheet'
 import {Image} from 'expo-image'
 import {CreateShareLinkRequest, ExpiryOption, Photo} from '@/src/lib/types'
 import {darkTheme} from '@/src/theme/theme'
@@ -546,7 +547,7 @@ const ShareOptionsSheet: React.FC<ShareOptionsSheetProps> = ({
 											</View>
 
 											{/* Hidden input for PIN */}
-											<TextInput
+											<BottomSheetTextInput
 												ref={pinInputRef}
 												value={formData.pin}
 												onChangeText={handlePinChange}
