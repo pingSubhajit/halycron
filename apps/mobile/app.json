@@ -5,26 +5,6 @@
     "version": "0.0.13",
     "scheme": "halycron",
     "orientation": "portrait",
-    "intentFilters": [
-      {
-        "action": "VIEW",
-        "data": [
-          {
-            "scheme": "https",
-            "host": "halycron.space",
-            "pathPrefix": "/shared"
-          },
-          {
-            "scheme": "halycron",
-            "pathPrefix": "/shared"
-          }
-        ],
-        "category": [
-          "BROWSABLE",
-          "DEFAULT"
-        ]
-      }
-    ],
     "icon": "../../packages/ui/src/media/icons/Mac/512@2x.png",
     "newArchEnabled": true,
     "userInterfaceStyle": "dark",
@@ -50,6 +30,36 @@
         "backgroundColor": "#0a0a0a"
       },
       "package": "com.halycron.app",
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "halycron.space",
+              "pathPrefix": "/shared"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
+        },
+        {
+          "action": "VIEW",
+          "data": [
+            {
+              "scheme": "halycron",
+              "pathPrefix": "/shared"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
+        }
+      ],
       "permissions": [
         "android.permission.READ_EXTERNAL_STORAGE",
         "android.permission.WRITE_EXTERNAL_STORAGE",
