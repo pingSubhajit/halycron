@@ -249,7 +249,6 @@ const ShareOptionsSheet: React.FC<ShareOptionsSheetProps> = ({
 		try {
 			await Clipboard.setStringAsync(shareUrl)
 			setCopied(true)
-			await showPhotoActionNotification('share', true, 'Link copied to clipboard!')
 			setTimeout(() => setCopied(false), 2000)
 		} catch (error) {
 			Alert.alert('Error', 'Failed to copy link to clipboard')
