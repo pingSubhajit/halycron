@@ -5,9 +5,7 @@ import {Share} from '@/lib/icons/Share'
 import {Download} from '@/lib/icons/Download'
 import {Trash2} from '@/lib/icons/Trash2'
 import {Photo} from '@/src/lib/types'
-import {useDeleteConfirmation, useDownloadConfirmation} from '@/src/components/dialog-provider'
-import {shareImage} from '@/src/lib/share-utils'
-import {showPhotoActionNotification} from '@/src/lib/notification-utils'
+import {useDeleteConfirmation, useDownloadConfirmation, useShareOptions} from '@/src/components/dialog-provider'
 
 interface PhotoActionsBarProps {
 	isVisible: boolean
@@ -19,6 +17,7 @@ const PhotoActionsBar: React.FC<PhotoActionsBarProps> = ({isVisible, currentPhot
 	const opacity = useSharedValue(isVisible ? 1 : 0)
 	const {openDownloadConfirmation} = useDownloadConfirmation()
 	const {openDeleteConfirmation} = useDeleteConfirmation()
+	const {openShareOptions} = useShareOptions()
 
 	// Animate opacity when visibility changes
 	useEffect(() => {
@@ -38,19 +37,7 @@ const PhotoActionsBar: React.FC<PhotoActionsBarProps> = ({isVisible, currentPhot
 
 		switch (action) {
 		case 'Share':
-			try {
-				const result = await shareImage(currentPhoto)
-				if (!result.success) {
-					// Only show notification for errors - success is handled by the native share dialog
-					await showPhotoActionNotification('share', false, result.message)
-				}
-			} catch (error) {
-				await showPhotoActionNotification(
-					'share',
-					false,
-					'An unexpected error occurred while sharing the image.'
-				)
-			}
+			openShareOptions(currentPhoto)
 			break
 		case 'Download':
 			openDownloadConfirmation(currentPhoto)
@@ -63,7 +50,7 @@ const PhotoActionsBar: React.FC<PhotoActionsBarProps> = ({isVisible, currentPhot
 			openDeleteConfirmation(currentPhoto, onPhotoDeleted)
 			break
 		}
-	}, [currentPhoto, openDownloadConfirmation, openDeleteConfirmation, onPhotoDeleted])
+	}, [currentPhoto, openDownloadConfirmation, openDeleteConfirmation, openShareOptions, onPhotoDeleted])
 
 	return (
 		<Animated.View style={[

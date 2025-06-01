@@ -1,6 +1,7 @@
 import React, {useContext} from 'react'
 import {DownloadConfirmationSheet, ExampleDialog, PhotoViewerSheet} from './dialogs'
 import DeleteConfirmationSheet from './dialogs/delete-confirmation-sheet'
+import ShareOptionsSheet from './dialogs/share-options-sheet'
 import {DialogContext} from '@/src/contexts/dialog-context'
 
 export const DialogRenderer: React.FC = () => {
@@ -21,7 +22,10 @@ export const DialogRenderer: React.FC = () => {
 		downloadConfirmationData,
 		isDeleteConfirmationSheetOpen,
 		setDeleteConfirmationSheetOpen,
-		deleteConfirmationData
+		deleteConfirmationData,
+		isShareOptionsSheetOpen,
+		setShareOptionsSheetOpen,
+		shareOptionsData
 	} = context
 
 	return (
@@ -49,6 +53,12 @@ export const DialogRenderer: React.FC = () => {
 				onClose={() => setDeleteConfirmationSheetOpen(false)}
 				photo={deleteConfirmationData.photo}
 				onPhotoDeleted={deleteConfirmationData.onPhotoDeleted}
+			/>
+
+			<ShareOptionsSheet
+				isOpen={isShareOptionsSheetOpen}
+				onClose={() => setShareOptionsSheetOpen(false)}
+				photo={shareOptionsData.photo}
 			/>
 		</>
 	)

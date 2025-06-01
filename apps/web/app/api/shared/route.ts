@@ -48,7 +48,7 @@ function validatePin(pin: string | undefined): boolean {
 }
 
 // POST - Create a new share link
-export async function POST(req: NextRequest) {
+export const POST = async (req: NextRequest) => {
 	try {
 		const session = await auth.api.getSession({
 			headers: await headers()

@@ -31,6 +31,14 @@ export interface DialogContextType {
 		onPhotoDeleted?: (photo: Photo) => void
 	}
 	setDeleteConfirmationData: (data: { photo: Photo | null; onPhotoDeleted?: (photo: Photo) => void }) => void
+
+	// Share Options Sheet
+	isShareOptionsSheetOpen: boolean
+	setShareOptionsSheetOpen: (open: boolean) => void
+	shareOptionsData: {
+		photo: Photo | null
+	}
+	setShareOptionsData: (data: { photo: Photo | null }) => void
 }
 
 // Create the context

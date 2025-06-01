@@ -38,6 +38,14 @@ export const DialogProvider: React.FC<DialogProviderProps> = ({children}) => {
 				onPhotoDeleted: undefined
 			})
 
+	// State for Share Options Sheet
+	const [isShareOptionsSheetOpen, setShareOptionsSheetOpen] = useState(false)
+	const [shareOptionsData, setShareOptionsData] = useState<{
+		photo: Photo | null
+	}>({
+		photo: null
+	})
+
 	// Context value containing all dialog states and setters
 	const contextValue: DialogContextType = {
 		// Example Dialog
@@ -60,7 +68,13 @@ export const DialogProvider: React.FC<DialogProviderProps> = ({children}) => {
 		isDeleteConfirmationSheetOpen,
 		setDeleteConfirmationSheetOpen,
 		deleteConfirmationData,
-		setDeleteConfirmationData
+		setDeleteConfirmationData,
+
+		// Share Options Sheet
+		isShareOptionsSheetOpen,
+		setShareOptionsSheetOpen,
+		shareOptionsData,
+		setShareOptionsData
 	}
 
 	return (
@@ -226,5 +240,47 @@ export const useDeleteConfirmation = () => {
 		deleteConfirmationData,
 		openDeleteConfirmation,
 		closeDeleteConfirmation
+	}
+}
+
+/**
+ * Hook to control the Share Options Sheet
+ * Returns methods to open and close the share options dialog
+ *
+ * Usage:
+ * const { openShareOptions, closeShareOptions } = useShareOptions()
+ *
+ * // To open the share options with a specific photo
+ * openShareOptions(photo)
+ *
+ * // To close the share options
+ * closeShareOptions()
+ */
+export const useShareOptions = () => {
+	const {
+		isShareOptionsSheetOpen,
+		setShareOptionsSheetOpen,
+		shareOptionsData,
+		setShareOptionsData
+	} = useDialogContext()
+
+	const openShareOptions = (photo: Photo) => {
+		setShareOptionsData({photo})
+		setShareOptionsSheetOpen(true)
+	}
+
+	const closeShareOptions = () => {
+		setShareOptionsSheetOpen(false)
+		// Clear data after a short delay to allow closing animation
+		setTimeout(() => {
+			setShareOptionsData({photo: null})
+		}, 300)
+	}
+
+	return {
+		isShareOptionsSheetOpen,
+		shareOptionsData,
+		openShareOptions,
+		closeShareOptions
 	}
 }
