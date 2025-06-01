@@ -1,13 +1,15 @@
 [
   {
     "relation": [
-      "delegate_permission/common.handle_all_urls"
+      "delegate_permission/common.handle_all_urls",
+      "delegate_permission/common.get_login_creds"
     ],
     "target": {
       "namespace": "android_app",
       "package_name": "com.halycron.app",
       "sha256_cert_fingerprints": [
-        "41:C4:B3:59:82:07:5B:DA:37:FD:F3:69:EF:1F:5C:CD:20:C8:D7:7F:03:5B:A0:71:77:30:08:BB:86:03:00:C6"
+        "41:C4:B3:59:82:07:5B:DA:37:FD:F3:69:EF:1F:5C:CD:20:C8:D7:7F:03:5B:A0:71:77:30:08:BB:86:03:00:C6",
+        "70:49:E7:8B:4C:23:FC:47:07:00:5E:F8:40:63:18:17:5E:E8:69:35:E9:AF:3B:33:0E:56:31:C7:2F:81:F4:89"
       ]
     }
   }
