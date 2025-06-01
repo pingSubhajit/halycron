@@ -231,7 +231,7 @@ const SharedPage = () => {
 								</Text>
 							</View>
 
-							{album.photos && album.photos.length > 0 ? (
+							{album.photos && album.photos.length > 0 && album.photos[0] ? (
 								// For now, show the first photo. Later we can implement a gallery view
 								<SharedPhotoView photo={album.photos[0]}/>
 							) : (
