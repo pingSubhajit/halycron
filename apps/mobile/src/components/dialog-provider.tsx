@@ -46,6 +46,35 @@ export const DialogProvider: React.FC<DialogProviderProps> = ({children}) => {
 		photo: null
 	})
 
+	// Function to close all dialogs
+	const closeAllDialogs = () => {
+		console.log('🚪 closeAllDialogs() called')
+		console.log('🚪 Current dialog states:', {
+			isExampleDialogOpen,
+			isPhotoViewerSheetOpen,
+			isDownloadConfirmationSheetOpen,
+			isDeleteConfirmationSheetOpen,
+			isShareOptionsSheetOpen
+		})
+		
+		setExampleDialogOpen(false)
+		setPhotoViewerSheetOpen(false)
+		setDownloadConfirmationSheetOpen(false)
+		setDeleteConfirmationSheetOpen(false)
+		setShareOptionsSheetOpen(false)
+		
+		console.log('🚪 Set all dialog states to false')
+		
+		// Clear all data after a short delay to allow closing animations
+		setTimeout(() => {
+			console.log('🚪 Clearing dialog data after 300ms delay')
+			setPhotoViewerData({initialPhoto: null})
+			setDownloadConfirmationData({photo: null})
+			setDeleteConfirmationData({photo: null, onPhotoDeleted: undefined})
+			setShareOptionsData({photo: null})
+		}, 300)
+	}
+
 	// Context value containing all dialog states and setters
 	const contextValue: DialogContextType = {
 		// Example Dialog
@@ -74,7 +103,10 @@ export const DialogProvider: React.FC<DialogProviderProps> = ({children}) => {
 		isShareOptionsSheetOpen,
 		setShareOptionsSheetOpen,
 		shareOptionsData,
-		setShareOptionsData
+		setShareOptionsData,
+
+		// Close all dialogs function
+		closeAllDialogs
 	}
 
 	return (
@@ -283,4 +315,19 @@ export const useShareOptions = () => {
 		openShareOptions,
 		closeShareOptions
 	}
+}
+
+/**
+ * Hook to close all dialogs at once
+ * Useful for scenarios like deep linking where you want to ensure no dialogs are open
+ *
+ * Usage:
+ * const { closeAllDialogs } = useCloseAllDialogs()
+ * 
+ * // To close all open dialogs
+ * closeAllDialogs()
+ */
+export const useCloseAllDialogs = () => {
+	const { closeAllDialogs } = useDialogContext()
+	return { closeAllDialogs }
 }

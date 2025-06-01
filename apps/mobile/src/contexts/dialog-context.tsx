@@ -39,6 +39,9 @@ export interface DialogContextType {
 		photo: Photo | null
 	}
 	setShareOptionsData: (data: { photo: Photo | null }) => void
+
+	// Close all dialogs function
+	closeAllDialogs: () => void
 }
 
 // Create the context

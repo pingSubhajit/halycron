@@ -19,6 +19,7 @@ import {photoQueryKeys} from '@/src/lib/photo-keys'
 import * as Notifications from 'expo-notifications'
 import * as SplashScreen from 'expo-splash-screen'
 import * as Linking from 'expo-linking'
+import {useCloseAllDialogs} from '@/src/components/dialog-provider'
 
 // Prevent the splash screen from auto-hiding
 SplashScreen.preventAutoHideAsync()
@@ -71,21 +72,43 @@ const NotificationHandler = () => {
 }
 
 const DeepLinkHandler = () => {
+	const { closeAllDialogs } = useCloseAllDialogs()
+	
 	useEffect(() => {
 		// Handle deep links when app is opened from a link
 		const handleDeepLink = (url: string) => {
 			const parsed = Linking.parse(url)
-
+			
 			// Check if it's a shared link (either https://halycron.space or halycron:// scheme)
 			const isHttpsSharedLink = parsed.hostname === 'halycron.space' && parsed.path?.startsWith('/shared/')
 			const isCustomSchemeSharedLink = parsed.scheme === 'halycron' && parsed.path?.startsWith('/shared/')
-
+			
 			if (isHttpsSharedLink || isCustomSchemeSharedLink) {
 				const token = parsed.path?.replace('/shared/', '')
 				if (token) {
-					console.log('Deep link detected, navigating to:', `/shared/${token}`)
-					// Navigate to the shared screen with the token
-					router.push(`/shared/${token}`)
+					console.log('🔗 Deep link detected, navigating to:', `/shared/${token}`)
+					
+					// Close any open dialogs first to ensure shared content isn't hidden
+					console.log('🔗 Calling closeAllDialogs() from deep link handler...')
+					closeAllDialogs()
+					
+					// Call closeAllDialogs multiple times to ensure it takes effect
+					// This handles edge cases with React state batching or timing
+					setTimeout(() => {
+						console.log('🔗 Calling closeAllDialogs() again after 50ms...')
+						closeAllDialogs()
+					}, 50)
+					
+					setTimeout(() => {
+						console.log('🔗 Calling closeAllDialogs() again after 100ms...')
+						closeAllDialogs()
+					}, 100)
+					
+					// Wait for dialogs to close before navigating
+					setTimeout(() => {
+						console.log('🔗 Navigating after dialog close delay...')
+						router.push(`/shared/${token}`)
+					}, 400) // Increased delay to account for multiple close calls
 				}
 			}
 		}
@@ -103,7 +126,7 @@ const DeepLinkHandler = () => {
 		})
 
 		return () => subscription?.remove()
-	}, [])
+	}, [closeAllDialogs])
 
 	return null
 }

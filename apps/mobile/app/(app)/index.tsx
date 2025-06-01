@@ -9,6 +9,7 @@ import {Avatar} from '@/src/components/avatar'
 import {Feather} from '@expo/vector-icons'
 import {router} from 'expo-router'
 import {Button} from '@/src/components/ui/button'
+import {useCloseAllDialogs} from '@/src/components/dialog-provider'
 
 const Home = () => {
 	const {user} = useSession()
@@ -16,6 +17,7 @@ const Home = () => {
 	const [showUserMenu, setShowUserMenu] = useState(false)
 	const [isAnimating, setIsAnimating] = useState(false)
 	const {width: screenWidth, height: screenHeight} = Dimensions.get('window')
+	const {closeAllDialogs} = useCloseAllDialogs()
 
 	// Animation values
 	const menuOpacity = useRef(new Animated.Value(0)).current
@@ -118,17 +120,6 @@ const Home = () => {
 					</Pressable>
 				</View>
 			</View>
-
-			{/* Test Deep Link Button (Development Only) */}
-			{__DEV__ && (
-				<Button
-					onPress={() => router.push('/shared/test-token-12345')}
-					variant="ghost"
-					className="h-10 w-48 mb-4"
-				>
-					<Text style={{color: 'white', fontSize: 12}}>🔗 Test Deep Link</Text>
-				</Button>
-			)}
 		</View>
 	)
 
