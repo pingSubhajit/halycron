@@ -4,6 +4,7 @@ import {Session, User} from 'better-auth'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import {Route, router, SplashScreen} from 'expo-router'
 import CustomSplashScreen from '@/src/components/splash-screen'
+import * as Linking from 'expo-linking'
 
 interface SessionContextValue {
 	session: Session | null;
@@ -113,7 +114,36 @@ export function SessionProvider({children}: { children: React.ReactNode }) {
 		// Check auth state immediately on app load
 		const checkAuthAndSetInitialRoute = async () => {
 			try {
-				if (!isPending) {
+				// Check if app was opened from a shared deep link first, regardless of auth state
+				const initialUrl = await Linking.getInitialURL()
+				let isSharedLink = false
+
+				if (initialUrl) {
+					const parsed = Linking.parse(initialUrl)
+					const isHttpsSharedLink = parsed.hostname === 'halycron.space' && parsed.path?.startsWith('/shared/')
+					const isCustomSchemeSharedLink = parsed.scheme === 'halycron' && parsed.path?.startsWith('/shared/')
+					isSharedLink = isHttpsSharedLink || isCustomSchemeSharedLink
+
+					if (isSharedLink) {
+						/*
+						 * If opened from shared link, go directly to shared route immediately
+						 * Don't wait for auth state to be determined
+						 */
+						const token = parsed.path?.replace('/shared/', '')
+						if (token) {
+							console.log('🔗 App opened from shared link, setting initial route immediately to:', `/shared/${token}`)
+							setInitialRoute(`/shared/${token}`)
+							// Hide splash screen with a minimal delay for better UX
+							setTimeout(() => {
+								SplashScreen.hideAsync()
+							}, 1500)
+							return
+						}
+					}
+				}
+
+				// Only check auth state if not a shared link
+				if (!isPending && !isSharedLink) {
 					setTimeout(() => {
 						// Use sessionData from auth client as the source of truth, with fallback to local sessionState
 						const currentSession = sessionData?.session || sessionState
@@ -131,7 +161,8 @@ export function SessionProvider({children}: { children: React.ReactNode }) {
 					}, 2000)
 				}
 			} catch (error) {
-				setInitialRoute('onboarding')
+				console.error('Error in checkAuthAndSetInitialRoute:', error)
+				setInitialRoute('/onboarding')
 				SplashScreen.hideAsync()
 			}
 		}
