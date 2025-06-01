@@ -5,6 +5,26 @@
     "version": "0.0.12",
     "scheme": "halycron",
     "orientation": "portrait",
+    "intentFilters": [
+      {
+        "action": "VIEW",
+        "data": [
+          {
+            "scheme": "https",
+            "host": "halycron.space",
+            "pathPrefix": "/shared"
+          },
+          {
+            "scheme": "halycron",
+            "pathPrefix": "/shared"
+          }
+        ],
+        "category": [
+          "BROWSABLE",
+          "DEFAULT"
+        ]
+      }
+    ],
     "icon": "../../packages/ui/src/media/icons/Mac/512@2x.png",
     "newArchEnabled": true,
     "userInterfaceStyle": "dark",
@@ -17,7 +37,10 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.halycron.app"
+      "bundleIdentifier": "com.halycron.app",
+      "associatedDomains": [
+        "applinks:halycron.space"
+      ]
     },
     "android": {
       "edgeToEdgeEnabled": true,

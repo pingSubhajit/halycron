@@ -7,6 +7,8 @@ import {PhotoGallery} from '@/src/components/photo-gallery'
 import {UserMenu} from '@/src/components/user-menu'
 import {Avatar} from '@/src/components/avatar'
 import {Feather} from '@expo/vector-icons'
+import {router} from 'expo-router'
+import {Button} from '@/src/components/ui/button'
 
 const Home = () => {
 	const {user} = useSession()
@@ -98,22 +100,35 @@ const Home = () => {
 	}
 
 	const renderHeader = () => (
-		<View className="mt-16 p-6 flex-1 flex-row items-center justify-between">
-			<View className="">
-				<Text className="text-primary-foreground opacity-80 text-3xl font-semibold mb-2">Welcome</Text>
-				<Text className="text-primary-foreground text-6xl font-bold mb-4">{user?.name.split(' ')[0]}</Text>
+		<View className="mt-16 p-6 flex-1">
+			<View className="flex-row items-center justify-between mb-4">
+				<View className="">
+					<Text className="text-primary-foreground opacity-80 text-3xl font-semibold mb-2">Welcome</Text>
+					<Text className="text-primary-foreground text-6xl font-bold mb-4">{user?.name.split(' ')[0]}</Text>
+				</View>
+
+				<View className="relative">
+					<Pressable onPress={handleMenuToggle}>
+						<Avatar
+							size={50}
+							className="h-10 w-10 rounded-full"
+							imageUrl={getAvatarUrl()}
+							fallback={<Feather name="user" size={20} color="#fff"/>}
+						/>
+					</Pressable>
+				</View>
 			</View>
 
-			<View className="relative">
-				<Pressable onPress={handleMenuToggle}>
-					<Avatar
-						size={50}
-						className="h-10 w-10 rounded-full"
-						imageUrl={getAvatarUrl()}
-						fallback={<Feather name="user" size={20} color="#fff"/>}
-					/>
-				</Pressable>
-			</View>
+			{/* Test Deep Link Button (Development Only) */}
+			{__DEV__ && (
+				<Button
+					onPress={() => router.push('/shared/test-token-12345')}
+					variant="ghost"
+					className="h-10 w-48 mb-4"
+				>
+					<Text style={{color: 'white', fontSize: 12}}>🔗 Test Deep Link</Text>
+				</Button>
+			)}
 		</View>
 	)
 

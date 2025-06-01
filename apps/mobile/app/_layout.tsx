@@ -18,6 +18,7 @@ import {useQueryClient} from '@tanstack/react-query'
 import {photoQueryKeys} from '@/src/lib/photo-keys'
 import * as Notifications from 'expo-notifications'
 import * as SplashScreen from 'expo-splash-screen'
+import * as Linking from 'expo-linking'
 
 // Prevent the splash screen from auto-hiding
 SplashScreen.preventAutoHideAsync()
@@ -65,6 +66,44 @@ const NotificationHandler = () => {
 
 		return () => subscription.remove()
 	}, [setUploadSource])
+
+	return null
+}
+
+const DeepLinkHandler = () => {
+	useEffect(() => {
+		// Handle deep links when app is opened from a link
+		const handleDeepLink = (url: string) => {
+			const parsed = Linking.parse(url)
+
+			// Check if it's a shared link (either https://halycron.space or halycron:// scheme)
+			const isHttpsSharedLink = parsed.hostname === 'halycron.space' && parsed.path?.startsWith('/shared/')
+			const isCustomSchemeSharedLink = parsed.scheme === 'halycron' && parsed.path?.startsWith('/shared/')
+
+			if (isHttpsSharedLink || isCustomSchemeSharedLink) {
+				const token = parsed.path?.replace('/shared/', '')
+				if (token) {
+					console.log('Deep link detected, navigating to:', `/shared/${token}`)
+					// Navigate to the shared screen with the token
+					router.push(`/shared/${token}`)
+				}
+			}
+		}
+
+		// Handle initial URL if app was opened from a link
+		Linking.getInitialURL().then((url) => {
+			if (url) {
+				handleDeepLink(url)
+			}
+		})
+
+		// Handle subsequent deep links while app is running
+		const subscription = Linking.addEventListener('url', (event) => {
+			handleDeepLink(event.url)
+		})
+
+		return () => subscription?.remove()
+	}, [])
 
 	return null
 }
@@ -129,6 +168,7 @@ const AppContent = () => {
 						<ShareIntentHandler/>
 						<QuickActionsHandler/>
 						<NotificationHandler/>
+						<DeepLinkHandler/>
 						<UploadCompletionHandler/>
 						<SystemBars style="light"/>
 
@@ -190,6 +230,7 @@ const RootNavigator = () => {
 			<Stack.Screen name="onboarding"/>
 			<Stack.Screen name="login"/>
 			<Stack.Screen name="two-factor"/>
+			<Stack.Screen name="shared/[token]" options={{presentation: 'modal'}}/>
 		</Stack>
 	)
 }
