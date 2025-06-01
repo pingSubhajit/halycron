@@ -114,7 +114,7 @@ export function SessionProvider({children}: { children: React.ReactNode }) {
 	}
 
 	useEffect(() => {
-		// Check auth state immediately on app load
+		// Check auth state immediately on the app load
 		const checkAuthAndSetInitialRoute = async () => {
 			try {
 				// Check if app was opened from a shared deep link first, regardless of auth state
@@ -125,11 +125,11 @@ export function SessionProvider({children}: { children: React.ReactNode }) {
 					const parsed = Linking.parse(initialUrl)
 					const isHttpsSharedLink = parsed.hostname === 'halycron.space' && parsed.path?.startsWith('/shared/')
 					const isCustomSchemeSharedLink = parsed.scheme === 'halycron' && parsed.path?.startsWith('/shared/')
-					isSharedLink = isHttpsSharedLink || isCustomSchemeSharedLink
+					isSharedLink = isHttpsSharedLink || isCustomSchemeSharedLink || false
 
 					if (isSharedLink) {
 						/*
-						 * If opened from shared link, check authentication status
+						 * If opened from a shared link, check authentication status
 						 */
 						const token = parsed.path?.replace('/shared/', '')
 						if (token) {
@@ -150,15 +150,20 @@ export function SessionProvider({children}: { children: React.ReactNode }) {
 
 							if (isAuthenticated) {
 								/*
-								 * User is authenticated, set pending shared route and go through normal auth flow
-								 * This will trigger biometric auth, and after success, we'll navigate to shared route
+								 * User is authenticated, set a pending shared route and go through normal auth flow
+								 * This will trigger biometric auth, and after success, we'll navigate to the shared route
 								 */
-								console.log('🔗 User authenticated, setting pending shared route and going through auth flow')
+								console.log('🔗 User authenticated, setting pending shared route and navigating to home first')
 								setPendingSharedRoute(sharedRoute)
-								// Continue with normal authenticated flow (will trigger biometric)
+								// Set initial route to home to trigger the authenticated flow
+								setInitialRoute('/')
+								setTimeout(() => {
+									SplashScreen.hideAsync()
+								}, 2000)
+								return
 							} else {
 								// User not authenticated, go directly to shared route
-								console.log('🔗 User not authenticated, going directly to shared route')
+								console.log('🔗 User not authenticated, going directly to shared route:', sharedRoute)
 								setInitialRoute(sharedRoute)
 								setTimeout(() => {
 									SplashScreen.hideAsync()

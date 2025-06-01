@@ -15,7 +15,6 @@ interface BiometricGuardProps {
 
 export const BiometricGuard = ({children, fallback}: BiometricGuardProps) => {
 	const {
-		biometricType,
 		isAuthenticated,
 		isLoading,
 		authenticate,
@@ -26,7 +25,7 @@ export const BiometricGuard = ({children, fallback}: BiometricGuardProps) => {
 	const [isAuthenticating, setIsAuthenticating] = useState(false)
 	const [shouldPromptOnMount, setShouldPromptOnMount] = useState(true)
 
-	// Auto-prompt for biometric authentication when component mounts
+	// Auto-prompt for biometric authentication when the component mounts
 	useEffect(() => {
 		if (!isLoading && isBiometricRequired && !isAuthenticated && shouldPromptOnMount) {
 			setShouldPromptOnMount(false)
@@ -67,6 +66,7 @@ export const BiometricGuard = ({children, fallback}: BiometricGuardProps) => {
 			console.log('🔗 Biometric auth complete, navigating to pending shared route:', pendingSharedRoute)
 			// Navigate to the pending shared route
 			setTimeout(() => {
+				console.log('🔗 Executing navigation to:', pendingSharedRoute)
 				router.replace(pendingSharedRoute)
 				setPendingSharedRoute(null)
 			}, 100)
