@@ -1,5 +1,5 @@
 import React from 'react'
-import {View} from 'react-native'
+import {StyleSheet, View} from 'react-native'
 import {Button} from '@/src/components/ui/button'
 import {useRouter} from 'expo-router'
 import {Image} from '@/src/components/interops'
@@ -56,3 +56,12 @@ const Onboarding = () => {
 }
 
 export default Onboarding
+
+
+const styles = StyleSheet.create({
+	image: {
+		height: 240,
+		width: 240,
+		marginBottom: 32
+	}
+})

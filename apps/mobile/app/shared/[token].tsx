@@ -30,7 +30,7 @@ const SharedPage = () => {
 	const {data, isLoading, isError, error} = useSharedItems(token || '', isPinVerified)
 
 	useEffect(() => {
-		// If the data is fetched, and it requires PIN verification, show the PIN dialog
+		// If the data is fetched and it requires PIN verification, show the PIN dialog
 		if (data && data.isPinProtected && !isPinVerified) {
 			setShowPinDialog(true)
 		}

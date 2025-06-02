@@ -237,7 +237,6 @@ const RootNavigator = () => {
 	useEffect(() => {
 		if (initialRoute && !hasNavigated) {
 			setHasNavigated(true)
-			console.log('🚀 RootNavigator: Navigating to initial route:', initialRoute)
 			// Navigate immediately without delay since we're already sure about the route
 			router.replace(initialRoute)
 		}
