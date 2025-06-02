@@ -1,0 +1,20 @@
+name: Publish EAS Update
+
+on:
+  push:
+    branches:
+      - 'update/**'
+    paths:
+      - 'apps/mobile/**'
+      - 'packages/**'
+      - 'turbo.json'
+      - 'package.json'
+      - 'bun.lock'
+
+jobs:
+  update:
+    name: Publish Production Update
+    type: update
+    params:
+      channel: production
+      platform: android

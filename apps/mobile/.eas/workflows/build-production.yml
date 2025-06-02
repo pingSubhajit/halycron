@@ -1,0 +1,28 @@
+name: Build & Submit to Play Store
+
+on:
+  push:
+    branches:
+      - 'update/**'
+    paths:
+      - 'apps/mobile/**'
+      - 'packages/**'
+      - 'turbo.json'
+      - 'package.json'
+      - 'bun.lock'
+
+jobs:
+  build:
+    name: Create Production Build
+    type: build
+    params:
+      platform: android
+      profile: production
+
+  submit:
+    name: Submit to Play Store
+    needs: [ build ]
+    type: submit
+    params:
+      build_id: ${{ needs.build.outputs.build_id }}
+      profile: production 
