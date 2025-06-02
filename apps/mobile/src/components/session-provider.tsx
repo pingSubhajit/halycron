@@ -28,11 +28,10 @@ export function SessionProvider({children}: { children: React.ReactNode }) {
 	const [userState, setUserState] = useState<User | null>(null)
 	const [initialRoute, setInitialRoute] = useState<string | null>(null)
 	const [pendingSharedRoute, setPendingSharedRoute] = useState<string | null>(null)
-	const [hasHandledInitialUrl, setHasHandledInitialUrl] = useState(false)
 
 	const {data: sessionData, isPending} = authClient.useSession()
 
-	// Effect to update and persist the session when it changes from the auth client
+	// Effect to update and persist session when it changes from auth client
 	useEffect(() => {
 		const handleSessionUpdate = async () => {
 			if (sessionData?.session) {
@@ -118,87 +117,74 @@ export function SessionProvider({children}: { children: React.ReactNode }) {
 		// Check auth state immediately on the app load
 		const checkAuthAndSetInitialRoute = async () => {
 			try {
-				// Only check initial URL once to prevent overriding shared link routing
-				if (!hasHandledInitialUrl) {
-					// Check if app was opened from a shared deep link first, regardless of auth state
-					const initialUrl = await Linking.getInitialURL()
-					console.log('🔗 Checking initial URL:', initialUrl)
+				// Check if app was opened from a shared deep link first, regardless of auth state
+				const initialUrl = await Linking.getInitialURL()
+				let isSharedLink = false
 
-					if (initialUrl) {
-						const parsed = Linking.parse(initialUrl)
-						const isHttpsSharedLink = parsed.hostname === 'halycron.space' && parsed.path?.startsWith('/shared/')
-						const isCustomSchemeSharedLink = parsed.scheme === 'halycron' && parsed.path?.startsWith('/shared/')
-						const isSharedLink = isHttpsSharedLink || isCustomSchemeSharedLink
+				if (initialUrl) {
+					const parsed = Linking.parse(initialUrl)
+					const isHttpsSharedLink = parsed.hostname === 'halycron.space' && parsed.path?.startsWith('/shared/')
+					const isCustomSchemeSharedLink = parsed.scheme === 'halycron' && parsed.path?.startsWith('/shared/')
+					isSharedLink = isHttpsSharedLink || isCustomSchemeSharedLink || false
 
-						if (isSharedLink) {
-							/*
-							 * If opened from a shared link, check authentication status
-							 */
-							const token = parsed.path?.replace('/shared/', '')
-							if (token) {
-								const sharedRoute = `/shared/${token}`
-								console.log('🔗 App opened from shared link:', sharedRoute)
+					if (isSharedLink) {
+						/*
+						 * If opened from a shared link, check authentication status
+						 */
+						const token = parsed.path?.replace('/shared/', '')
+						if (token) {
+							const sharedRoute = `/shared/${token}`
+							console.log('🔗 App opened from shared link:', sharedRoute)
 
-								// Check if user is already authenticated (has valid session)
-								const storedSession = await AsyncStorage.getItem(SESSION_STORAGE_KEY)
-								let isAuthenticated = false
-								if (storedSession) {
-									try {
-										const sessionObj = JSON.parse(storedSession)
-										isAuthenticated = sessionObj.expiresAt && sessionObj.expiresAt > Date.now()
-									} catch (error) {
-										console.error('Error parsing stored session:', error)
-									}
+							// Check if user is already authenticated (has valid session)
+							const storedSession = await AsyncStorage.getItem(SESSION_STORAGE_KEY)
+							let isAuthenticated = false
+							if (storedSession) {
+								try {
+									const sessionObj = JSON.parse(storedSession)
+									isAuthenticated = sessionObj.expiresAt && sessionObj.expiresAt > Date.now()
+								} catch (error) {
+									console.error('Error parsing stored session:', error)
 								}
+							}
 
-								if (isAuthenticated) {
-									/*
-									 * User is authenticated, set a pending shared route and go through normal auth flow
-									 * This will trigger biometric auth, and after success, we'll navigate to the shared route
-									 */
-									console.log('🔗 User authenticated, setting pending shared route and navigating to home first')
-									setPendingSharedRoute(sharedRoute)
-									// Set initial route to home to trigger the authenticated flow
-									setInitialRoute('/')
-									setHasHandledInitialUrl(true)
-									setTimeout(() => {
-										SplashScreen.hideAsync()
-									}, 2000)
-									return
-								} else {
-									// User not authenticated, go directly to shared route
-									console.log('🔗 User not authenticated, going directly to shared route:', sharedRoute)
-									setInitialRoute(sharedRoute)
-									setHasHandledInitialUrl(true)
-									setTimeout(() => {
-										SplashScreen.hideAsync()
-									}, 1500)
-									return
-								}
+							if (isAuthenticated) {
+								/*
+								 * User is authenticated, set a pending shared route and go through normal auth flow
+								 * This will trigger biometric auth, and after success, we'll navigate to the shared route
+								 */
+								console.log('🔗 User authenticated, setting pending shared route and navigating to home first')
+								setPendingSharedRoute(sharedRoute)
+								// Set initial route to home to trigger the authenticated flow
+								setInitialRoute('/')
+								setTimeout(() => {
+									SplashScreen.hideAsync()
+								}, 2000)
+								return
+							} else {
+								// User not authenticated, go directly to shared route
+								console.log('🔗 User not authenticated, going directly to shared route:', sharedRoute)
+								setInitialRoute(sharedRoute)
+								setTimeout(() => {
+									SplashScreen.hideAsync()
+								}, 1500)
+								return
 							}
 						}
 					}
-
-					// Mark that we've handled the initial URL check (even if no URL or not a shared link)
-					setHasHandledInitialUrl(true)
 				}
 
-				/*
-				 * Only proceed with normal auth flow if we haven't set an initial route yet
-				 * and we're not pending and we've handled the initial URL
-				 */
-				if (!isPending && hasHandledInitialUrl && !initialRoute) {
+				// Only check auth state if not a shared link
+				if (!isPending && !isSharedLink) {
 					setTimeout(() => {
 						// Use sessionData from auth client as the source of truth, with fallback to local sessionState
 						const currentSession = sessionData?.session || sessionState
 
 						if (currentSession?.id) {
 							// Valid session, go home
-							console.log('🚀 Normal auth flow: User authenticated, going to home')
 							setInitialRoute('/')
 						} else {
 							// No session, go to onboarding
-							console.log('🚀 Normal auth flow: User not authenticated, going to onboarding')
 							setInitialRoute('/onboarding')
 						}
 
@@ -209,13 +195,12 @@ export function SessionProvider({children}: { children: React.ReactNode }) {
 			} catch (error) {
 				console.error('Error in checkAuthAndSetInitialRoute:', error)
 				setInitialRoute('/onboarding')
-				setHasHandledInitialUrl(true)
 				SplashScreen.hideAsync()
 			}
 		}
 
 		checkAuthAndSetInitialRoute()
-	}, [sessionState, sessionData, isPending, hasHandledInitialUrl, initialRoute])
+	}, [sessionState, sessionData, isPending])
 
 	return (
 		<SessionContext.Provider

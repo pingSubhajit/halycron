@@ -230,7 +230,6 @@ const RootNavigator = () => {
 	 * The SessionProvider will show the splash screen
 	 */
 	if (!initialRoute) {
-		console.log('🚀 RootNavigator: Waiting for initial route...')
 		return <CustomSplashScreen/>
 	}
 
