@@ -5,7 +5,7 @@ import CustomSplashScreen from '@/src/components/splash-screen'
 import {ThemeProvider} from '@/src/theme/ThemeProvider'
 import {SessionProvider, useSession} from '@/src/components/session-provider'
 import {BiometricProvider} from '@/src/components/biometric-provider'
-import {DialogProvider, useCloseAllDialogs} from '@/src/components/dialog-provider'
+import {DialogProvider} from '@/src/components/dialog-provider'
 import {DialogRenderer} from '@/src/components/dialog-renderer'
 import {QueryProvider} from '@/src/components/query-provider'
 import {UploadProvider, useUploadContext} from '@/src/components/upload-provider'
@@ -19,6 +19,7 @@ import {photoQueryKeys} from '@/src/lib/photo-keys'
 import * as Notifications from 'expo-notifications'
 import * as SplashScreen from 'expo-splash-screen'
 import * as Linking from 'expo-linking'
+import {useCloseAllDialogs} from '@/src/components/dialog-provider'
 
 // Prevent the splash screen from auto-hiding
 SplashScreen.preventAutoHideAsync()
@@ -71,53 +72,55 @@ const NotificationHandler = () => {
 }
 
 const DeepLinkHandler = () => {
-	const {closeAllDialogs} = useCloseAllDialogs()
-
+	const { closeAllDialogs } = useCloseAllDialogs()
+	
 	useEffect(() => {
 		// Handle deep links when app is opened from a link
 		const handleDeepLink = (url: string) => {
 			const parsed = Linking.parse(url)
-
+			
 			// Check if it's a shared link (either https://halycron.space or halycron:// scheme)
 			const isHttpsSharedLink = parsed.hostname === 'halycron.space' && parsed.path?.startsWith('/shared/')
 			const isCustomSchemeSharedLink = parsed.scheme === 'halycron' && parsed.path?.startsWith('/shared/')
-
+			
 			if (isHttpsSharedLink || isCustomSchemeSharedLink) {
 				const token = parsed.path?.replace('/shared/', '')
 				if (token) {
-					console.log('🔗 Deep link detected while app running, navigating to:', `/shared/${token}`)
-
+					console.log('🔗 Deep link detected, navigating to:', `/shared/${token}`)
+					
 					// Close any open dialogs first to ensure shared content isn't hidden
 					console.log('🔗 Calling closeAllDialogs() from deep link handler...')
 					closeAllDialogs()
-
-					/*
-					 * Call closeAllDialogs multiple times to ensure it takes effect
-					 * This handles edge cases with React state batching or timing
-					 */
+					
+					// Call closeAllDialogs multiple times to ensure it takes effect
+					// This handles edge cases with React state batching or timing
 					setTimeout(() => {
 						console.log('🔗 Calling closeAllDialogs() again after 50ms...')
 						closeAllDialogs()
 					}, 50)
-
+					
 					setTimeout(() => {
 						console.log('🔗 Calling closeAllDialogs() again after 100ms...')
 						closeAllDialogs()
 					}, 100)
-
-					// Navigate to shared route with replace to avoid stack issues
+					
+					// Wait for dialogs to close before navigating
 					setTimeout(() => {
-						console.log('🔗 Navigating to shared route...')
-						router.replace(`/shared/${token}`)
-					}, 200)
+						console.log('🔗 Navigating after dialog close delay...')
+						router.push(`/shared/${token}`)
+					}, 400) // Increased delay to account for multiple close calls
 				}
 			}
 		}
 
-		/*
-		 * Only handle subsequent deep links while app is running
-		 * Initial URL is now handled by SessionProvider
-		 */
+		// Handle initial URL if app was opened from a link
+		Linking.getInitialURL().then((url) => {
+			if (url) {
+				handleDeepLink(url)
+			}
+		})
+
+		// Handle subsequent deep links while app is running
 		const subscription = Linking.addEventListener('url', (event) => {
 			handleDeepLink(event.url)
 		})
