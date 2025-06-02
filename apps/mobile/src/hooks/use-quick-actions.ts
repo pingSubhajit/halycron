@@ -27,14 +27,16 @@ export const useQuickActions = () => {
 
 		setupQuickActions()
 
-		// Handle initial quick action that launched the app
+		// Check if app was initially opened via quick action and set upload source
 		const initialAction = QuickActions.initial
 		if (initialAction?.id === 'upload') {
 			setUploadSource('manual')
-			router.push('/(app)/upload')
 		}
 
-		// Handle quick actions while app is running
+		/*
+		 * Only handle quick actions while app is running (not initial launch)
+		 * Initial quick actions are handled in session provider for proper routing after auth
+		 */
 		const subscription = QuickActions.addListener(({id}) => {
 			if (id === 'upload') {
 				setUploadSource('manual')

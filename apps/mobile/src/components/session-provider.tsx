@@ -4,6 +4,8 @@ import {Session, User} from 'better-auth'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import {Route, router, SplashScreen} from 'expo-router'
 import CustomSplashScreen from '@/src/components/splash-screen'
+import * as Linking from 'expo-linking'
+import * as QuickActions from 'expo-quick-actions'
 
 interface SessionContextValue {
 	session: Session | null;
@@ -19,7 +21,7 @@ const SessionContext = createContext<SessionContextValue | undefined>(undefined)
 const SESSION_STORAGE_KEY = 'halycron_auth_session'
 const USER_STORAGE_KEY = 'halycron_auth_user'
 
-export function SessionProvider({children}: { children: React.ReactNode }) {
+export const SessionProvider = ({children}: { children: React.ReactNode }) => {
 	const [status, setStatus] = useState<'loading' | 'authenticated' | 'unauthenticated'>('loading')
 	const [sessionState, setSessionState] = useState<Session | null>(null)
 	const [userState, setUserState] = useState<User | null>(null)
@@ -109,17 +111,41 @@ export function SessionProvider({children}: { children: React.ReactNode }) {
 		}
 	}
 
+	// Check auth state and set the initial route
 	useEffect(() => {
-		// Check auth state immediately on app load
 		const checkAuthAndSetInitialRoute = async () => {
 			try {
 				if (!isPending) {
-					setTimeout(() => {
-						// Use sessionData from auth client as the source of truth, with fallback to local sessionState
+					setTimeout(async () => {
+						// Use sessionData from an auth client as the source of truth, with fallback to local sessionState
 						const currentSession = sessionData?.session || sessionState
 
 						if (currentSession?.id) {
-							// Valid session, go home
+							// Check for an initial deep link
+							const initialUrl = await Linking.getInitialURL()
+							if (initialUrl) {
+								const parsed = Linking.parse(initialUrl)
+								const isHttpsSharedLink = parsed.hostname === 'halycron.space' && parsed.path?.startsWith('/shared/')
+								const isCustomSchemeSharedLink = parsed.scheme === 'halycron' && parsed.path?.startsWith('/shared/')
+
+								if (isHttpsSharedLink || isCustomSchemeSharedLink) {
+									const token = parsed.path?.replace('/shared/', '')
+									if (token) {
+										setInitialRoute(`/shared/${token}`)
+										SplashScreen.hideAsync()
+										return
+									}
+								}
+							}
+
+							// Check for an initial quick action
+							if (QuickActions.initial?.id === 'upload') {
+								setInitialRoute('/(app)/upload')
+								SplashScreen.hideAsync()
+								return
+							}
+
+							// No special context, go home
 							setInitialRoute('/')
 						} else {
 							// No session, go to onboarding
@@ -131,7 +157,7 @@ export function SessionProvider({children}: { children: React.ReactNode }) {
 					}, 2000)
 				}
 			} catch (error) {
-				setInitialRoute('onboarding')
+				setInitialRoute('/onboarding')
 				SplashScreen.hideAsync()
 			}
 		}
@@ -155,7 +181,7 @@ export function SessionProvider({children}: { children: React.ReactNode }) {
 	)
 }
 
-export function useSession() {
+export const useSession = () => {
 	const context = useContext(SessionContext)
 	if (context === undefined) {
 		throw new Error('useSession must be used within a SessionProvider')

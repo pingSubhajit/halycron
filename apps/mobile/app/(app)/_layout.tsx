@@ -34,14 +34,8 @@ const DeepLinkHandler = () => {
 			}
 		}
 
-		// Handle initial URL if app was opened from a link
-		Linking.getInitialURL().then((url) => {
-			if (url) {
-				handleDeepLink(url)
-			}
-		})
-
-		// Handle subsequent deep links while app is running
+		// Only handle subsequent deep links while app is running
+		// Initial deep links are handled in session provider for proper routing after auth
 		const subscription = Linking.addEventListener('url', (event) => {
 			handleDeepLink(event.url)
 		})
