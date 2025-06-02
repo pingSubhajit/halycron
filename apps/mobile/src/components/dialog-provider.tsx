@@ -48,26 +48,14 @@ export const DialogProvider: React.FC<DialogProviderProps> = ({children}) => {
 
 	// Function to close all dialogs
 	const closeAllDialogs = () => {
-		console.log('🚪 closeAllDialogs() called')
-		console.log('🚪 Current dialog states:', {
-			isExampleDialogOpen,
-			isPhotoViewerSheetOpen,
-			isDownloadConfirmationSheetOpen,
-			isDeleteConfirmationSheetOpen,
-			isShareOptionsSheetOpen
-		})
-		
 		setExampleDialogOpen(false)
 		setPhotoViewerSheetOpen(false)
 		setDownloadConfirmationSheetOpen(false)
 		setDeleteConfirmationSheetOpen(false)
 		setShareOptionsSheetOpen(false)
-		
-		console.log('🚪 Set all dialog states to false')
-		
+
 		// Clear all data after a short delay to allow closing animations
 		setTimeout(() => {
-			console.log('🚪 Clearing dialog data after 300ms delay')
 			setPhotoViewerData({initialPhoto: null})
 			setDownloadConfirmationData({photo: null})
 			setDeleteConfirmationData({photo: null, onPhotoDeleted: undefined})
@@ -323,11 +311,11 @@ export const useShareOptions = () => {
  *
  * Usage:
  * const { closeAllDialogs } = useCloseAllDialogs()
- * 
+ *
  * // To close all open dialogs
  * closeAllDialogs()
  */
 export const useCloseAllDialogs = () => {
-	const { closeAllDialogs } = useDialogContext()
-	return { closeAllDialogs }
+	const {closeAllDialogs} = useDialogContext()
+	return {closeAllDialogs}
 }
