@@ -13,7 +13,6 @@ interface BiometricGuardProps {
 
 export const BiometricGuard = ({children, fallback}: BiometricGuardProps) => {
 	const {
-		biometricType,
 		isAuthenticated,
 		isLoading,
 		authenticate,

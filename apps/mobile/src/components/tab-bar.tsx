@@ -14,7 +14,7 @@ export const TabBar: React.FC<TabBarProps> = ({className}) => {
 	const slideAnim = useRef(new Animated.Value(0)).current
 
 	// Hide tab bar on modal screens
-	const shouldHideTabBar = pathname.includes('/upload')
+	const shouldHideTabBar = pathname.includes('/upload') || pathname.includes('/shared')
 
 	useEffect(() => {
 		if (shouldHideTabBar) {

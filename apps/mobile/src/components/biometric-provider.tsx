@@ -1,6 +1,6 @@
 import React, {createContext, useContext, useEffect, useState} from 'react'
 import * as LocalAuthentication from 'expo-local-authentication'
-import {Alert, Platform} from 'react-native'
+import {Alert} from 'react-native'
 
 interface BiometricContextValue {
 	isBiometricSupported: boolean;
@@ -42,16 +42,6 @@ export const BiometricProvider = ({children}: { children: React.ReactNode }) => 
 		} finally {
 			setIsLoading(false)
 		}
-	}
-
-
-	const getBiometricPromptMessage = () => {
-		if (biometricType.includes(LocalAuthentication.AuthenticationType.FACIAL_RECOGNITION)) {
-			return Platform.OS === 'ios' ? 'Use Face ID to access Halycron' : 'Use facial recognition to access Halycron'
-		} else if (biometricType.includes(LocalAuthentication.AuthenticationType.FINGERPRINT)) {
-			return Platform.OS === 'ios' ? 'Use Touch ID to access Halycron' : 'Use fingerprint to access Halycron'
-		}
-		return 'Use biometric authentication to access Halycron'
 	}
 
 	const authenticate = async (): Promise<boolean> => {

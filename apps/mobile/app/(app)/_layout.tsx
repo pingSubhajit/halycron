@@ -1,4 +1,4 @@
-import {Stack} from 'expo-router'
+import {router, Stack} from 'expo-router'
 import {Platform, View} from 'react-native'
 import React, {useEffect} from 'react'
 import {useSession} from '@/src/components/session-provider'
@@ -6,6 +6,51 @@ import {BiometricGuard} from '@/src/components/biometric-guard'
 import {TabBar} from '@/src/components/tab-bar'
 import {uploadNotificationManager} from '@/src/lib/notification-utils'
 import * as ScreenCapture from 'expo-screen-capture'
+import {useCloseAllDialogs} from '@/src/components/dialog-provider'
+import * as Linking from 'expo-linking'
+
+const DeepLinkHandler = () => {
+	const {closeAllDialogs} = useCloseAllDialogs()
+
+	useEffect(() => {
+		// Handle deep links when app is opened from a link
+		const handleDeepLink = (url: string) => {
+			const parsed = Linking.parse(url)
+
+			// Check if it's a shared link (either https://halycron.space or halycron:// scheme)
+			const isHttpsSharedLink = parsed.hostname === 'halycron.space' && parsed.path?.startsWith('/shared/')
+			const isCustomSchemeSharedLink = parsed.scheme === 'halycron' && parsed.path?.startsWith('/shared/')
+
+			if (isHttpsSharedLink || isCustomSchemeSharedLink) {
+				const token = parsed.path?.replace('/shared/', '')
+				if (token) {
+					closeAllDialogs()
+
+					// Wait for dialogs to close before navigating
+					setTimeout(() => {
+						router.push(`/shared/${token}`)
+					}, 400) // Increased delay to account for multiple close calls
+				}
+			}
+		}
+
+		// Handle initial URL if app was opened from a link
+		Linking.getInitialURL().then((url) => {
+			if (url) {
+				handleDeepLink(url)
+			}
+		})
+
+		// Handle subsequent deep links while app is running
+		const subscription = Linking.addEventListener('url', (event) => {
+			handleDeepLink(event.url)
+		})
+
+		return () => subscription?.remove()
+	}, [closeAllDialogs])
+
+	return null
+}
 
 const AuthenticatedAppLayout = () => {
 	const {session} = useSession()
@@ -26,6 +71,8 @@ const AuthenticatedAppLayout = () => {
 
 	return (
 		<BiometricGuard>
+			<DeepLinkHandler/>
+
 			<View className="flex-1 bg-background">
 				<Stack
 					screenOptions={{
@@ -47,6 +94,8 @@ const AuthenticatedAppLayout = () => {
 								headerShown: false
 							}}
 						/>
+
+						<Stack.Screen name="shared/[token]" options={{presentation: 'modal'}}/>
 					</Stack.Protected>
 				</Stack>
 				<TabBar/>

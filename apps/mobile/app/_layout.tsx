@@ -18,8 +18,6 @@ import {useQueryClient} from '@tanstack/react-query'
 import {photoQueryKeys} from '@/src/lib/photo-keys'
 import * as Notifications from 'expo-notifications'
 import * as SplashScreen from 'expo-splash-screen'
-import * as Linking from 'expo-linking'
-import {useCloseAllDialogs} from '@/src/components/dialog-provider'
 
 // Prevent the splash screen from auto-hiding
 SplashScreen.preventAutoHideAsync()
@@ -36,8 +34,8 @@ SystemBars.setStyle('light')
 const ShareIntentHandler = () => {
 	// Handle share intent at the top level
 	useAppShareIntent({
-		onSharedPhotosReceived: (photos) => {
-			// Navigate to upload screen when photos are shared
+		onSharedPhotosReceived: () => {
+			// Navigate to the upload screen when photos are shared
 			router.push('/(app)/upload')
 		}
 	})
@@ -67,66 +65,6 @@ const NotificationHandler = () => {
 
 		return () => subscription.remove()
 	}, [setUploadSource])
-
-	return null
-}
-
-const DeepLinkHandler = () => {
-	const { closeAllDialogs } = useCloseAllDialogs()
-	
-	useEffect(() => {
-		// Handle deep links when app is opened from a link
-		const handleDeepLink = (url: string) => {
-			const parsed = Linking.parse(url)
-			
-			// Check if it's a shared link (either https://halycron.space or halycron:// scheme)
-			const isHttpsSharedLink = parsed.hostname === 'halycron.space' && parsed.path?.startsWith('/shared/')
-			const isCustomSchemeSharedLink = parsed.scheme === 'halycron' && parsed.path?.startsWith('/shared/')
-			
-			if (isHttpsSharedLink || isCustomSchemeSharedLink) {
-				const token = parsed.path?.replace('/shared/', '')
-				if (token) {
-					console.log('🔗 Deep link detected, navigating to:', `/shared/${token}`)
-					
-					// Close any open dialogs first to ensure shared content isn't hidden
-					console.log('🔗 Calling closeAllDialogs() from deep link handler...')
-					closeAllDialogs()
-					
-					// Call closeAllDialogs multiple times to ensure it takes effect
-					// This handles edge cases with React state batching or timing
-					setTimeout(() => {
-						console.log('🔗 Calling closeAllDialogs() again after 50ms...')
-						closeAllDialogs()
-					}, 50)
-					
-					setTimeout(() => {
-						console.log('🔗 Calling closeAllDialogs() again after 100ms...')
-						closeAllDialogs()
-					}, 100)
-					
-					// Wait for dialogs to close before navigating
-					setTimeout(() => {
-						console.log('🔗 Navigating after dialog close delay...')
-						router.push(`/shared/${token}`)
-					}, 400) // Increased delay to account for multiple close calls
-				}
-			}
-		}
-
-		// Handle initial URL if app was opened from a link
-		Linking.getInitialURL().then((url) => {
-			if (url) {
-				handleDeepLink(url)
-			}
-		})
-
-		// Handle subsequent deep links while app is running
-		const subscription = Linking.addEventListener('url', (event) => {
-			handleDeepLink(event.url)
-		})
-
-		return () => subscription?.remove()
-	}, [closeAllDialogs])
 
 	return null
 }
@@ -191,7 +129,6 @@ const AppContent = () => {
 						<ShareIntentHandler/>
 						<QuickActionsHandler/>
 						<NotificationHandler/>
-						<DeepLinkHandler/>
 						<UploadCompletionHandler/>
 						<SystemBars style="light"/>
 
@@ -253,7 +190,6 @@ const RootNavigator = () => {
 			<Stack.Screen name="onboarding"/>
 			<Stack.Screen name="login"/>
 			<Stack.Screen name="two-factor"/>
-			<Stack.Screen name="shared/[token]" options={{presentation: 'modal'}}/>
 		</Stack>
 	)
 }
