@@ -6,6 +6,7 @@ import {Route, router, SplashScreen} from 'expo-router'
 import CustomSplashScreen from '@/src/components/splash-screen'
 import * as Linking from 'expo-linking'
 import * as QuickActions from 'expo-quick-actions'
+import {Alert} from 'react-native'
 
 interface SessionContextValue {
 	session: Session | null;
@@ -121,20 +122,73 @@ export const SessionProvider = ({children}: { children: React.ReactNode }) => {
 						const currentSession = sessionData?.session || sessionState
 
 						if (currentSession?.id) {
-							// Check for an initial deep link
-							const initialUrl = await Linking.getInitialURL()
-							if (initialUrl) {
-								const parsed = Linking.parse(initialUrl)
-								const isHttpsSharedLink = parsed.hostname === 'halycron.space' && parsed.path?.startsWith('/shared/')
-								const isCustomSchemeSharedLink = parsed.scheme === 'halycron' && parsed.path?.startsWith('/shared/')
+							// Check for an initial deep link with retry mechanism
+							let initialUrl = await Linking.getInitialURL()
 
-								if (isHttpsSharedLink || isCustomSchemeSharedLink) {
-									const token = parsed.path?.replace('/shared/', '')
-									if (token) {
-										setInitialRoute(`/shared/${token}`)
-										SplashScreen.hideAsync()
-										return
+							// If initial URL is null, retry a few times (cold launch issue)
+							if (!initialUrl) {
+								for (let i = 0; i < 3; i++) {
+									await new Promise(resolve => setTimeout(resolve, 500)) // Wait 500ms
+									initialUrl = await Linking.getInitialURL()
+									if (initialUrl) break
+								}
+							}
+
+							Alert.alert('Debug', `Final getInitialURL result: ${initialUrl || 'null/undefined'}`)
+							if (initialUrl) {
+								// Debug: Show the received URL
+								Alert.alert('Debug', `Initial URL: ${initialUrl}`)
+
+								// Try multiple parsing approaches for better compatibility
+								let token = null
+
+								// Approach 1: Use expo-linking parse
+								try {
+									const parsed = Linking.parse(initialUrl)
+									Alert.alert('Debug', `Parsed - hostname: ${parsed.hostname}, path: ${parsed.path}, scheme: ${parsed.scheme}`)
+
+									const isHttpsSharedLink = parsed.hostname === 'halycron.space' && parsed.path?.startsWith('/shared/')
+									const isCustomSchemeSharedLink = parsed.scheme === 'halycron' && parsed.path?.startsWith('/shared/')
+
+									if (isHttpsSharedLink || isCustomSchemeSharedLink) {
+										token = parsed.path?.replace('/shared/', '')
 									}
+								} catch (error) {
+									Alert.alert('Debug', `Expo parsing failed: ${error}`)
+								}
+
+								// Approach 2: Use URL constructor as fallback
+								if (!token) {
+									try {
+										const urlObj = new URL(initialUrl)
+										Alert.alert('Debug', `URL - hostname: ${urlObj.hostname}, pathname: ${urlObj.pathname}`)
+
+										const isHttpsSharedLink = urlObj.hostname === 'halycron.space' && urlObj.pathname?.startsWith('/shared/')
+										const isCustomSchemeSharedLink = initialUrl.startsWith('halycron://') && urlObj.pathname?.startsWith('/shared/')
+
+										if (isHttpsSharedLink || isCustomSchemeSharedLink) {
+											token = urlObj.pathname?.replace('/shared/', '')
+										}
+									} catch (error) {
+										Alert.alert('Debug', `URL constructor failed: ${error}`)
+									}
+								}
+
+								// Approach 3: Simple string matching as final fallback
+								if (!token && initialUrl.includes('/shared/')) {
+									const match = initialUrl.match(/\/shared\/([^/?]+)/)
+									if (match && match[1]) {
+										token = match[1]
+									}
+								}
+
+								if (token) {
+									Alert.alert('Debug', `Setting route to: /shared/${token}`)
+									setInitialRoute(`/shared/${token}`)
+									SplashScreen.hideAsync()
+									return
+								} else {
+									Alert.alert('Debug', `No token extracted from URL: ${initialUrl}`)
 								}
 							}
 
