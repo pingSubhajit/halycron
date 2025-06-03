@@ -105,7 +105,6 @@ const Home = () => {
 						<ProfilePicture
 							userImage={user?.image}
 							userEmail={user?.email}
-							userName={user?.name}
 							size={50}
 							className="h-10 w-10 rounded-full"
 							fallback={<Feather name="user" size={20} color="#fff"/>}
