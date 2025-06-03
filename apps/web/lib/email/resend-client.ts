@@ -1,7 +1,17 @@
 import {Resend} from 'resend'
 import {EmailVerification} from '@halycron/email/emails/email-verification'
 
-export const resend = new Resend(process.env.RESEND_API_KEY)
+let resendInstance: Resend | null = null
+
+const getResendClient = () => {
+	if (!resendInstance) {
+		if (!process.env.RESEND_API_KEY) {
+			throw new Error('RESEND_API_KEY environment variable is required')
+		}
+		resendInstance = new Resend(process.env.RESEND_API_KEY)
+	}
+	return resendInstance
+}
 
 interface SendVerificationEmailParams {
 	to: string
@@ -15,6 +25,8 @@ export const sendVerificationEmail = async ({
 	userName
 }: SendVerificationEmailParams) => {
 	try {
+		const resend = getResendClient()
+		
 		const {data, error} = await resend.emails.send({
 			from: 'Halycron <no-reply@halycron.space>',
 			to: [to],
