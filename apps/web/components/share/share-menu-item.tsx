@@ -1,25 +1,25 @@
 'use client'
 
-import {useState} from 'react'
+import {ReactNode, useState} from 'react'
 import {ContextMenuItem} from '@halycron/ui/components/context-menu'
 import {Share2} from 'lucide-react'
-import {ShareDialog} from '../share-dialog'
+import {ShareDialog} from '@/components/share/share-dialog'
 
 interface ShareMenuItemProps {
   photoIds?: string[]
   albumIds?: string[]
   requiresPin?: boolean
   className?: string
-  children?: React.ReactNode
+	children?: ReactNode
 }
 
-export function ShareMenuItem({
+export const ShareMenuItem = ({
 	photoIds = [],
 	albumIds = [],
 	requiresPin = false,
 	className,
 	children
-}: ShareMenuItemProps) {
+}: ShareMenuItemProps) => {
 	const [isShareDialogOpen, setIsShareDialogOpen] = useState(false)
 
 	return (

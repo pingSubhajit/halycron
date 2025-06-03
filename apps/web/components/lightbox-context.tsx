@@ -8,7 +8,7 @@ import {AnimatePresence, motion} from 'motion/react'
 import {Button} from '@halycron/ui/components/button'
 import {useDecryptedUrl} from '@/hooks/use-decrypted-url'
 import {AlbumSelector} from './album-selector'
-import {ShareDialog} from '@/components/share-dialog'
+import {ShareDialog} from '@/components/share'
 import {useHotkeys} from 'react-hotkeys-hook'
 
 interface LightboxContextType {

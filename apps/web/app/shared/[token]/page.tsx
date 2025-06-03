@@ -1,16 +1,14 @@
 'use client'
 
-import {useState, useEffect} from 'react'
+import {useEffect, useState} from 'react'
 import {useParams} from 'next/navigation'
 import {useSharedItems} from '@/app/api/shared/query'
-import {SharePinDialog} from '@/components/share-pin-dialog'
+import {SharePinDialog} from '@/components/share/share-pin-dialog'
 import {Gallery} from '@/components/gallery'
 import {formatDistanceToNow} from 'date-fns'
-import {LockIcon, ClockIcon, Album as AlbumIcon} from 'lucide-react'
+import {Album as AlbumIcon, ClockIcon, Loader2, LockIcon} from 'lucide-react'
 import {Button} from '@halycron/ui/components/button'
-import {Loader2} from 'lucide-react'
 import {PhotoView} from '@/app/shared/[token]/photo-view'
-import {GetSharedItemsResponse} from '@/app/api/shared/types'
 import {Photo} from '@/app/api/photos/types'
 
 // Define the extended Album type that includes photos

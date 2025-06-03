@@ -1,6 +1,6 @@
 'use client'
 
-import {LogOut, User} from 'lucide-react'
+import {LogOut} from 'lucide-react'
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -11,18 +11,16 @@ import {
 } from '@halycron/ui/components/dropdown-menu'
 import {Button} from '@halycron/ui/components/button'
 import {useLogout} from '@/lib/auth/use-logout'
-import {Avatar, AvatarFallback, AvatarImage} from '@halycron/ui/components/avatar'
-import {createAuthClient} from 'better-auth/react'
+import {authClient} from '@/lib/auth/auth-client'
+import {ProfilePicture} from '@/components/profile-picture'
 import Link from 'next/link'
-
-const {useSession} = createAuthClient()
 
 export const UserMenu = () => {
 	const {logout, isLoading} = useLogout()
 
 	const {
 		data: session
-	} = useSession()
+	} = authClient.useSession()
 
 	return (
 		<DropdownMenu>
@@ -31,30 +29,24 @@ export const UserMenu = () => {
 					variant="outline"
 					className="h-10 w-10 rounded-none"
 				>
-					<Avatar className="h-9 w-10 rounded-none">
-						<AvatarImage src={
-							session?.user?.email
-								? `https://api.dicebear.com/7.x/thumbs/svg?seed=${encodeURIComponent(session?.user.email)}`
-								: undefined} alt={session?.user?.name || 'User avatar'}
-						/>
-						<AvatarFallback className="rounded-none">
-							<User className="h-4 w-4" />
-						</AvatarFallback>
-					</Avatar>
+					<ProfilePicture
+						userImage={session?.user?.image}
+						userEmail={session?.user?.email}
+						userName={session?.user?.name}
+						className="h-9 w-10 rounded-none"
+						fallbackClassName="rounded-none"
+					/>
 				</Button>
 			</DropdownMenuTrigger>
 			<DropdownMenuContent align="end" className="min-w-64">
 				<DropdownMenuLabel className="flex items-center gap-2">
-					<Avatar className="h-10 w-10 rounded-none">
-						<AvatarImage src={
-							session?.user?.email
-								? `https://api.dicebear.com/7.x/thumbs/svg?seed=${encodeURIComponent(session?.user.email)}`
-								: undefined} alt={session?.user?.name || 'User avatar'}
-						/>
-						<AvatarFallback className="rounded-none">
-							<User className="h-4 w-4" />
-						</AvatarFallback>
-					</Avatar>
+					<ProfilePicture
+						userImage={session?.user?.image}
+						userEmail={session?.user?.email}
+						userName={session?.user?.name}
+						className="h-10 w-10 rounded-none"
+						fallbackClassName="rounded-none"
+					/>
 
 					<div className="flex flex-col space-y-1">
 						<p className="text-sm font-medium leading-none truncate">{session?.user.name || 'One moment...'}</p>

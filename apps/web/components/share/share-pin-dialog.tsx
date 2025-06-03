@@ -23,12 +23,12 @@ interface SharePinDialogProps {
 	onPinVerified: () => void
 }
 
-export function SharePinDialog({
+export const SharePinDialog = ({
 	open,
 	onOpenChange,
 	token,
 	onPinVerified
-}: SharePinDialogProps) {
+}: SharePinDialogProps) => {
 	const [pin, setPin] = useState<string>('')
 	const {mutate: verifyPin, isPending} = useVerifyPin()
 	const pinInputRef = useRef<HTMLDivElement>(null)
