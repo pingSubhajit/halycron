@@ -1,7 +1,7 @@
 import React, {useState} from 'react'
 import {Platform, Pressable, Text, View} from 'react-native'
 import {useSession} from './session-provider'
-import {Avatar} from './avatar'
+import {ProfilePicture} from './profile-picture'
 import {Feather} from '@expo/vector-icons'
 import {BlurView} from 'expo-blur'
 
@@ -18,12 +18,6 @@ export const UserMenu = ({onClose}: UserMenuProps) => {
 		await signOut()
 		setSigningOut(false)
 		onClose?.()
-	}
-
-	// Create a more reliable avatar URL with PNG format
-	const getAvatarUrl = () => {
-		if (!user?.email) return undefined
-		return `https://api.dicebear.com/7.x/thumbs/png?seed=${encodeURIComponent(user.email)}&size=128`
 	}
 
 	// Use dimezisBlurView experimental method on Android
@@ -60,10 +54,11 @@ export const UserMenu = ({onClose}: UserMenuProps) => {
 				>
 					{/* User info section */}
 					<View className="flex-row items-center gap-3 mb-4 pb-4">
-						<Avatar
+						<ProfilePicture
+							userImage={user?.image}
+							userEmail={user?.email}
 							size={40}
 							className="h-10 w-10 rounded-full"
-							imageUrl={getAvatarUrl()}
 							fallback={<Feather name="user" size={20} color="#fff"/>}
 						/>
 						<View className="flex-1" style={{marginLeft: 12}}>

@@ -5,11 +5,8 @@ import {SafeAreaView} from 'react-native-safe-area-context'
 import {useAllPhotos} from '@/src/hooks/use-photos'
 import {PhotoGallery} from '@/src/components/photo-gallery'
 import {UserMenu} from '@/src/components/user-menu'
-import {Avatar} from '@/src/components/avatar'
+import {ProfilePicture} from '@/src/components/profile-picture'
 import {Feather} from '@expo/vector-icons'
-import {router} from 'expo-router'
-import {Button} from '@/src/components/ui/button'
-import {useCloseAllDialogs} from '@/src/components/dialog-provider'
 
 const Home = () => {
 	const {user} = useSession()
@@ -17,7 +14,6 @@ const Home = () => {
 	const [showUserMenu, setShowUserMenu] = useState(false)
 	const [isAnimating, setIsAnimating] = useState(false)
 	const {width: screenWidth, height: screenHeight} = Dimensions.get('window')
-	const {closeAllDialogs} = useCloseAllDialogs()
 
 	// Animation values
 	const menuOpacity = useRef(new Animated.Value(0)).current
@@ -95,11 +91,6 @@ const Home = () => {
 		toggleMenu(false)
 	}
 
-	// Create a more reliable avatar URL with PNG format
-	const getAvatarUrl = () => {
-		if (!user?.email) return undefined
-		return `https://api.dicebear.com/7.x/thumbs/png?seed=${encodeURIComponent(user.email)}&size=128`
-	}
 
 	const renderHeader = () => (
 		<View className="mt-16 p-6 flex-1">
@@ -111,10 +102,12 @@ const Home = () => {
 
 				<View className="relative">
 					<Pressable onPress={handleMenuToggle}>
-						<Avatar
+						<ProfilePicture
+							userImage={user?.image}
+							userEmail={user?.email}
+							userName={user?.name}
 							size={50}
 							className="h-10 w-10 rounded-full"
-							imageUrl={getAvatarUrl()}
 							fallback={<Feather name="user" size={20} color="#fff"/>}
 						/>
 					</Pressable>
