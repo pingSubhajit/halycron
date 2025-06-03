@@ -3,7 +3,7 @@ name: Build & Submit to Play Store
 on:
   push:
     branches:
-      - 'update/**'
+      - 'build/**'
     paths:
       - 'apps/mobile/**'
       - 'packages/**'
