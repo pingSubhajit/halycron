@@ -17,6 +17,7 @@ import {AnimatePresence, LayoutGroup, motion} from 'motion/react'
 import Link from 'next/link'
 import Image from 'next/image'
 import logo from '@halycron/ui/media/logo.svg'
+import {useSendVerificationEmail} from '@/app/api/auth/mutations'
 
 const formSchema = z.object({
 	email: z.string().email('Hmm, that doesn\'t look like a valid email. Mind trying again?'),
@@ -34,6 +35,7 @@ const RegisterForm = () => {
 	const [showPassword, setShowPassword] = useState(false)
 	const [isLoading, setIsLoading] = useState(false)
 	const {logout} = useLogout()
+	const sendVerificationEmail = useSendVerificationEmail()
 	const [twofa, setTwofa] = useQueryState<'form' | '2fa'>('twoFa', {
 		defaultValue: 'form',
 		parse: (value): 'form' | '2fa' => {
@@ -73,6 +75,15 @@ const RegisterForm = () => {
 
 			if (loginError || !loginData) {
 				throw loginError || new Error('We got your account set up, but had trouble signing you in. Try logging in again.')
+			}
+
+			// Send verification email after successful registration
+			try {
+				await sendVerificationEmail.mutateAsync()
+			} catch (emailError) {
+				// Don't fail registration if email sending fails
+				console.error('Failed to send verification email:', emailError)
+				toast.error('Account created successfully, but we couldn\'t send the verification email. You can resend it from your profile.')
 			}
 
 			setTwofa('2fa')

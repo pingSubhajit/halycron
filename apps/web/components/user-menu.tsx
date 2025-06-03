@@ -33,7 +33,7 @@ export const UserMenu = () => {
 						userImage={session?.user?.image}
 						userEmail={session?.user?.email}
 						userName={session?.user?.name}
-						className="h-9 w-10 rounded-none"
+						className="h-10 w-10 rounded-none"
 						fallbackClassName="rounded-none"
 					/>
 				</Button>

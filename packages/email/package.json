@@ -1,0 +1,22 @@
+{
+  "name": "@halycron/email",
+  "version": "0.0.1",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "email dev"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "react-email": "4.0.15",
+    "@halycron/typescript-config": "workspace:*"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@react-email/components": "0.0.41",
+    "react": "19.0.0",
+    "react-dom": "19.0.0"
+  }
+}

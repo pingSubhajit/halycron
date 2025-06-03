@@ -63,7 +63,8 @@ export const AddNewButton = () => {
 	return (
 		<Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
 			<DialogTrigger asChild>
-				<Button size="sm" className="uppercase w-32 justify-between" onMouseEnter={() => setPrimaryHover(true)}
+				<Button size="sm" className="uppercase w-32 justify-between h-[39px]"
+					onMouseEnter={() => setPrimaryHover(true)}
 					onMouseLeave={() => setPrimaryHover(false)}>
 					<Upload className="size-4"/>
 					<TextScramble

@@ -1,5 +1,5 @@
 {
-  "extends": "@halycron/typescript-config/react-library.json",
+  "extends": "@halycron/typescript-config/base.json",
   "compilerOptions": {
     //"outDir": "dist"
     "baseUrl": ".",

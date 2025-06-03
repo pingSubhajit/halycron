@@ -15,6 +15,7 @@ import {AlertCircle, Calendar, Camera, Lock, Mail, User} from 'lucide-react'
 import {authClient} from '@/lib/auth/auth-client'
 import {toast} from 'sonner'
 import {useUpdateProfile} from '@/app/api/profile/mutations'
+import {useSendVerificationEmail} from '@/app/api/auth/mutations'
 import type {Session} from '@/types/auth'
 import {ProfilePictureModal} from './profile-picture-modal'
 import {ProfilePicture} from '../profile-picture'
@@ -31,6 +32,7 @@ interface ProfileSettingsProps {
 export const ProfileSettings = ({initialSession}: ProfileSettingsProps) => {
 	const {data: session, refetch: refetchSession} = authClient.useSession()
 	const [isModalOpen, setIsModalOpen] = useState(false)
+	const sendVerificationEmail = useSendVerificationEmail()
 
 	// Use client session if available, otherwise use initial session
 	const currentSession = session || initialSession
@@ -267,8 +269,14 @@ export const ProfileSettings = ({initialSession}: ProfileSettingsProps) => {
 							<p className="text-sm text-muted-foreground mt-1">
 								Please check your email and verify your account to access all features.
 							</p>
-							<Button variant="outline" size="sm" className="mt-3">
-								Resend Verification Email
+							<Button
+								variant="outline"
+								size="sm"
+								className="mt-3"
+								onClick={() => sendVerificationEmail.mutate()}
+								disabled={sendVerificationEmail.isPending}
+							>
+								{sendVerificationEmail.isPending ? 'Sending...' : 'Resend Verification Email'}
 							</Button>
 						</div>
 					)}

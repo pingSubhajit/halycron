@@ -15,7 +15,8 @@ export interface RateLimitConfig {
 export const RATE_LIMIT_CONFIGS = {
 	standard: {limit: 500, window: 60}, // 100 requests per minute
 	login: {limit: 2, window: 60}, // 10 requests per minute
-	passwordReset: {limit: 1, window: 60} // 2 requests per minute
+	passwordReset: {limit: 1, window: 60}, // 2 requests per minute
+	emailVerification: {limit: 3, window: 300} // 3 requests per 5 minutes
 } as const
 
 const getIpAddress = (request: NextRequest): string | undefined => {
