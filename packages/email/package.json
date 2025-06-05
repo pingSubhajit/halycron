@@ -8,7 +8,7 @@
   },
   "devDependencies": {
     "@types/bun": "latest",
-    "react-email": "4.0.15",
+    "react-email": "3.0.7",
     "@halycron/typescript-config": "workspace:*"
   },
   "peerDependencies": {
