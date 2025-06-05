@@ -26,7 +26,7 @@ export const sendVerificationEmail = async ({
 }: SendVerificationEmailParams) => {
 	try {
 		const resend = getResendClient()
-		
+
 		const {data, error} = await resend.emails.send({
 			from: 'Halycron <no-reply@halycron.space>',
 			to: [to],
