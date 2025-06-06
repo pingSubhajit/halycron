@@ -5,12 +5,18 @@ import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@halycr
 import {Button} from '@halycron/ui/components/button'
 import {Badge} from '@halycron/ui/components/badge'
 import {Separator} from '@halycron/ui/components/separator'
-import {CheckCircle, Clock, Eye, Key, Loader2, Shield} from 'lucide-react'
+import {CheckCircle, Clock, Eye, EyeOff, Key, Loader2, Shield} from 'lucide-react'
 import {Skeleton} from '@halycron/ui/components/skeleton'
+import {Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle} from '@halycron/ui/components/dialog'
+import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from '@halycron/ui/components/form'
+import {Input} from '@halycron/ui/components/input'
 import {createAuthClient} from 'better-auth/react'
 import {toast} from 'sonner'
+import {useForm} from 'react-hook-form'
+import {zodResolver} from '@hookform/resolvers/zod'
+import * as z from 'zod'
 
-const {useSession, listSessions, revokeSession, revokeOtherSessions} = createAuthClient({
+const {useSession, listSessions, revokeSession, revokeOtherSessions, changePassword} = createAuthClient({
 	baseURL: process.env.NEXT_PUBLIC_BETTER_AUTH_URL || 'http://localhost:3000'
 })
 
@@ -25,15 +31,75 @@ interface SessionData {
 	userId: string
 }
 
+const changePasswordSchema = z.object({
+	currentPassword: z.string().min(1, 'Current password is required'),
+	newPassword: z
+		.string()
+		.min(12, 'Password must be at least 12 characters long')
+		.regex(
+			/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z\d])[A-Za-z\d\W_]+$/,
+			'Password must include uppercase, lowercase, numbers, and special characters'
+		),
+	confirmPassword: z.string().min(1, 'Please confirm your new password')
+}).refine((data) => data.newPassword === data.confirmPassword, {
+	message: 'Passwords don\'t match',
+	path: ['confirmPassword']
+})
+
 export const SecuritySettings = () => {
 	const {data: session} = useSession()
 	const [sessions, setSessions] = useState<SessionData[]>([])
 	const [loadingSessions, setLoadingSessions] = useState(false)
 	const [revoking, setRevoking] = useState<string | null>(null)
 	const [revokingAll, setRevokingAll] = useState(false)
+	const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] = useState(false)
+	const [showCurrentPassword, setShowCurrentPassword] = useState(false)
+	const [showNewPassword, setShowNewPassword] = useState(false)
+	const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+
+	const passwordForm = useForm<z.infer<typeof changePasswordSchema>>({
+		resolver: zodResolver(changePasswordSchema),
+		defaultValues: {
+			currentPassword: '',
+			newPassword: '',
+			confirmPassword: ''
+		}
+	})
 
 	const handlePasswordChange = () => {
-		// TODO: Implement password change modal/flow
+		setIsChangePasswordModalOpen(true)
+	}
+
+	const onPasswordSubmit = async (values: z.infer<typeof changePasswordSchema>) => {
+		try {
+			const {data, error} = await changePassword({
+				currentPassword: values.currentPassword,
+				newPassword: values.newPassword,
+				revokeOtherSessions: true // For security, revoke all other sessions
+			})
+
+			if (error) {
+				throw new Error(error.message)
+			}
+
+			toast.success('Password changed successfully! All other sessions have been signed out.')
+			setIsChangePasswordModalOpen(false)
+			passwordForm.reset()
+
+			// Refresh sessions list since other sessions were revoked
+			fetchSessions()
+		} catch (error) {
+			console.error('Failed to change password:', error)
+			toast.error(error instanceof Error ? error.message : 'Failed to change password')
+		}
+	}
+
+	const handleClosePasswordModal = () => {
+		setIsChangePasswordModalOpen(false)
+		passwordForm.reset()
+		setShowCurrentPassword(false)
+		setShowNewPassword(false)
+		setShowConfirmPassword(false)
 	}
 
 	// Fetch sessions data
@@ -473,6 +539,161 @@ export const SecuritySettings = () => {
 					)}
 				</CardContent>
 			</Card>
+
+			{/* Change Password Modal */}
+			<Dialog open={isChangePasswordModalOpen} onOpenChange={handleClosePasswordModal}>
+				<DialogContent className="sm:max-w-md">
+					<DialogHeader>
+						<DialogTitle className="flex items-center gap-2">
+							<Key className="h-5 w-5"/>
+							Change Password
+						</DialogTitle>
+						<DialogDescription>
+							Create a new password for your account. For security, this will sign you out of all other
+							devices.
+						</DialogDescription>
+					</DialogHeader>
+
+					<Form {...passwordForm}>
+						<form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)} className="space-y-4">
+							<FormField
+								control={passwordForm.control}
+								name="currentPassword"
+								render={({field}) => (
+									<FormItem>
+										<FormLabel>Current Password</FormLabel>
+										<FormControl>
+											<div className="relative">
+												<Input
+													type={showCurrentPassword ? 'text' : 'password'}
+													placeholder="Enter your current password"
+													{...field}
+												/>
+												<Button
+													type="button"
+													variant="ghost"
+													size="sm"
+													className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+													onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+												>
+													{showCurrentPassword ? (
+														<EyeOff className="h-4 w-4"/>
+													) : (
+														<Eye className="h-4 w-4"/>
+													)}
+												</Button>
+											</div>
+										</FormControl>
+										<FormMessage/>
+									</FormItem>
+								)}
+							/>
+
+							<FormField
+								control={passwordForm.control}
+								name="newPassword"
+								render={({field}) => (
+									<FormItem>
+										<FormLabel>New Password</FormLabel>
+										<FormControl>
+											<div className="relative">
+												<Input
+													type={showNewPassword ? 'text' : 'password'}
+													placeholder="Enter your new password"
+													{...field}
+												/>
+												<Button
+													type="button"
+													variant="ghost"
+													size="sm"
+													className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+													onClick={() => setShowNewPassword(!showNewPassword)}
+												>
+													{showNewPassword ? (
+														<EyeOff className="h-4 w-4"/>
+													) : (
+														<Eye className="h-4 w-4"/>
+													)}
+												</Button>
+											</div>
+										</FormControl>
+										<FormMessage/>
+									</FormItem>
+								)}
+							/>
+
+							<FormField
+								control={passwordForm.control}
+								name="confirmPassword"
+								render={({field}) => (
+									<FormItem>
+										<FormLabel>Confirm New Password</FormLabel>
+										<FormControl>
+											<div className="relative">
+												<Input
+													type={showConfirmPassword ? 'text' : 'password'}
+													placeholder="Confirm your new password"
+													{...field}
+												/>
+												<Button
+													type="button"
+													variant="ghost"
+													size="sm"
+													className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+													onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+												>
+													{showConfirmPassword ? (
+														<EyeOff className="h-4 w-4"/>
+													) : (
+														<Eye className="h-4 w-4"/>
+													)}
+												</Button>
+											</div>
+										</FormControl>
+										<FormMessage/>
+									</FormItem>
+								)}
+							/>
+
+							<div className="p-4 bg-muted/30 rounded-md">
+								<h4 className="font-medium mb-2 text-sm">Password Requirements</h4>
+								<ul className="text-xs text-muted-foreground space-y-1">
+									<li>• At least 12 characters long</li>
+									<li>• Include uppercase and lowercase letters</li>
+									<li>• Include at least one number</li>
+									<li>• Include at least one special character</li>
+								</ul>
+							</div>
+
+							<div className="flex gap-2 pt-4">
+								<Button
+									type="button"
+									variant="outline"
+									onClick={handleClosePasswordModal}
+									disabled={passwordForm.formState.isSubmitting}
+									className="flex-1"
+								>
+									Cancel
+								</Button>
+								<Button
+									type="submit"
+									disabled={passwordForm.formState.isSubmitting || !passwordForm.formState.isValid}
+									className="flex-1"
+								>
+									{passwordForm.formState.isSubmitting ? (
+										<>
+											<Loader2 className="h-4 w-4 animate-spin mr-2"/>
+											Changing...
+										</>
+									) : (
+										'Change Password'
+									)}
+								</Button>
+							</div>
+						</form>
+					</Form>
+				</DialogContent>
+			</Dialog>
 		</div>
 	)
 }
