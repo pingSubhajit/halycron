@@ -28,7 +28,7 @@ export const sendVerificationEmail = async ({
 		const resend = getResendClient()
 
 		const {data, error} = await resend.emails.send({
-			from: 'Halycron <no-reply@halycron.space>',
+			from: 'Halycron <hello@halycron.space>',
 			to: [to],
 			subject: 'Verify your email address - Halycron',
 			react: EmailVerification({

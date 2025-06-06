@@ -6,6 +6,7 @@ import {Button} from '@halycron/ui/components/button'
 import {Badge} from '@halycron/ui/components/badge'
 import {Separator} from '@halycron/ui/components/separator'
 import {CheckCircle, Clock, Eye, Key, Loader2, Shield} from 'lucide-react'
+import {Skeleton} from '@halycron/ui/components/skeleton'
 import {createAuthClient} from 'better-auth/react'
 import {toast} from 'sonner'
 
@@ -359,7 +360,6 @@ export const SecuritySettings = () => {
 					<CardTitle className="flex items-center gap-2">
 						<Clock className="h-5 w-5"/>
 						Active Sessions
-						{loadingSessions && <Loader2 className="h-4 w-4 animate-spin"/>}
 					</CardTitle>
 					<CardDescription>
 						Manage your active login sessions across devices
@@ -367,9 +367,17 @@ export const SecuritySettings = () => {
 				</CardHeader>
 				<CardContent className="space-y-4">
 					{loadingSessions ? (
-						<div className="flex items-center justify-center p-8">
-							<Loader2 className="h-6 w-6 animate-spin"/>
-							<span className="ml-2">Loading sessions...</span>
+						<div className="space-y-3">
+							{/* Session skeleton items */}
+							{[...Array(3)].map((_, i) => (
+								<div key={i} className="flex items-center justify-between p-4 border">
+									<div className="space-y-2 flex-1">
+										<Skeleton className="h-4 w-1/3"/>
+										<Skeleton className="h-3 w-2/3"/>
+									</div>
+									<Skeleton className="h-8 w-20"/>
+								</div>
+							))}
 						</div>
 					) : (
 						<div className="space-y-3">

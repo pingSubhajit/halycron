@@ -103,12 +103,11 @@ const main = {
 const container = {
 	backgroundColor: "transparent",
 	margin: "0 auto",
-	maxWidth: "600px",
-	border: "1px solid #00d4aa"
+	maxWidth: "600px"
 }
 
 const headerSection = {
-	background: "linear-gradient(180deg, #111111 0%, #0a0a0a 100%)",
+	background: "#111111",
 	padding: "24px 20px 0",
 	textAlign: "center" as const,
 }
@@ -120,8 +119,7 @@ const logo = {
 
 const contentCard = {
 	martinTop: "48px",
-	backgroundColor: "#0a0a0a",
-	borderRadius: "0 0 16px 16px",
+	backgroundColor: "#111111",
 	padding: "48px",
 }
 

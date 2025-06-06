@@ -261,7 +261,7 @@ export const ProfileSettings = ({initialSession}: ProfileSettingsProps) => {
 					</div>
 
 					{!currentSession.user.emailVerified && (
-						<div className="p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
+						<div className="p-4 bg-yellow-500/10 border border-yellow-500/20">
 							<div className="flex items-center gap-2 text-yellow-600">
 								<AlertCircle className="h-4 w-4"/>
 								<span className="font-medium">Email Verification Required</span>
