@@ -1,12 +1,31 @@
 import {Client} from '@upstash/qstash'
 
-if (!process.env.QSTASH_TOKEN) {
-	throw new Error('QSTASH_TOKEN environment variable is required')
+let qstashClient: Client | null = null
+
+/**
+ * Get QStash client with lazy initialization
+ * Better for serverless: only creates client when needed
+ */
+export const getQStashClient = () => {
+	if (!qstashClient) {
+		const token = process.env.QSTASH_TOKEN
+
+		if (!token) {
+			throw new Error('QSTASH_TOKEN environment variable is required')
+		}
+
+		qstashClient = new Client({token})
+	}
+
+	return qstashClient
 }
 
-export const qstashClient = new Client({
-	token: process.env.QSTASH_TOKEN
-})
+/**
+ * Reset client (useful for testing or error recovery)
+ */
+export const resetQStashClient = () => {
+	qstashClient = null
+}
 
 // Helper function to get the current base URL
 export const getBaseUrl = () => {
@@ -18,11 +37,12 @@ export const getBaseUrl = () => {
 
 // Schedule cleanup CRON job (runs daily at 2 AM)
 export const scheduleCleanupJob = async () => {
+	const client = getQStashClient()
 	const baseUrl = getBaseUrl()
 	const endpoint = `${baseUrl}/api/cron/cleanup-exports`
 
 	try {
-		await qstashClient.schedules.create({
+		await client.schedules.create({
 			destination: endpoint,
 			cron: '0 2 * * *', // Daily at 2 AM
 			scheduleId: 'export-cleanup-daily'
@@ -30,15 +50,17 @@ export const scheduleCleanupJob = async () => {
 		console.log('Cleanup CRON job scheduled successfully')
 	} catch (error) {
 		console.error('Failed to schedule cleanup CRON job:', error)
+		throw error // Re-throw for proper error handling
 	}
 }
 
 // Queue background export job
 export const queueExportJob = async (jobId: string) => {
+	const client = getQStashClient()
 	const baseUrl = getBaseUrl()
 	const endpoint = `${baseUrl}/api/export/process`
 
-	return await qstashClient.publishJSON({
+	return await client.publishJSON({
 		url: endpoint,
 		body: {jobId},
 		headers: {
