@@ -1,5 +1,6 @@
 import {Resend} from 'resend'
 import {EmailVerification} from '@halycron/email/emails/email-verification'
+import {ExportReady} from '@halycron/email/emails/export-ready'
 
 let resendInstance: Resend | null = null
 
@@ -45,6 +46,48 @@ export const sendVerificationEmail = async ({
 		return {success: true, messageId: data?.id}
 	} catch (error) {
 		console.error('Email sending error:', error)
+		throw error
+	}
+}
+
+interface SendExportReadyEmailParams {
+	to: string
+	downloadUrl: string
+	userName?: string
+	totalPhotos: number
+	expiresAt: string
+}
+
+export const sendExportReadyEmail = async ({
+	to,
+	downloadUrl,
+	userName,
+	totalPhotos,
+	expiresAt
+}: SendExportReadyEmailParams) => {
+	try {
+		const resend = getResendClient()
+
+		const {data, error} = await resend.emails.send({
+			from: 'Halycron <hello@halycron.space>',
+			to: [to],
+			subject: '🎉 Your Halycron Data Export is Ready!',
+			react: ExportReady({
+				downloadUrl,
+				userName,
+				totalPhotos,
+				expiresAt
+			})
+		})
+
+		if (error) {
+			console.error('Resend error:', error)
+			throw new Error(`Failed to send export ready email: ${error.message}`)
+		}
+
+		return {success: true, messageId: data?.id}
+	} catch (error) {
+		console.error('Export email sending error:', error)
 		throw error
 	}
 }

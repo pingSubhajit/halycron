@@ -16,4 +16,4 @@ export const useStorageStats = (options?: QueryOptions<StorageStats, Error>) => 
 		staleTime: 1000 * 60 * 5, // 5 minutes
 		...options
 	})
-} 
+}

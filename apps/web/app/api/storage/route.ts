@@ -30,15 +30,19 @@ export const GET = async (req: NextRequest) => {
 
 		const photoCount = Number(photoCountResult[0]?.count || 0)
 
-		// Calculate storage usage by querying S3 object sizes
-		// For now, we'll estimate based on average photo size (2MB per photo)
-		// TODO: In a real implementation, you would query S3 to get actual file sizes
+		/*
+		 * Calculate storage usage by querying S3 object sizes
+		 * For now, we'll estimate based on average photo size (2MB per photo)
+		 * TODO: In a real implementation, you would query S3 to get actual file sizes
+		 */
 		const averagePhotoSizeMB = 2
 		const usedMB = photoCount * averagePhotoSizeMB
 		const usedGB = usedMB / 1024
 
-		// TODO: Check user settings to determine if they're using custom S3
-		// For now, assume all users are on Halycron Cloud with 5GB limit
+		/*
+		 * TODO: Check user settings to determine if they're using custom S3
+		 * For now, assume all users are on Halycron Cloud with 5GB limit
+		 */
 		const storageType = 'halycron' as const
 		const totalGB = storageType === 'halycron' ? 5 : 100 // 5GB for Halycron, 100GB for custom S3
 
@@ -57,4 +61,4 @@ export const GET = async (req: NextRequest) => {
 			{status: 500}
 		)
 	}
-} 
+}

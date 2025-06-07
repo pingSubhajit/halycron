@@ -22,6 +22,8 @@ export const middleware = async (request: NextRequest) => {
 		rateLimitResult = await rateLimit(request, RATE_LIMIT_CONFIGS.login, 'login')
 	} else if (path.startsWith('/api/auth/send-verification')) {
 		rateLimitResult = await rateLimit(request, RATE_LIMIT_CONFIGS.emailVerification, 'verification')
+	} else if (path.startsWith('/api/export')) {
+		rateLimitResult = await rateLimit(request, RATE_LIMIT_CONFIGS.emailVerification, 'export') // Same rate as email verification (strict)
 	} else if (path.startsWith('/api/')) {
 		rateLimitResult = await rateLimit(request, RATE_LIMIT_CONFIGS.standard, 'standard')
 	}

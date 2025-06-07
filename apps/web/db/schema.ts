@@ -167,3 +167,19 @@ export const sharedAlbums = pgTable('shared_albums', {
 }, (t) => ({
 	pk: primaryKey(t.sharedLinkId, t.albumId)
 }))
+
+// Export Jobs Table
+export const exportJob = pgTable('export_jobs', {
+	id: uuid('id').primaryKey().default(sql`gen_random_uuid
+    ()`),
+	userId: uuid('user_id').notNull().references(() => user.id, {onDelete: 'cascade'}),
+	status: varchar('status', {length: 20}).notNull().default('pending'), // pending, processing, ready, failed, expired
+	totalPhotos: integer('total_photos').notNull().default(0),
+	processedPhotos: integer('processed_photos').notNull().default(0),
+	downloadUrl: text('download_url'),
+	s3Key: text('s3_key'), // Key for the export package in S3
+	errorMessage: text('error_message'),
+	expiresAt: timestamp('expires_at', {withTimezone: true}),
+	createdAt: timestamp('created_at', {withTimezone: true}).default(sql`CURRENT_TIMESTAMP`),
+	updatedAt: timestamp('updated_at', {withTimezone: true}).default(sql`CURRENT_TIMESTAMP`)
+})

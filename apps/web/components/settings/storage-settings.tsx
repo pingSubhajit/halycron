@@ -20,6 +20,7 @@ import {Switch} from '@halycron/ui/components/switch'
 import {Progress} from '@halycron/ui/components/progress'
 import {AlertCircle, CheckCircle, Cloud, Download, HardDrive, Info, Server, Trash2} from 'lucide-react'
 import {useStorageStats} from '@/app/api/storage/query'
+import {ExportDialog} from '@/components/export-dialog'
 import {TextShimmer} from '@halycron/ui/components/text-shimmer'
 
 const s3ConfigSchema = z.object({
@@ -33,6 +34,7 @@ export const StorageSettings = () => {
 	const [isLoading, setIsLoading] = useState(false)
 	const [useCustomS3, setUseCustomS3] = useState(false)
 	const [connectionTested, setConnectionTested] = useState(false)
+	const [showExportDialog, setShowExportDialog] = useState(false)
 
 	// Fetch storage statistics
 	const {data: storageStats, isLoading: isLoadingStats, error} = useStorageStats()
@@ -367,7 +369,7 @@ export const StorageSettings = () => {
 									Export all your photos and metadata in encrypted format
 								</div>
 							</div>
-							<Button variant="outline">
+							<Button variant="outline" onClick={() => setShowExportDialog(true)}>
 								<Download className="h-4 w-4 mr-2"/>
 								Export Data
 							</Button>
@@ -426,6 +428,12 @@ export const StorageSettings = () => {
 					</div>
 				</CardContent>
 			</Card>
+
+			{/* Export Dialog */}
+			<ExportDialog
+				open={showExportDialog}
+				onOpenChange={setShowExportDialog}
+			/>
 		</div>
 	)
 }
