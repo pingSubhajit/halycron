@@ -1,6 +1,6 @@
 'use client'
 
-import {useState} from 'react'
+import {useEffect, useState} from 'react'
 import {zodResolver} from '@hookform/resolvers/zod'
 import {useForm} from 'react-hook-form'
 import * as z from 'zod'
@@ -19,6 +19,8 @@ import {Input} from '@halycron/ui/components/input'
 import {Switch} from '@halycron/ui/components/switch'
 import {Progress} from '@halycron/ui/components/progress'
 import {AlertCircle, CheckCircle, Cloud, Download, HardDrive, Info, Server, Trash2} from 'lucide-react'
+import {useStorageStats} from '@/app/api/storage/query'
+import {TextShimmer} from '@halycron/ui/components/text-shimmer'
 
 const s3ConfigSchema = z.object({
 	bucketName: z.string().min(3, 'Bucket name must be at least 3 characters'),
@@ -31,6 +33,9 @@ export const StorageSettings = () => {
 	const [isLoading, setIsLoading] = useState(false)
 	const [useCustomS3, setUseCustomS3] = useState(false)
 	const [connectionTested, setConnectionTested] = useState(false)
+
+	// Fetch storage statistics
+	const {data: storageStats, isLoading: isLoadingStats, error} = useStorageStats()
 
 	const form = useForm<z.infer<typeof s3ConfigSchema>>({
 		resolver: zodResolver(s3ConfigSchema),
@@ -67,14 +72,38 @@ export const StorageSettings = () => {
 		}
 	}
 
-	// Mock storage usage data
-	const storageUsage = {
-		used: 2.4, // GB
-		total: 15, // GB
-		photos: 1247
+	// Use real storage data or fallback to defaults
+	const storageUsage = storageStats || {
+		used: 0,
+		total: 5, // 5GB default for Halycron Cloud
+		photos: 0,
+		storageType: 'halycron' as const
 	}
 
 	const usagePercentage = (storageUsage.used / storageUsage.total) * 100
+
+	// Update the custom S3 state based on storage type
+	useEffect(() => {
+		if (storageStats?.storageType === 'custom-s3') {
+			setUseCustomS3(true)
+		}
+	}, [storageStats?.storageType])
+
+	if (error) {
+		return (
+			<div className="space-y-6">
+				<Card>
+					<CardContent className="pt-6">
+						<div className="text-center text-red-600">
+							<AlertCircle className="h-8 w-8 mx-auto mb-2"/>
+							<p>Failed to load storage information</p>
+							<p className="text-sm text-muted-foreground mt-1">{error.message}</p>
+						</div>
+					</CardContent>
+				</Card>
+			</div>
+		)
+	}
 
 	return (
 		<div className="space-y-6">
@@ -94,46 +123,76 @@ export const StorageSettings = () => {
 						<div className="space-y-2">
 							<div className="flex items-center justify-between">
 								<span className="text-sm font-medium">Storage Used</span>
-								<span className="text-sm text-muted-foreground">
-									{storageUsage.used} GB of {storageUsage.total} GB
-								</span>
+								{isLoadingStats && <TextShimmer duration={1} className="text-sm text-right">
+									Calculating usage
+								</TextShimmer>}
+								{!isLoadingStats && <span className="text-sm text-muted-foreground">
+									{`${storageUsage.used} GB of ${storageUsage.total} GB`}
+								</span>}
 							</div>
-							<Progress value={usagePercentage} className="h-2"/>
+							<Progress
+								value={isLoadingStats ? 0 : usagePercentage}
+								className={`h-2 ${usagePercentage > 80 ? 'text-red-600' : usagePercentage > 60 ? 'text-yellow-600' : ''}`}
+							/>
 							<div className="flex items-center justify-between text-sm text-muted-foreground">
-								<span>{storageUsage.photos} photos stored</span>
-								<span>{Math.round((storageUsage.total - storageUsage.used) * 100) / 100} GB available</span>
+								{isLoadingStats && <TextShimmer duration={1} className="text-sm text-right">
+									Calculating usage
+								</TextShimmer>}
+								{!isLoadingStats && <span>{storageUsage.photos} photos stored</span>}
+
+								{isLoadingStats && <TextShimmer duration={1} className="text-sm text-right">
+									Calculating usage
+								</TextShimmer>}
+								{!isLoadingStats &&
+                                    <span>{Math.round((storageUsage.total - storageUsage.used) * 100) / 100} GB available</span>}
 							</div>
+							{usagePercentage > 80 && storageUsage.storageType === 'halycron' && (
+								<div className="p-3 bg-orange-50 border border-orange-200">
+									<div className="flex items-center gap-2 text-orange-700">
+										<AlertCircle className="h-4 w-4"/>
+										<span className="text-sm font-medium">Storage almost full</span>
+									</div>
+									<p className="text-sm text-orange-600 mt-1">
+										You're using {usagePercentage.toFixed(1)}% of your Halycron Cloud storage.
+										Consider upgrading to a custom S3 bucket for unlimited storage.
+									</p>
+								</div>
+							)}
 						</div>
 
 						<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-							<div className="flex items-center gap-3 p-4 border rounded-lg">
-								<div className="p-2 bg-blue-500/10 rounded-lg">
+							<div className="flex items-center gap-3 p-4 border">
+								<div className="p-2 bg-blue-500/10">
 									<Cloud className="h-5 w-5 text-blue-500"/>
 								</div>
 								<div>
 									<div className="font-medium">Photos</div>
-									<div className="text-sm text-muted-foreground">{storageUsage.photos} files</div>
+									<div className="text-sm text-muted-foreground">
+										{isLoadingStats ? 'Loading...' : `${storageUsage.photos} files`}
+									</div>
 								</div>
 							</div>
 
-							<div className="flex items-center gap-3 p-4 border rounded-lg">
-								<div className="p-2 bg-green-500/10 rounded-lg">
+							<div className="flex items-center gap-3 p-4 border">
+								<div className="p-2 bg-green-500/10">
 									<HardDrive className="h-5 w-5 text-green-500"/>
 								</div>
 								<div>
 									<div className="font-medium">Encrypted Size</div>
-									<div className="text-sm text-muted-foreground">{storageUsage.used} GB</div>
+									<div className="text-sm text-muted-foreground">
+										{isLoadingStats ? 'Loading...' : `${storageUsage.used} GB`}
+									</div>
 								</div>
 							</div>
 
-							<div className="flex items-center gap-3 p-4 border rounded-lg">
-								<div className="p-2 bg-purple-500/10 rounded-lg">
+							<div className="flex items-center gap-3 p-4 border">
+								<div className="p-2 bg-purple-500/10">
 									<Server className="h-5 w-5 text-purple-500"/>
 								</div>
 								<div>
 									<div className="font-medium">Storage Type</div>
 									<div className="text-sm text-muted-foreground">
-										{useCustomS3 ? 'Custom S3' : 'Halycron Cloud'}
+										{storageUsage.storageType === 'custom-s3' ? 'Custom S3' : 'Halycron Cloud'}
 									</div>
 								</div>
 							</div>
@@ -154,7 +213,7 @@ export const StorageSettings = () => {
 					</CardDescription>
 				</CardHeader>
 				<CardContent className="space-y-6">
-					<div className="flex items-center justify-between p-4 border rounded-lg">
+					<div className="flex items-center justify-between p-4 border">
 						<div>
 							<div className="font-medium">Use Custom S3 Bucket</div>
 							<div className="text-sm text-muted-foreground">
@@ -168,23 +227,24 @@ export const StorageSettings = () => {
 					</div>
 
 					{!useCustomS3 && (
-						<div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+						<div className="p-4 bg-blue-500/10 border border-blue-500/20">
 							<div className="flex items-center gap-2 text-blue-600 mb-2">
 								<Cloud className="h-4 w-4"/>
 								<span className="font-medium">Using Halycron Cloud Storage</span>
 							</div>
 							<ul className="text-sm text-muted-foreground space-y-1">
-								<li>• Fully managed secure storage</li>
+								<li>• Fully managed secure storage (5GB included)</li>
 								<li>• Automatic backups and redundancy</li>
 								<li>• No S3 configuration required</li>
 								<li>• Encrypted at rest and in transit</li>
+								<li>• Upgrade to custom S3 for unlimited storage</li>
 							</ul>
 						</div>
 					)}
 
 					{useCustomS3 && (
 						<div className="space-y-4">
-							<div className="p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
+							<div className="p-4 bg-yellow-500/10 border border-yellow-500/20">
 								<div className="flex items-center gap-2 text-yellow-600 mb-2">
 									<AlertCircle className="h-4 w-4"/>
 									<span className="font-medium">Custom S3 Configuration</span>
@@ -300,7 +360,7 @@ export const StorageSettings = () => {
 				</CardHeader>
 				<CardContent className="space-y-4">
 					<div className="space-y-3">
-						<div className="flex items-center justify-between p-4 border rounded-lg">
+						<div className="flex items-center justify-between p-4 border">
 							<div>
 								<div className="font-medium">Download All Data</div>
 								<div className="text-sm text-muted-foreground">
@@ -313,7 +373,7 @@ export const StorageSettings = () => {
 							</Button>
 						</div>
 
-						<div className="flex items-center justify-between p-4 border rounded-lg">
+						<div className="flex items-center justify-between p-4 border">
 							<div>
 								<div className="font-medium">Clear Thumbnail Cache</div>
 								<div className="text-sm text-muted-foreground">
@@ -325,7 +385,7 @@ export const StorageSettings = () => {
 							</Button>
 						</div>
 
-						<div className="flex items-center justify-between p-4 border rounded-lg border-destructive/20">
+						<div className="flex items-center justify-between p-4 border border-destructive/20">
 							<div>
 								<div className="font-medium text-destructive">Delete All Photos</div>
 								<div className="text-sm text-muted-foreground">
@@ -353,7 +413,7 @@ export const StorageSettings = () => {
 					</CardDescription>
 				</CardHeader>
 				<CardContent>
-					<div className="p-4 bg-muted/30 rounded-lg">
+					<div className="p-4 bg-muted/30">
 						<h4 className="font-medium mb-2">Encryption & Security</h4>
 						<ul className="text-sm text-muted-foreground space-y-1">
 							<li>• All photos are encrypted with AES-256-GCM before upload</li>

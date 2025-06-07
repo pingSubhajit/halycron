@@ -2,7 +2,7 @@
 
 import {Photo} from '@/app/api/photos/types'
 import Image from 'next/image'
-import {HTMLProps} from 'react'
+import {HTMLAttributes} from 'react'
 import {cn} from '@halycron/ui/lib/utils'
 import {useLightbox} from '@/components/lightbox-context'
 import {useDecryptedUrl} from '@/hooks/use-decrypted-url'
@@ -27,11 +27,15 @@ type Props = {
 	currentAlbumId?: string
 }
 
-const ImageSkeleton = (props: HTMLProps<HTMLDivElement>) => (
-	<div className={cn('relative overflow-hidden bg-accent animate-pulse w-full h-full', props.className)} style={{paddingBottom: '75%', ...props.style}} {...props}>
-		<div className="absolute inset-0" />
-	</div>
-)
+const ImageSkeleton = (props: HTMLAttributes<HTMLDivElement>) => {
+	const {className, style, ...divProps} = props
+	return (
+		<div className={cn('relative overflow-hidden bg-accent animate-pulse w-full h-full', className)}
+			style={{paddingBottom: '75%', ...style}} {...divProps}>
+			<div className="absolute inset-0"/>
+		</div>
+	)
+}
 
 export const EncryptedImage = ({photo, hasNext, hasPrev, onOpen, onDelete, currentAlbumId}: Props) => {
 	const decryptedUrl = useDecryptedUrl(photo)

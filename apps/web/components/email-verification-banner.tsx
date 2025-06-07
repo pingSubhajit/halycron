@@ -5,22 +5,21 @@ import {Mail} from 'lucide-react'
 import {Banner} from './banner'
 import {authClient} from '@/lib/auth/auth-client'
 import {useSendVerificationEmail} from '@/app/api/auth/mutations'
-import {useAllPhotos} from '@/app/api/photos/query'
+import {useStorageStats} from '@/app/api/storage/query'
 import {AnimatePresence, motion} from 'motion/react'
 
 export const EmailVerificationBanner = () => {
 	const [isVisible, setIsVisible] = useState(true)
 	const {data: session} = authClient.useSession()
-	const {data: photos} = useAllPhotos()
+	const {data: storageStats} = useStorageStats()
 	const sendVerificationEmail = useSendVerificationEmail()
 
 	// Only show banner if user is not verified and has photos
-	const shouldShowBanner = session?.user && !session.user.emailVerified && (photos?.length || 0) > 0 && isVisible
+	const shouldShowBanner = session?.user && !session.user.emailVerified && (storageStats?.photos || 0) > 0 && isVisible
 
 	// Handle hiding the banner (store in localStorage)
 	const handleHide = () => {
 		setIsVisible(false)
-		localStorage.setItem('email-verification-banner-dismissed', 'true')
 	}
 
 	// Handle sending verification email
@@ -43,7 +42,7 @@ export const EmailVerificationBanner = () => {
 		}
 	}, [session?.user?.emailVerified])
 
-	const photoCount = photos?.length || 0
+	const photoCount = storageStats?.photos || 0
 
 	// Determine the user's photo limit based on grandfathering policy
 	const photoLimit = photoCount > 10 ? 50 : 10
