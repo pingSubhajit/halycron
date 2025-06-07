@@ -9,7 +9,7 @@ import {useStorageStats} from '@/app/api/storage/query'
 import {AnimatePresence, motion} from 'motion/react'
 
 export const EmailVerificationBanner = () => {
-	const [isVisible, setIsVisible] = useState(true)
+	const [isVisible, setIsVisible] = useState(false)
 	const {data: session} = authClient.useSession()
 	const {data: storageStats} = useStorageStats()
 	const sendVerificationEmail = useSendVerificationEmail()
