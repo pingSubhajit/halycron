@@ -141,6 +141,7 @@ export class ExportService {
 				Key: s3Key,
 				Body: exportPackage,
 				ContentType: 'application/zip',
+				ServerSideEncryption: 'AES256', // Required by bucket policy
 				// Set object to expire after 7 days
 				Expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
 			})
