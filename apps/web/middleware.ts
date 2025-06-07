@@ -16,7 +16,7 @@ export const middleware = async (request: NextRequest) => {
 	const path = request.nextUrl.pathname
 
 	// Skip middleware for webhook endpoints that need to be accessible by external services
-	if (path === '/api/export/process' || path === '/api/setup-qstash') {
+	if (path === '/api/export' || path === '/api/export/process' || path === '/api/setup-qstash') {
 		return NextResponse.next()
 	}
 
