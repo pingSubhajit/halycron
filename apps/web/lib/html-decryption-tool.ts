@@ -11,131 +11,288 @@ export const generateDecryptionTool = () => {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Halycron Photo Decryption Tool</title>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        * { 
+            box-sizing: border-box; 
+            margin: 0; 
+            padding: 0; 
+        }
+        
         body { 
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-            color: #f8fafc;
+            background: #0a0a0a;
+            color: #e5e5e5;
             min-height: 100vh;
-            padding: 20px;
+            padding: 2rem;
+            line-height: 1.6;
         }
+        
         .container { 
-            max-width: 800px; 
-            margin: 0 auto; 
-            background: rgba(30, 41, 59, 0.5);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(148, 163, 184, 0.1);
-            border-radius: 16px;
-            padding: 32px;
+            max-width: 900px; 
+            margin: 0 auto;
         }
-        .header { text-align: center; margin-bottom: 32px; }
-        .logo { color: #06b6d4; font-size: 24px; font-weight: bold; margin-bottom: 8px; }
-        .subtitle { color: #94a3b8; }
+        
+        .header { 
+            text-align: center; 
+            margin-bottom: 3rem; 
+            padding: 2rem 0;
+        }
+        
+        .logo { 
+            max-width: 12rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #03FFD1, #00acc1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .subtitle { 
+            color: #a3a3a3; 
+            font-size: 1.12rem;
+            font-weight: 400;
+        }
+        
         .step { 
-            background: rgba(15, 23, 42, 0.5);
-            border: 1px solid rgba(148, 163, 184, 0.1);
-            border-radius: 12px;
-            padding: 24px;
-            margin-bottom: 20px;
+            background: #171717;
+            border: 1px solid #262626;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            transition: all 0.2s ease;
         }
-        .step-title { color: #06b6d4; font-weight: 600; margin-bottom: 12px; }
-        input[type="file"], input[type="password"] {
+        
+        .step:hover {
+            border-color: #404040;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        .step-title { 
+            color: #03FFD1; 
+            font-weight: 600; 
+            font-size: 1.125rem;
+            margin-bottom: 1rem; 
+        }
+        
+        .step-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 1.5rem;
+            height: 1.5rem;
+            background: #03FFD1;
+            color: #000;
+            border-radius: 50%;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-right: 0.75rem;
+        }
+        
+        input[type="file"] {
             width: 100%;
-            padding: 12px;
-            background: rgba(15, 23, 42, 0.8);
-            border: 1px solid rgba(148, 163, 184, 0.2);
-            border-radius: 8px;
-            color: #f8fafc;
-            margin: 8px 0;
+            padding: 1rem;
+            background: #0a0a0a;
+            border: 2px dashed #404040;
+            color: #e5e5e5;
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+            cursor: pointer;
         }
+        
+        input[type="file"]:hover {
+            border-color: #03FFD1;
+            background: #171717;
+        }
+        
+        input[type="file"]:focus {
+            outline: none;
+            border-color: #03FFD1;
+            box-shadow: 0 0 0 3px rgba(0, 188, 212, 0.1);
+        }
+        
         button {
-            background: linear-gradient(135deg, #06b6d4, #0891b2);
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 8px;
+            border: 1px solid #03FFD1;
+            color: #fff;
+            padding: 1rem 2rem;
+            background: transparent;
             cursor: pointer;
             font-weight: 600;
-            transition: all 0.2s;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+            width: 100%;
         }
-        button:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3); }
-        button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        
+        button:hover { 
+            transform: translateY(-1px); 
+            box-shadow: 0 8px 25px rgba(0, 188, 212, 0.3);
+        }
+        
+        button:disabled { 
+            opacity: 0.5; 
+            cursor: not-allowed; 
+            transform: none; 
+            box-shadow: none;
+        }
+        
         .progress { 
             width: 100%; 
-            height: 8px; 
-            background: rgba(15, 23, 42, 0.8);
-            border-radius: 4px; 
+            height: 0.5rem; 
+            background: #262626;
+            border-radius: 0.25rem; 
             overflow: hidden;
-            margin: 12px 0;
+            margin: 1rem 0;
         }
+        
         .progress-bar { 
             height: 100%; 
-            background: linear-gradient(90deg, #06b6d4, #0891b2);
+            background: linear-gradient(90deg, #03FFD1, #00acc1);
             width: 0%; 
-            transition: width 0.3s;
+            transition: width 0.3s ease;
         }
+        
         .gallery { 
             display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); 
-            gap: 16px;
-            margin-top: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); 
+            gap: 1.5rem;
+            margin-top: 2rem;
         }
+        
         .photo-item {
-            background: rgba(15, 23, 42, 0.5);
-            border: 1px solid rgba(148, 163, 184, 0.1);
-            border-radius: 12px;
+            background: #171717;
+            border: 1px solid #262626;
             overflow: hidden;
-            transition: transform 0.2s;
+            transition: all 0.2s ease;
+            cursor: pointer;
         }
-        .photo-item:hover { transform: scale(1.02); }
-        .photo-item img { width: 100%; height: 150px; object-fit: cover; }
-        .photo-info { padding: 12px; font-size: 14px; color: #94a3b8; }
-        .error { color: #ef4444; background: rgba(239, 68, 68, 0.1); padding: 12px; border-radius: 8px; margin: 8px 0; }
-        .success { color: #10b981; background: rgba(16, 185, 129, 0.1); padding: 12px; border-radius: 8px; margin: 8px 0; }
+        
+        .photo-item:hover { 
+            transform: translateY(-2px);
+            border-color: #03FFD1;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+        
+        .photo-item img { 
+            width: 100%; 
+            height: 200px; 
+            object-fit: cover; 
+        }
+        
+        .photo-info { 
+            padding: 1rem; 
+            font-size: 0.875rem; 
+            color: #a3a3a3; 
+        }
+        
+        .photo-info strong {
+            color: #e5e5e5;
+            display: block;
+            margin-bottom: 0.25rem;
+        }
+        
+        .status-message { 
+            padding: 1rem; 
+            margin: 1rem 0;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        
+        .error { 
+            color: #ef4444; 
+            background: rgba(239, 68, 68, 0.1); 
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+        
+        .success { 
+            color: #22c55e; 
+            background: rgba(34, 197, 94, 0.1); 
+            border: 1px solid rgba(34, 197, 94, 0.2);
+        }
+        
         .warning {
             background: rgba(245, 158, 11, 0.1);
             border: 1px solid rgba(245, 158, 11, 0.2);
             color: #f59e0b;
-            padding: 16px;
-            border-radius: 8px;
-            margin-bottom: 24px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            font-size: 0.875rem;
+        }
+        
+        .security-badge {
+            margin-top: 0.5rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(0, 188, 212, 0.1);
+            border: 1px solid rgba(0, 188, 212, 0.2);
+            color: #03FFD1;
+            padding: 0.5rem 1rem;
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin-bottom: 1rem;
+        }
+        
+        .progress-text {
+            text-align: center;
+            color: #a3a3a3;
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+        }
+        
+        @media (max-width: 640px) {
+            body { padding: 1rem; }
+            .header { margin-bottom: 2rem; }
+            .logo { font-size: 2rem; }
+            .step { padding: 1.5rem; }
+            .gallery { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <div class="logo">🔒 Halycron Photo Decryption Tool</div>
-            <div class="subtitle">Decrypt your exported photos securely in your browser</div>
+            <img class="logo" src="https://halycron.space/logo.png">
+            <div class="subtitle">Photo Decryption Tool</div>
+            <div class="security-badge">
+                🛡️ Zero-knowledge decryption
+            </div>
         </div>
 
         <div class="warning">
-            ⚠️ <strong>Security Notice:</strong> This tool works entirely in your browser. Your encryption keys and photos never leave your device.
+            <strong>🔐 Security Notice:</strong> This tool works entirely in your browser. Your encryption keys and photos never leave your device. All decryption happens locally for maximum privacy.
         </div>
 
         <div class="step">
-            <div class="step-title">Step 1: Load Your Export Package</div>
-            <input type="file" id="manifestFile" accept=".json" placeholder="Select manifest.json">
+            <div class="step-title">
+                <span class="step-number">1</span>
+                Load Export Manifest
+            </div>
+            <input type="file" id="manifestFile" accept=".json" placeholder="Select manifest.json file">
             <div id="manifestStatus"></div>
         </div>
 
         <div class="step">
-            <div class="step-title">Step 2: Load Photos Folder</div>
-            <input type="file" id="photosFolder" webkitdirectory multiple>
+            <div class="step-title">
+                <span class="step-number">2</span>
+                Load Photos Folder
+            </div>
+            <input type="file" id="photosFolder" webkitdirectory multiple placeholder="Select the photos folder">
             <div id="photosStatus"></div>
         </div>
 
         <div class="step">
-            <div class="step-title">Step 3: Decrypt Photos</div>
-            <button onclick="startDecryption()" id="decryptBtn">Start Decryption</button>
+            <div class="step-title">
+                <span class="step-number">3</span>
+                Start Decryption
+            </div>
+            <button onclick="startDecryption()" id="decryptBtn">🚀 Decrypt All Photos</button>
         </div>
 
         <div class="step" id="progressStep" style="display: none;">
-            <div class="step-title">Decryption Progress</div>
+            <div class="step-title">
+                ⚡ Processing Your Photos
+            </div>
             <div class="progress">
                 <div class="progress-bar" id="progressBar"></div>
             </div>
-            <div id="progressText">Preparing...</div>
+            <div id="progressText" class="progress-text">Preparing...</div>
         </div>
 
         <div id="results"></div>
@@ -156,11 +313,11 @@ export const generateDecryptionTool = () => {
                 try {
                     manifest = JSON.parse(e.target.result);
                     document.getElementById('manifestStatus').innerHTML = 
-                        '<div class="success">✅ Manifest loaded: ' + manifest.photos.length + ' photos found</div>';
+                        '<div class="status-message success">✅ Manifest loaded successfully: ' + manifest.photos.length + ' photos found</div>';
                     photos = manifest.photos;
                 } catch (error) {
                     document.getElementById('manifestStatus').innerHTML = 
-                        '<div class="error">❌ Invalid manifest file</div>';
+                        '<div class="status-message error">❌ Invalid manifest file. Please select the correct manifest.json file.</div>';
                 }
             };
             reader.readAsText(file);
@@ -176,7 +333,7 @@ export const generateDecryptionTool = () => {
             });
             
             document.getElementById('photosStatus').innerHTML = 
-                '<div class="success">✅ Photos folder loaded: ' + files.length + ' files found</div>';
+                '<div class="status-message success">✅ Photos folder loaded successfully: ' + files.length + ' files found</div>';
         });
 
         async function deriveKey(password, salt) {
@@ -286,8 +443,9 @@ export const generateDecryptionTool = () => {
                     photoElement.innerHTML = 
                         '<img src="' + url + '" alt="' + photo.originalFilename + '">' +
                         '<div class="photo-info">' +
-                            '<div><strong>' + photo.originalFilename + '</strong></div>' +
-                            '<div>' + new Date(photo.createdAt).toLocaleDateString() + '</div>' +
+                            '<strong>' + photo.originalFilename + '</strong>' +
+                            '<div>📅 ' + new Date(photo.createdAt).toLocaleDateString() + '</div>' +
+                            '<div>📏 ' + (photo.imageWidth || 'Unknown') + ' × ' + (photo.imageHeight || 'Unknown') + '</div>' +
                         '</div>';
                     
                     // Add download functionality
@@ -305,9 +463,10 @@ export const generateDecryptionTool = () => {
                     const errorElement = document.createElement('div');
                     errorElement.className = 'photo-item';
                     errorElement.innerHTML = 
-                        '<div class="photo-info" style="color: #ef4444;">' +
-                            '<div>❌ Failed to decrypt</div>' +
-                            '<div>' + photo.originalFilename + '</div>' +
+                        '<div class="photo-info" style="color: #ef4444; text-align: center; padding: 2rem;">' +
+                            '<div style="font-size: 2rem; margin-bottom: 0.5rem;">❌</div>' +
+                            '<strong>Decryption Failed</strong>' +
+                            '<div style="margin-top: 0.5rem; opacity: 0.8;">' + photo.originalFilename + '</div>' +
                         '</div>';
                     gallery.appendChild(errorElement);
                 }
@@ -319,7 +478,7 @@ export const generateDecryptionTool = () => {
             document.getElementById('progressText').textContent = 'Decryption complete!';
             document.getElementById('decryptBtn').disabled = false;
             document.getElementById('results').innerHTML = 
-                '<div class="success">✅ Decryption completed. Click on any photo to download it.</div>';
+                '<div class="status-message success">🎉 Decryption completed successfully! Click on any photo to download the decrypted version.</div>';
         }
     </script>
 </body>
