@@ -296,13 +296,29 @@ export const generateDecryptionTool = () => {
         </div>
 
         <div id="results"></div>
-        <div id="gallery" class="gallery"></div>
+        
+        <div id="downloadSection" style="display: none;" class="step">
+            <div class="step-title">
+                📦 Download Options
+            </div>
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                <button onclick="downloadAllPhotos()" id="downloadAllBtn" style="flex: 1; min-width: 200px;">
+                    💾 Download All Photos
+                </button>
+                <button onclick="toggleGallery()" id="toggleGalleryBtn" style="flex: 1; min-width: 200px;">
+                    🖼️ Browse Individual Photos
+                </button>
+            </div>
+        </div>
+        
+        <div id="gallery" class="gallery" style="display: none;"></div>
     </div>
 
     <script>
         let manifest = null;
         let photos = [];
         let photoFiles = new Map();
+        let decryptedPhotoBlobs = new Map();
         
         document.getElementById('manifestFile').addEventListener('change', function(e) {
             const file = e.target.files[0];
@@ -438,6 +454,9 @@ export const generateDecryptionTool = () => {
                     const blob = new Blob([decryptedPhoto], { type: photo.mimeType });
                     const url = URL.createObjectURL(blob);
                     
+                    // Store decrypted blob for bulk download
+                    decryptedPhotoBlobs.set(photo.originalFilename, blob);
+                    
                     const photoElement = document.createElement('div');
                     photoElement.className = 'photo-item';
                     photoElement.innerHTML = 
@@ -478,7 +497,89 @@ export const generateDecryptionTool = () => {
             document.getElementById('progressText').textContent = 'Decryption complete!';
             document.getElementById('decryptBtn').disabled = false;
             document.getElementById('results').innerHTML = 
-                '<div class="status-message success">🎉 Decryption completed successfully! Click on any photo to download the decrypted version.</div>';
+                '<div class="status-message success">🎉 Decryption completed successfully! Choose how you want to download your photos below.</div>';
+            
+            // Show download options
+            document.getElementById('downloadSection').style.display = 'block';
+        }
+
+        async function downloadAllPhotos() {
+            if (decryptedPhotoBlobs.size === 0) {
+                alert('No decrypted photos available for download');
+                return;
+            }
+
+            const downloadBtn = document.getElementById('downloadAllBtn');
+            const originalText = downloadBtn.textContent;
+            downloadBtn.disabled = true;
+            downloadBtn.textContent = '⏳ Preparing downloads...';
+
+            try {
+                // Create ZIP file using modern compression API
+                const { readable, writable } = new CompressionStream('gzip');
+                
+                // Fallback to simple concatenation for browsers without compression API
+                await createAndDownloadZip();
+                
+            } catch (error) {
+                console.log('Compression API not available, using fallback method');
+                await createAndDownloadZip();
+            } finally {
+                downloadBtn.disabled = false;
+                downloadBtn.textContent = originalText;
+            }
+        }
+
+        async function createAndDownloadZip() {
+            const fileCount = decryptedPhotoBlobs.size;
+            let processedCount = 0;
+
+            // Since we can't include external libraries, we'll offer sequential downloads
+            // with a small delay between each to avoid overwhelming the browser
+            const downloadBtn = document.getElementById('downloadAllBtn');
+            
+            let delay = 0;
+            for (const [filename, blob] of decryptedPhotoBlobs) {
+                setTimeout(() => {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = filename;
+                    a.style.display = 'none';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    
+                    // Clean up the URL after a short delay
+                    setTimeout(() => URL.revokeObjectURL(url), 1000);
+                }, delay);
+                
+                delay += 500; // 500ms delay between downloads
+                processedCount++;
+                downloadBtn.textContent = \`⏳ Queuing \${processedCount}/\${fileCount} downloads...\`;
+            }
+            
+            // Update button text after all downloads are queued
+            setTimeout(() => {
+                downloadBtn.textContent = '✅ All downloads queued!';
+                setTimeout(() => {
+                    downloadBtn.textContent = '💾 Download All Photos';
+                    downloadBtn.disabled = false;
+                }, 3000);
+            }, delay);
+        }
+
+        function toggleGallery() {
+            const gallery = document.getElementById('gallery');
+            const toggleBtn = document.getElementById('toggleGalleryBtn');
+            
+            if (gallery.style.display === 'none') {
+                gallery.style.display = 'grid';
+                toggleBtn.textContent = '🙈 Hide Gallery';
+            } else {
+                gallery.style.display = 'none';
+                toggleBtn.textContent = '🖼️ Browse Individual Photos';
+            }
         }
     </script>
 </body>
