@@ -114,13 +114,19 @@ export const generateDecryptionTool = () => {
         </div>
 
         <div class="step">
-            <div class="step-title">Step 1: Select Extracted Export Folder</div>
-            <input type="file" id="exportFolder" webkitdirectory multiple>
-            <div id="loadStatus"></div>
+            <div class="step-title">Step 1: Load Your Export Package</div>
+            <input type="file" id="manifestFile" accept=".json" placeholder="Select manifest.json">
+            <div id="manifestStatus"></div>
         </div>
 
         <div class="step">
-            <div class="step-title">Step 2: Decrypt Photos</div>
+            <div class="step-title">Step 2: Load Photos Folder</div>
+            <input type="file" id="photosFolder" webkitdirectory multiple>
+            <div id="photosStatus"></div>
+        </div>
+
+        <div class="step">
+            <div class="step-title">Step 3: Decrypt Photos</div>
             <button onclick="startDecryption()" id="decryptBtn">Start Decryption</button>
         </div>
 
@@ -141,40 +147,36 @@ export const generateDecryptionTool = () => {
         let photos = [];
         let photoFiles = new Map();
         
-        document.getElementById('exportFolder').addEventListener('change', async function(e) {
+        document.getElementById('manifestFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    manifest = JSON.parse(e.target.result);
+                    document.getElementById('manifestStatus').innerHTML = 
+                        '<div class="success">✅ Manifest loaded: ' + manifest.photos.length + ' photos found</div>';
+                    photos = manifest.photos;
+                } catch (error) {
+                    document.getElementById('manifestStatus').innerHTML = 
+                        '<div class="error">❌ Invalid manifest file</div>';
+                }
+            };
+            reader.readAsText(file);
+        });
+
+        document.getElementById('photosFolder').addEventListener('change', function(e) {
             const files = Array.from(e.target.files);
-            
-            // Find manifest.json
-            const manifestFile = files.find(file => file.name === 'manifest.json');
-            if (!manifestFile) {
-                document.getElementById('loadStatus').innerHTML = 
-                    '<div class="error">❌ manifest.json not found in selected folder</div>';
-                return;
-            }
-            
-            // Load manifest
-            try {
-                const manifestText = await manifestFile.text();
-                manifest = JSON.parse(manifestText);
-                photos = manifest.photos;
-            } catch (error) {
-                document.getElementById('loadStatus').innerHTML = 
-                    '<div class="error">❌ Invalid manifest.json file</div>';
-                return;
-            }
-            
-            // Find photos in photos/ subfolder
             photoFiles.clear();
-            const photoFilesList = files.filter(file => file.webkitRelativePath.startsWith('photos/'));
             
-            photoFilesList.forEach(file => {
-                // Get just the filename without the photos/ prefix
+            files.forEach(file => {
                 const fileName = file.name;
                 photoFiles.set(fileName, file);
             });
             
-            document.getElementById('loadStatus').innerHTML = 
-                '<div class="success">✅ Export loaded: ' + manifest.photos.length + ' photos in manifest, ' + photoFilesList.length + ' photo files found</div>';
+            document.getElementById('photosStatus').innerHTML = 
+                '<div class="success">✅ Photos folder loaded: ' + files.length + ' files found</div>';
         });
 
         async function deriveKey(password, salt) {
@@ -225,12 +227,12 @@ export const generateDecryptionTool = () => {
 
         async function startDecryption() {
             if (!manifest || !photos.length) {
-                alert('Please select the exported folder first');
+                alert('Please load a manifest file first');
                 return;
             }
             
             if (photoFiles.size === 0) {
-                alert('No photo files found in the export folder');
+                alert('Please load the photos folder first');
                 return;
             }
 

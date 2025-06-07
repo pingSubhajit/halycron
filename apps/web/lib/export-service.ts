@@ -278,11 +278,12 @@ This package contains your encrypted photos and data from Halycron.
 
 ## How to decrypt your photos:
 
-1. Extract this ZIP file to a folder on your computer
+1. Extract this ZIP file to a folder
 2. Open \`decrypt-photos.html\` in any modern web browser
-3. Click "Select Extracted Export Folder" and choose the folder you extracted
-4. Click "Start Decryption" to process all photos
-5. Click on any decrypted photo to download it
+3. Load the \`manifest.json\` file when prompted
+4. Select the \`photos/\` folder when prompted
+5. Click "Start Decryption" to process all photos
+6. Click on any decrypted photo to download it
 
 ## Security Notice:
 - All decryption happens locally in your browser
