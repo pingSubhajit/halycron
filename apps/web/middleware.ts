@@ -14,6 +14,12 @@ type UserWithTwoFactor = {
 export const middleware = async (request: NextRequest) => {
 	// Apply rate limiting based on the route
 	const path = request.nextUrl.pathname
+
+	// Skip middleware for webhook endpoints that need to be accessible by external services
+	if (path === '/api/export/process' || path === '/api/setup-qstash') {
+		return NextResponse.next()
+	}
+
 	let rateLimitResult
 
 	if (path.startsWith('/api/auth/reset-password')) {

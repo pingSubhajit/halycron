@@ -29,10 +29,7 @@ export const resetQStashClient = () => {
 
 // Helper function to get the current base URL
 export const getBaseUrl = () => {
-	if (process.env.VERCEL_URL) {
-		return `https://${process.env.VERCEL_URL}`
-	}
-	return process.env.NEXTAUTH_URL || process.env.BETTER_AUTH_URL || 'http://localhost:3000'
+	return process.env.BETTER_AUTH_URL || 'http://localhost:3000'
 }
 
 // Schedule cleanup CRON job (runs daily at 2 AM)
