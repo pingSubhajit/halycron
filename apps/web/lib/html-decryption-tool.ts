@@ -120,7 +120,13 @@ export const generateDecryptionTool = () => {
         </div>
 
         <div class="step">
-            <div class="step-title">Step 2: Enter Your Encryption Password</div>
+            <div class="step-title">Step 2: Load Photos Folder</div>
+            <input type="file" id="photosFolder" webkitdirectory multiple>
+            <div id="photosStatus"></div>
+        </div>
+
+        <div class="step">
+            <div class="step-title">Step 3: Enter Your Encryption Password</div>
             <input type="password" id="encryptionPassword" placeholder="Enter your account password">
             <button onclick="startDecryption()" id="decryptBtn">Start Decryption</button>
         </div>
@@ -140,6 +146,7 @@ export const generateDecryptionTool = () => {
     <script>
         let manifest = null;
         let photos = [];
+        let photoFiles = new Map();
         
         document.getElementById('manifestFile').addEventListener('change', function(e) {
             const file = e.target.files[0];
@@ -158,6 +165,19 @@ export const generateDecryptionTool = () => {
                 }
             };
             reader.readAsText(file);
+        });
+
+        document.getElementById('photosFolder').addEventListener('change', function(e) {
+            const files = Array.from(e.target.files);
+            photoFiles.clear();
+            
+            files.forEach(file => {
+                const fileName = file.name;
+                photoFiles.set(fileName, file);
+            });
+            
+            document.getElementById('photosStatus').innerHTML = 
+                '<div class="success">✅ Photos folder loaded: ' + files.length + ' files found</div>';
         });
 
         async function deriveKey(password, salt) {
@@ -207,6 +227,11 @@ export const generateDecryptionTool = () => {
                 return;
             }
             
+            if (photoFiles.size === 0) {
+                alert('Please load the photos folder first');
+                return;
+            }
+            
             const password = document.getElementById('encryptionPassword').value;
             if (!password) {
                 alert('Please enter your encryption password');
@@ -244,9 +269,13 @@ export const generateDecryptionTool = () => {
                         ['decrypt']
                     );
                     
-                    // Fetch and decrypt the photo
-                    const response = await fetch(photo.downloadUrl);
-                    const encryptedPhoto = await response.arrayBuffer();
+                    // Get the photo file from the loaded folder
+                    const photoFile = photoFiles.get(photo.originalFilename);
+                    if (!photoFile) {
+                        throw new Error('Photo file not found: ' + photo.originalFilename);
+                    }
+                    
+                    const encryptedPhoto = await photoFile.arrayBuffer();
                     
                     // Decrypt photo content (assuming first 12 bytes are IV)
                     const photoIv = encryptedPhoto.slice(0, 12);

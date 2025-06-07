@@ -2,7 +2,7 @@ import {db} from '@/db/drizzle'
 import {album, exportJob, photo, sharedLink, user} from '@/db/schema'
 import {eq, sql} from 'drizzle-orm'
 import {deleteS3Object, generatePresignedDownloadUrl, s3Client} from '@/lib/s3-client'
-import {PutObjectCommand} from '@aws-sdk/client-s3'
+import {GetObjectCommand, PutObjectCommand} from '@aws-sdk/client-s3'
 import {sendExportReadyEmail} from '@/lib/email/resend-client'
 import {queueExportJob} from '@/lib/qstash-client'
 import archiver from 'archiver'
@@ -296,29 +296,64 @@ Total Photos: ${photos.length}
 `
 			archive.append(readme, {name: 'README.md'})
 
-			/*
-			 * Process photos in the background (this would need actual photo fetching)
-			 * For now, we'll create placeholder entries
-			 */
-			photos.forEach((photo, index) => {
-				/*
-				 * In a real implementation, you would:
-				 * 1. Fetch the encrypted photo from S3
-				 * 2. Add it to the ZIP with proper naming
-				 * For now, add metadata reference
-				 */
-				archive.append(JSON.stringify({
-					note: 'Photo content would be included in production',
-					s3Key: photo.s3Key,
-					downloadInstructions: 'Use decrypt-photos.html to download and decrypt'
-				}, null, 2), {name: `photos/${photo.originalFilename}.metadata.json`})
-
-				onProgress(index + 1)
-			})
-
-			// Finalize the archive
-			archive.finalize()
+			// Process photos - fetch actual encrypted files from S3
+			this.processPhotosForExport(archive, photos, onProgress)
+				.then(() => {
+					// Finalize the archive after all photos are processed
+					archive.finalize()
+				})
+				.catch((error: Error) => {
+					archive.destroy(error)
+				})
 		})
+	}
+
+	/**
+	 * Process photos for export - fetch encrypted files from S3 and add to archive
+	 */
+	private static async processPhotosForExport(
+		archive: any,
+		photos: any[],
+		onProgress: (processed: number) => void
+	): Promise<void> {
+		for (let i = 0; i < photos.length; i++) {
+			const photo = photos[i]
+
+			try {
+				// Fetch encrypted photo from S3
+				const getCommand = new GetObjectCommand({
+					Bucket: process.env.AWS_BUCKET_NAME,
+					Key: photo.s3Key
+				})
+
+				const response = await s3Client.send(getCommand)
+
+				if (response.Body) {
+					// Convert stream to buffer
+					const chunks: Uint8Array[] = []
+					const reader = response.Body.transformToWebStream().getReader()
+
+					while (true) {
+						const {done, value} = await reader.read()
+						if (done) break
+						chunks.push(value)
+					}
+
+					const photoBuffer = Buffer.concat(chunks)
+
+					// Add encrypted photo to archive
+					archive.append(photoBuffer, {
+						name: `photos/${photo.originalFilename}`
+					})
+				}
+			} catch (error) {
+				console.error(`Failed to fetch photo ${photo.s3Key}:`, error)
+				// Continue with other photos even if one fails
+			}
+
+			// Update progress
+			onProgress(i + 1)
+		}
 	}
 
 	/**
