@@ -72,7 +72,7 @@ export const Banner = ({
 
 	return (
 		<div
-			className="relative isolate flex flex-col justify-between gap-3 overflow-hidden rounded-lg border border-green-600/15 bg-gradient-to-r from-lime-100/80 to-emerald-100/80 py-3 pl-4 pr-12 sm:flex-row sm:items-center sm:py-2">
+			className="relative isolate flex flex-col justify-between gap-3 overflow-hidden border border-primary/15 bg-gradient-to-r from-amber-100/80 to-teal-100/80 py-3 pl-4 pr-12 sm:flex-row sm:items-center sm:py-2">
 			<Grid
 				cellSize={13}
 				patternOffset={[0, -1]}
