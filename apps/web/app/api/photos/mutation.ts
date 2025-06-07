@@ -1,5 +1,5 @@
 import {MutationOptions, useMutation, useQueryClient} from '@tanstack/react-query'
-import {SetStateAction} from 'react'
+import {createElement, SetStateAction} from 'react'
 import {Photo, UploadState} from '@/app/api/photos/types'
 import {
 	encryptFile,
@@ -12,6 +12,9 @@ import {
 import {photoQueryKeys} from '@/app/api/photos/keys'
 import {api} from '@/lib/data/api-client'
 import {albumQueryKeys} from '@/app/api/albums/keys'
+import {toast} from 'sonner'
+import {useSendVerificationEmail} from '@/app/api/auth/mutations'
+import {AlertCircle, Mail} from 'lucide-react'
 
 type DeletePhotoContext = {
 	previousPhotos: Photo[] | undefined
@@ -112,6 +115,8 @@ export const useUploadPhoto = (
 	setUploadStates: (value: SetStateAction<Record<string, UploadState>>) => void,
 	options?: MutationOptions<Photo, Error, File>
 ) => {
+	const sendVerificationEmail = useSendVerificationEmail()
+
 	return useMutation({
 		mutationFn: async (file: File) => {
 			try {
@@ -161,14 +166,42 @@ export const useUploadPhoto = (
 
 				return response
 			} catch (error) {
+				const errorMessage = error instanceof Error ? error.message : 'Upload failed'
+
 				setUploadStates(prev => ({
 					...prev,
 					[file.name]: {
 						progress: 0,
 						status: 'error',
-						error: error instanceof Error ? error.message : 'Upload failed'
+						error: errorMessage
 					}
 				}))
+
+				// Handle email verification errors specifically
+				if (errorMessage.includes('Email verification required') || errorMessage.includes('grandfathered limit')) {
+					const isGrandfathered = errorMessage.includes('grandfathered limit')
+					const title = isGrandfathered ? 'Photo limit reached' : 'Email verification required'
+					const description = isGrandfathered
+						? 'You\'ve reached your grandfathered 50-photo limit. Verify your email for unlimited uploads.'
+						: 'Please verify your email to upload more than 10 photos.'
+
+					toast.error(title, {
+						description: description,
+						icon: createElement(Mail, {className: 'h-5 w-5'}),
+						action: {
+							label: 'Send Verification Email',
+							onClick: () => {
+								sendVerificationEmail.mutate()
+							}
+						}
+					})
+				} else {
+					// Show generic error toast
+					toast.error(`Upload failed: ${file.name}`, {
+						description: errorMessage,
+						icon: createElement(AlertCircle, {className: 'h-5 w-5'})
+					})
+				}
 
 				throw error
 			}

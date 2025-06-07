@@ -34,8 +34,10 @@ const DeepLinkHandler = () => {
 			}
 		}
 
-		// Only handle subsequent deep links while app is running
-		// Initial deep links are handled in session provider for proper routing after auth
+		/*
+		 * Only handle subsequent deep links while app is running
+		 * Initial deep links are handled in session provider for proper routing after auth
+		 */
 		const subscription = Linking.addEventListener('url', (event) => {
 			handleDeepLink(event.url)
 		})

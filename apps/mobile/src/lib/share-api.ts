@@ -11,4 +11,4 @@ export const useCreateShareLink = () => {
 		mutationFn: createShareLink,
 		mutationKey: ['createShareLink']
 	})
-} 
+}

@@ -1,4 +1,5 @@
 import {PhotoView} from '@/app/app/photo-view'
+import {EmailVerificationBanner} from '@/components/email-verification-banner'
 import {Metadata} from 'next'
 
 export const metadata: Metadata = {
@@ -16,7 +17,10 @@ export const metadata: Metadata = {
 
 const ApplicationHome = () => {
 	return (
-		<PhotoView />
+		<>
+			<EmailVerificationBanner/>
+			<PhotoView/>
+		</>
 	)
 }
 

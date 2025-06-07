@@ -1,6 +1,7 @@
 import {useMutation, useQueryClient} from '@tanstack/react-query'
 import {useCallback, useEffect, useRef, useState} from 'react'
 import * as ImagePicker from 'expo-image-picker'
+import {Alert} from 'react-native'
 import {Photo, UploadState} from '../lib/types'
 import {photoQueryKeys} from '../lib/photo-keys'
 import {uploadNotificationManager} from '../lib/notification-utils'
@@ -149,6 +150,40 @@ export const usePhotoUpload = ({
 				// Update notification for error
 				if (notificationsInitialized) {
 					await uploadNotificationManager.updateFileProgress(fileName, 0, 'error')
+				}
+
+				// Handle email verification errors specifically
+				if (errorMessage.includes('Email verification required') || errorMessage.includes('grandfathered limit')) {
+					const isGrandfathered = errorMessage.includes('grandfathered limit')
+					const title = isGrandfathered ? 'Photo Limit Reached' : 'Email Verification Required'
+					const message = isGrandfathered
+						? 'You\'ve reached your grandfathered 50-photo limit. Please verify your email for unlimited uploads.'
+						: 'You\'ve reached the 10-photo limit for unverified accounts. Please verify your email to upload more photos.'
+
+					Alert.alert(
+						title,
+						message,
+						[
+							{
+								text: 'Cancel',
+								style: 'cancel'
+							},
+							{
+								text: 'Go to Settings',
+								onPress: () => {
+									/*
+									 * Navigation to settings would go here if needed
+									 * For now, just inform the user
+									 */
+									Alert.alert(
+										'Verify Your Email',
+										'Please check your email for the verification link, or go to Settings to resend it.',
+										[{text: 'OK'}]
+									)
+								}
+							}
+						]
+					)
 				}
 
 				throw error

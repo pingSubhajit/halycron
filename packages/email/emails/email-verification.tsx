@@ -95,7 +95,6 @@ export default EmailVerification
 
 // Styles with dark theme and modern design
 const main = {
-	backgroundColor: "#0a0a0a", // Dark background
 	fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Ubuntu, sans-serif',
 	padding: "20px 0",
 }
