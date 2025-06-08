@@ -2,8 +2,8 @@ import {Body, Button, Container, Head, Hr, Html, Img, Link, Preview, Section, Te
 import * as React from 'react'
 
 const logoImage = process.env.NODE_ENV === 'production'
-	? 'https://halycron.space/logo.png' // Replace with your actual domain
-	: 'http://localhost:3000/logo.png' // For local development
+	? 'https://halycron.space/logo_dark.png'
+	: 'http://localhost:3000/logo_dark.png' // For local development
 
 interface ExportReadyProps {
 	downloadUrl: string
@@ -50,10 +50,6 @@ export const ExportReady = ({
 
 					{/* Main content card */}
 					<Section style={contentCard}>
-						<Text style={heroText}>
-							🎉 Your Export is Ready!
-						</Text>
-
 						<Text style={bodyText}>
 							Hi {userName}, your <strong style={brandText}>Halycron</strong> data export has been
 							completed successfully and is ready for download.
@@ -89,7 +85,7 @@ export const ExportReady = ({
 							<Text style={securityTitle}>🔐 Security Notice</Text>
 							<Text style={securityText}>
 								Your photos remain <strong>encrypted</strong> in this export for maximum security.
-								Use the included decryption tool and your master password to access your photos.
+								Use the included decryption tool to access your photos.
 							</Text>
 						</Section>
 
@@ -100,11 +96,6 @@ export const ExportReady = ({
 
 						<Text style={bodyText}>
 							<strong>Download Expires:</strong> {formatExpiryDate(expiresAt)}
-						</Text>
-
-						<Text style={bodyText}>
-							<strong>Master Password Required:</strong> You'll need your Halycron master password to
-							decrypt the photos using the included tool.
 						</Text>
 
 						<Text style={bodyText}>
@@ -145,96 +136,88 @@ export const ExportReady = ({
 
 export default ExportReady
 
-// Styles with dark theme and modern design
+// Styles with light theme and modern design
 const main = {
 	fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Ubuntu, sans-serif',
+	backgroundColor: "#f9fafb",
 	padding: "20px 0",
-	backgroundColor: "#0a0a0a"
 }
 
 const container = {
-	backgroundColor: "transparent",
+	backgroundColor: "#ffffff",
 	margin: "0 auto",
-	maxWidth: "600px"
+	maxWidth: "600px",
+	borderRadius: "8px",
+	boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
 }
 
 const headerSection = {
-	background: "#111111",
+	background: "#ffffff",
 	padding: "24px 20px 0",
 	textAlign: "center" as const,
+	borderTopLeftRadius: "8px",
+	borderTopRightRadius: "8px",
 }
 
 const logo = {
 	margin: "24px auto 0",
-	filter: "brightness(1.2)",
 }
 
 const contentCard = {
 	marginTop: "0",
-	backgroundColor: "#111111",
+	backgroundColor: "#ffffff",
 	padding: "48px",
 }
 
-const heroText = {
-	color: "#00d4aa",
-	fontSize: "28px",
-	fontWeight: "700",
-	lineHeight: "1.3",
-	margin: "0 0 24px 0",
-	textAlign: "center" as const,
-}
-
 const bodyText = {
-	color: "#e5e5e5",
+	color: "#374151",
 	fontSize: "16px",
 	lineHeight: "1.6",
 	margin: "0 0 20px 0",
 }
 
 const brandText = {
-	color: "#00d4aa", // Primary teal
+	color: "#00b793", // Primary teal
 	fontWeight: "600",
 }
 
 const infoBox = {
-	backgroundColor: "#1a1a1a",
-	border: "1px solid #333",
-	borderRadius: "8px",
+	backgroundColor: "#f3f4f6",
+	border: "1px solid #e5e7eb",
 	margin: "24px 0",
 	padding: "20px",
 }
 
 const infoTitle = {
-	color: "#00d4aa",
+	color: "#00b793",
 	fontSize: "16px",
 	fontWeight: "600",
 	margin: "0 0 12px 0",
 }
 
 const infoList = {
-	color: "#e5e5e5",
+	color: "#374151",
 	fontSize: "14px",
 	lineHeight: "1.6",
 	margin: "0",
 }
 
 const securityBox = {
-	backgroundColor: "#1a1a2e",
-	border: "1px solid #4338ca",
-	borderRadius: "8px",
+	backgroundColor: "#eff6ff",
+	border: "1px solid #3b82f6",
 	margin: "24px 0",
 	padding: "20px",
 }
 
 const securityTitle = {
-	color: "#60a5fa",
+	color: "#2563eb",
 	fontSize: "16px",
 	fontWeight: "600",
 	margin: "0 0 8px 0",
 }
 
 const securityText = {
-	color: "#e5e5e5",
+	color: "#374151",
 	fontSize: "14px",
 	lineHeight: "1.5",
 	margin: "0",
@@ -246,9 +229,8 @@ const buttonContainer = {
 }
 
 const ctaButton = {
-	backgroundColor: "#00d4aa",
-	borderRadius: "6px",
-	color: "#111111",
+	border: "1px solid #00b793",
+	color: "#00b793",
 	display: "inline-block",
 	fontSize: "16px",
 	fontWeight: "600",
@@ -258,29 +240,28 @@ const ctaButton = {
 }
 
 const warningTitle = {
-	color: "#fbbf24",
+	color: "#d97706",
 	fontSize: "18px",
 	fontWeight: "600",
 	margin: "0 0 16px 0",
 }
 
 const alternativeText = {
-	color: "#a3a3a3",
+	color: "#6b7280",
 	fontSize: "14px",
 	margin: "32px 0 12px 0",
 	textAlign: "center" as const,
 }
 
 const linkContainer = {
-	backgroundColor: "#1a1a1a",
-	border: "1px solid #404040",
-	borderRadius: "6px",
+	backgroundColor: "#f3f4f6",
+	border: "1px solid #e5e7eb",
 	margin: "0 0 32px 0",
 	padding: "16px",
 }
 
 const linkText = {
-	color: "#00d4aa",
+	color: "#00b793",
 	fontFamily: "monospace",
 	fontSize: "13px",
 	lineHeight: "1.4",
@@ -291,12 +272,12 @@ const linkText = {
 
 const divider = {
 	border: "none",
-	borderTop: "1px solid #333",
+	borderTop: "1px solid #e5e7eb",
 	margin: "32px 0",
 }
 
 const supportText = {
-	color: "#a3a3a3",
+	color: "#6b7280",
 	fontSize: "14px",
 	lineHeight: "1.5",
 	margin: "24px 0 0 0",
@@ -304,12 +285,12 @@ const supportText = {
 }
 
 const supportLink = {
-	color: "#00d4aa",
+	color: "#00b793",
 	textDecoration: "none",
 }
 
 const brandingFooter = {
-	borderTop: "1px solid #333",
+	borderTop: "1px solid #e5e7eb",
 	marginTop: "32px",
 	paddingTop: "24px",
 	paddingBottom: "24px",
@@ -317,7 +298,7 @@ const brandingFooter = {
 }
 
 const brandingText = {
-	color: "#666",
+	color: "#9ca3af",
 	fontSize: "12px",
 	fontWeight: "500",
 	letterSpacing: "0.5px",
