@@ -55,18 +55,18 @@ export const UserMenu = () => {
 				</DropdownMenuLabel>
 
 				<DropdownMenuSeparator />
-				<DropdownMenuItem>
+				<Link prefetch={true} href="/app/settings/profile"><DropdownMenuItem>
 					<span>Profile</span>
-				</DropdownMenuItem>
-				<DropdownMenuItem>
-					<span>Settings</span>
-				</DropdownMenuItem>
-				<DropdownMenuItem>
-					<span>Email preferences</span>
-				</DropdownMenuItem>
-				<DropdownMenuItem>
+				</DropdownMenuItem></Link>
+				<Link prefetch={true} href="/app/settings/security"><DropdownMenuItem>
 					<span>Security</span>
-				</DropdownMenuItem>
+				</DropdownMenuItem></Link>
+				<Link prefetch={true} href="/app/settings/storage"><DropdownMenuItem>
+					<span>Storage</span>
+				</DropdownMenuItem></Link>
+				<Link prefetch={true} href="/app/settings/privacy"><DropdownMenuItem>
+					<span>Privacy</span>
+				</DropdownMenuItem></Link>
 
 				<DropdownMenuSeparator />
 				<DropdownMenuItem>
