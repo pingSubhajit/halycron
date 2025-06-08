@@ -139,7 +139,7 @@ export default ExportReady
 // Styles with light theme and modern design
 const main = {
 	fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Ubuntu, sans-serif',
-	backgroundColor: "#f9fafb",
+	backgroundColor: "#ffffff",
 	padding: "20px 0",
 }
 
