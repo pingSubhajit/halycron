@@ -2,8 +2,8 @@ import {Body, Button, Container, Head, Hr, Html, Img, Link, Preview, Section, Te
 import * as React from 'react'
 
 const logoImage = process.env.NODE_ENV === 'production'
-	? 'https://halycron.space/logo.png' // Replace with your actual domain
-	: 'http://localhost:3000/logo.png' // For local development
+	? 'https://halycron.space/logo_dark.png'
+	: 'http://localhost:3000/logo_dark.png' // For local development
 
 interface EmailVerificationProps {
 	verificationUrl: string
@@ -93,44 +93,48 @@ export const EmailVerification = ({
 
 export default EmailVerification
 
-// Styles with dark theme and modern design
+// Styles with light theme and modern design
 const main = {
 	fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Ubuntu, sans-serif',
+	backgroundColor: "#f9fafb",
 	padding: "20px 0",
 }
 
 const container = {
-	backgroundColor: "transparent",
+	backgroundColor: "#ffffff",
 	margin: "0 auto",
-	maxWidth: "600px"
+	maxWidth: "600px",
+	borderRadius: "8px",
+	boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
 }
 
 const headerSection = {
-	background: "#111111",
+	background: "#ffffff",
 	padding: "24px 20px 0",
 	textAlign: "center" as const,
+	borderTopLeftRadius: "8px",
+	borderTopRightRadius: "8px",
 }
 
 const logo = {
 	margin: "24px auto 0",
-	filter: "brightness(1.2)",
 }
 
 const contentCard = {
 	martinTop: "48px",
-	backgroundColor: "#111111",
+	backgroundColor: "#ffffff",
 	padding: "48px",
 }
 
 const bodyText = {
-	color: "#e5e5e5",
+	color: "#374151",
 	fontSize: "16px",
 	lineHeight: "1.6",
 	margin: "0 0 20px 0",
 }
 
 const brandText = {
-	color: "#00d4aa", // Primary teal
+	color: "#00b793", // Primary green for light mode
 	fontWeight: "600",
 }
 
@@ -140,8 +144,8 @@ const buttonContainer = {
 }
 
 const ctaButton = {
-	border: "1px solid #00d4aa",
-	color: "#00d4aa",
+	border: "1px solid #00b793",
+	color: "#00b793",
 	display: "inline-block",
 	fontSize: "16px",
 	fontWeight: "600",
@@ -152,20 +156,22 @@ const ctaButton = {
 }
 
 const alternativeText = {
-	color: "#a3a3a3",
+	color: "#6b7280",
 	fontSize: "14px",
 	margin: "32px 0 12px 0",
 	textAlign: "center" as const,
 }
 
 const linkContainer = {
-	border: "1px solid #404040",
+	backgroundColor: "#f3f4f6",
+	border: "1px solid #e5e7eb",
+	borderRadius: "6px",
 	margin: "0 0 32px 0",
 	padding: "16px",
 }
 
 const linkText = {
-	color: "#00d4aa",
+	color: "#00b793",
 	fontFamily: "monospace",
 	fontSize: "13px",
 	lineHeight: "1.4",
@@ -176,13 +182,12 @@ const linkText = {
 
 const divider = {
 	border: "none",
-	borderTop: "1px solid #333",
+	borderTop: "1px solid #e5e7eb",
 	margin: "32px 0",
 }
 
 const footerText = {
-	color: "#a3a3a3",
-	opacity: 0.75,
+	color: "#6b7280",
 	fontSize: "14px",
 	lineHeight: "1.5",
 	margin: "0 0 4px 0",
@@ -190,7 +195,7 @@ const footerText = {
 }
 
 const supportText = {
-	color: "#a3a3a3",
+	color: "#6b7280",
 	fontSize: "14px",
 	lineHeight: "1.5",
 	margin: "24px 0 0 0",
@@ -198,12 +203,12 @@ const supportText = {
 }
 
 const supportLink = {
-	color: "#00d4aa",
+	color: "#00b793",
 	textDecoration: "none",
 }
 
 const brandingFooter = {
-	borderTop: "1px solid #333",
+	borderTop: "1px solid #e5e7eb",
 	marginTop: "32px",
 	paddingTop: "24px",
 	paddingBottom: "24px",
@@ -211,7 +216,7 @@ const brandingFooter = {
 }
 
 const brandingText = {
-	color: "#666",
+	color: "#9ca3af",
 	fontSize: "12px",
 	fontWeight: "500",
 	letterSpacing: "0.5px",
