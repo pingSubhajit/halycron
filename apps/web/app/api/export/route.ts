@@ -41,7 +41,6 @@ export const GET = async (req: NextRequest) => {
 
 		const {searchParams} = new URL(req.url)
 		const exportId = searchParams.get('exportId')
-		const latest = searchParams.get('latest') === 'true'
 
 		if (exportId) {
 			// Get specific export by ID
@@ -50,14 +49,10 @@ export const GET = async (req: NextRequest) => {
 				return NextResponse.json({error: 'Export not found'}, {status: 404})
 			}
 			return NextResponse.json(exportData)
-		} else if (latest) {
-			// Get user's latest export (any status) for UI display
-			const exportData = await ExportService.getLatestUserExport(session.user.id)
-			return NextResponse.json(exportData) // Will be null if no exports
 		} else {
-			// Get current user's ongoing export (pending/processing only)
+			// Get current user's active export
 			const exportData = await ExportService.getCurrentUserExport(session.user.id)
-			return NextResponse.json(exportData) // Will be null if no ongoing export
+			return NextResponse.json(exportData) // Will be null if no active export
 		}
 	} catch (error) {
 		console.error('Export status error:', error)

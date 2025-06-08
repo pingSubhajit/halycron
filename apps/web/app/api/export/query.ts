@@ -5,8 +5,7 @@ import {ExportData} from './route'
 export const exportQueryKeys = {
 	all: ['export'] as const,
 	status: (exportId: string) => [...exportQueryKeys.all, 'status', exportId] as const,
-	current: () => [...exportQueryKeys.all, 'current'] as const,
-	latest: () => [...exportQueryKeys.all, 'latest'] as const
+	current: () => [...exportQueryKeys.all, 'current'] as const
 }
 
 export const useCreateExport = () => {
@@ -19,9 +18,8 @@ export const useCreateExport = () => {
 		onSuccess: (data) => {
 			// Immediately start polling for status updates
 			queryClient.setQueryData(exportQueryKeys.status(data.id), data)
-			// Update both current and latest user export queries
+			// Update the current user export query
 			queryClient.setQueryData(exportQueryKeys.current(), data)
-			queryClient.setQueryData(exportQueryKeys.latest(), data)
 		}
 	})
 }
@@ -64,17 +62,4 @@ export const useCurrentUserExport = (
 		...options
 	})
 }
-
-export const useLatestUserExport = (
-	options?: Omit<UseQueryOptions<ExportData | null, Error>, 'queryKey' | 'queryFn'>
-) => {
-	return useQuery({
-		queryKey: exportQueryKeys.latest(),
-		queryFn: async (): Promise<ExportData | null> => {
-			return api.get<ExportData | null>('/api/export', {
-				params: {latest: 'true'}
-			})
-		},
-		...options
-	})
-}
+ 

@@ -6,7 +6,7 @@ import {Button} from '@halycron/ui/components/button'
 import {Progress} from '@halycron/ui/components/progress'
 import {Alert, AlertDescription} from '@halycron/ui/components/alert'
 import {AlertCircle, CheckCircle, Download, FileArchive, Info, Loader2, Shield} from 'lucide-react'
-import {useCreateExport, useCurrentUserExport, useExportStatus, useLatestUserExport} from '@/app/api/export/query'
+import {useCreateExport, useCurrentUserExport, useExportStatus} from '@/app/api/export/query'
 import {format} from 'date-fns'
 
 type Props = {
@@ -16,26 +16,26 @@ type Props = {
 
 export const ExportDialog = ({open, onOpenChange}: Props) => {
 	const [exportId, setExportId] = useState<string | undefined>()
+	const [sessionExportId, setSessionExportId] = useState<string | undefined>() // Track current session export
 	const createExport = useCreateExport()
 	const {data: exportStatus} = useExportStatus(exportId)
-	const {data: ongoingExport} = useCurrentUserExport() // Only pending/processing exports
-	const {data: latestExport} = useLatestUserExport() // Latest export regardless of status
+	const {data: currentUserExport} = useCurrentUserExport()
 
-	// Use ongoing export if available, otherwise use latest export, otherwise use local exportId status
-	const activeExport = ongoingExport || latestExport || exportStatus
+	// Use ongoing export from server or current session export status
+	const activeExport = currentUserExport || (sessionExportId === exportId ? exportStatus : null)
 
-	// Update local exportId when we have an export to track
+	// Update local exportId when current user export changes (page reload case)
 	useEffect(() => {
-		const exportToTrack = ongoingExport || latestExport
-		if (exportToTrack?.id && !exportId) {
-			setExportId(exportToTrack.id)
+		if (currentUserExport?.id && !exportId) {
+			setExportId(currentUserExport.id)
 		}
-	}, [ongoingExport?.id, latestExport?.id, exportId])
+	}, [currentUserExport?.id, exportId])
 
 	const handleStartExport = () => {
 		createExport.mutate(undefined, {
 			onSuccess: (data) => {
 				setExportId(data.id)
+				setSessionExportId(data.id) // Track this as current session export
 			}
 		})
 	}
@@ -79,9 +79,8 @@ export const ExportDialog = ({open, onOpenChange}: Props) => {
 		? (activeExport.processedPhotos / activeExport.totalPhotos) * 100
 		: 0
 
-	// Only prevent new exports if there's an ongoing export (pending or processing)
-	const hasOngoingExport = ongoingExport?.status === 'pending' || ongoingExport?.status === 'processing'
-	const canStartNewExport = !hasOngoingExport && !createExport.isPending
+	const isExportOngoing = activeExport?.status === 'pending' || activeExport?.status === 'processing'
+	const canStartNewExport = !isExportOngoing && !createExport.isPending
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
@@ -171,13 +170,12 @@ export const ExportDialog = ({open, onOpenChange}: Props) => {
 						</div>
 					)}
 
-					{/* Active Export Notice */}
-					{hasOngoingExport && (
+					{/* Ongoing Export Notice */}
+					{isExportOngoing && (
 						<Alert>
 							<Info className="h-4 w-4"/>
 							<AlertDescription>
-								You have an export in progress. Please wait for it to complete before starting a new
-								one.
+								You have an export in progress. You can only have one export at a time.
 							</AlertDescription>
 						</Alert>
 					)}
