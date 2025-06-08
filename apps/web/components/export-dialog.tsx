@@ -17,6 +17,7 @@ type Props = {
 export const ExportDialog = ({open, onOpenChange}: Props) => {
 	const [exportId, setExportId] = useState<string | undefined>()
 	const [sessionExportId, setSessionExportId] = useState<string | undefined>() // Track current session export
+	const [hasCompletedInSession, setHasCompletedInSession] = useState(false) // Track if export completed in this session
 	const createExport = useCreateExport()
 	const {data: exportStatus} = useExportStatus(exportId)
 	const {data: currentUserExport} = useCurrentUserExport()
@@ -31,11 +32,27 @@ export const ExportDialog = ({open, onOpenChange}: Props) => {
 		}
 	}, [currentUserExport?.id, exportId])
 
+	// Track when export completes in the current session
+	useEffect(() => {
+		if (sessionExportId === exportId && exportStatus &&
+			(exportStatus.status === 'ready' || exportStatus.status === 'failed')) {
+			setHasCompletedInSession(true)
+		}
+	}, [sessionExportId, exportId, exportStatus?.status])
+
+	// Reset completion state when dialog is closed
+	useEffect(() => {
+		if (!open) {
+			setHasCompletedInSession(false)
+		}
+	}, [open])
+
 	const handleStartExport = () => {
 		createExport.mutate(undefined, {
 			onSuccess: (data) => {
 				setExportId(data.id)
 				setSessionExportId(data.id) // Track this as current session export
+				setHasCompletedInSession(false) // Reset completion state for new export
 			}
 		})
 	}
@@ -80,7 +97,7 @@ export const ExportDialog = ({open, onOpenChange}: Props) => {
 		: 0
 
 	const isExportOngoing = activeExport?.status === 'pending' || activeExport?.status === 'processing'
-	const canStartNewExport = !isExportOngoing && !createExport.isPending
+	const canStartNewExport = !isExportOngoing && !createExport.isPending && !hasCompletedInSession
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
