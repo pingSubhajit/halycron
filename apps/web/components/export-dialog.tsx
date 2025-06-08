@@ -34,8 +34,7 @@ export const ExportDialog = ({open, onOpenChange}: Props) => {
 
 	// Track when export completes in the current session
 	useEffect(() => {
-		if (activeExport && exportStatus &&
-			(exportStatus.status === 'ready' || exportStatus.status === 'failed')) {
+		if (exportStatus && (exportStatus.status === 'ready' || exportStatus.status === 'failed')) {
 			setHasCompletedInSession(true)
 		}
 	}, [sessionExportId, exportId, exportStatus?.status])
