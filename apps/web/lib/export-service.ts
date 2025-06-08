@@ -27,6 +27,12 @@ export class ExportService {
 	 * Create a new export job
 	 */
 	static async createExportJob(userId: string): Promise<ExportJobData> {
+		// Check if user already has an active export
+		const existingExport = await this.getCurrentUserExport(userId)
+		if (existingExport) {
+			throw new Error('You already have an active export. Please wait for it to complete or fail before starting a new one.')
+		}
+
 		// Get total photo count for progress tracking
 		const photoCount = await db
 			.select({count: sql<number>`COUNT(*)`})
@@ -67,6 +73,24 @@ export class ExportService {
 			.select()
 			.from(exportJob)
 			.where(eq(exportJob.id, jobId))
+			.limit(1)
+
+		if (!job) return null
+
+		return this.formatJobData(job)
+	}
+
+	/**
+	 * Get user's current active export (pending, processing, or ready)
+	 */
+	static async getCurrentUserExport(userId: string): Promise<ExportJobData | null> {
+		const [job] = await db
+			.select()
+			.from(exportJob)
+			.where(
+				sql`user_id = ${userId} AND status IN ('pending', 'processing', 'ready')`
+			)
+			.orderBy(sql`created_at DESC`)
 			.limit(1)
 
 		if (!job) return null

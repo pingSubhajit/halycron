@@ -4,7 +4,8 @@ import {ExportData} from './route'
 
 export const exportQueryKeys = {
 	all: ['export'] as const,
-	status: (exportId: string) => [...exportQueryKeys.all, 'status', exportId] as const
+	status: (exportId: string) => [...exportQueryKeys.all, 'status', exportId] as const,
+	current: () => [...exportQueryKeys.all, 'current'] as const
 }
 
 export const useCreateExport = () => {
@@ -17,6 +18,8 @@ export const useCreateExport = () => {
 		onSuccess: (data) => {
 			// Immediately start polling for status updates
 			queryClient.setQueryData(exportQueryKeys.status(data.id), data)
+			// Update the current user export query
+			queryClient.setQueryData(exportQueryKeys.current(), data)
 		}
 	})
 }
@@ -36,6 +39,23 @@ export const useExportStatus = (
 		enabled: !!exportId,
 		refetchInterval: (query) => {
 			// Poll every 2 seconds while processing, stop when ready/failed
+			const status = query.state.data?.status
+			return status === 'processing' || status === 'pending' ? 2000 : false
+		},
+		...options
+	})
+}
+
+export const useCurrentUserExport = (
+	options?: Omit<UseQueryOptions<ExportData | null, Error>, 'queryKey' | 'queryFn'>
+) => {
+	return useQuery({
+		queryKey: exportQueryKeys.current(),
+		queryFn: async (): Promise<ExportData | null> => {
+			return api.get<ExportData | null>('/api/export')
+		},
+		refetchInterval: (query) => {
+			// Poll every 2 seconds while processing, stop when ready/failed/null
 			const status = query.state.data?.status
 			return status === 'processing' || status === 'pending' ? 2000 : false
 		},

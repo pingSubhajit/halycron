@@ -1,12 +1,12 @@
 'use client'
 
-import {useState} from 'react'
+import {useEffect, useState} from 'react'
 import {Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle} from '@halycron/ui/components/dialog'
 import {Button} from '@halycron/ui/components/button'
 import {Progress} from '@halycron/ui/components/progress'
 import {Alert, AlertDescription} from '@halycron/ui/components/alert'
 import {AlertCircle, CheckCircle, Download, FileArchive, Info, Loader2, Shield} from 'lucide-react'
-import {useCreateExport, useExportStatus} from '@/app/api/export/query'
+import {useCreateExport, useCurrentUserExport, useExportStatus} from '@/app/api/export/query'
 import {format} from 'date-fns'
 
 type Props = {
@@ -18,6 +18,17 @@ export const ExportDialog = ({open, onOpenChange}: Props) => {
 	const [exportId, setExportId] = useState<string | undefined>()
 	const createExport = useCreateExport()
 	const {data: exportStatus} = useExportStatus(exportId)
+	const {data: currentUserExport} = useCurrentUserExport()
+
+	// Use current user export if available, otherwise use the local exportId
+	const activeExport = currentUserExport || exportStatus
+
+	// Update local exportId when current user export changes
+	useEffect(() => {
+		if (currentUserExport?.id && !exportId) {
+			setExportId(currentUserExport.id)
+		}
+	}, [currentUserExport?.id, exportId])
 
 	const handleStartExport = () => {
 		createExport.mutate(undefined, {
@@ -28,13 +39,13 @@ export const ExportDialog = ({open, onOpenChange}: Props) => {
 	}
 
 	const handleDownload = () => {
-		if (exportStatus?.downloadUrl) {
-			window.open(exportStatus.downloadUrl, '_blank')
+		if (activeExport?.downloadUrl) {
+			window.open(activeExport.downloadUrl, '_blank')
 		}
 	}
 
 	const getStatusIcon = () => {
-		switch (exportStatus?.status) {
+		switch (activeExport?.status) {
 		case 'pending':
 		case 'processing':
 			return <Loader2 className="h-5 w-5 animate-spin text-blue-500"/>
@@ -48,11 +59,11 @@ export const ExportDialog = ({open, onOpenChange}: Props) => {
 	}
 
 	const getStatusText = () => {
-		switch (exportStatus?.status) {
+		switch (activeExport?.status) {
 		case 'pending':
 			return 'Preparing export...'
 		case 'processing':
-			return `Processing photos (${exportStatus.processedPhotos}/${exportStatus.totalPhotos})`
+			return `Processing photos (${activeExport.processedPhotos}/${activeExport.totalPhotos})`
 		case 'ready':
 			return 'Export ready for download'
 		case 'failed':
@@ -62,9 +73,12 @@ export const ExportDialog = ({open, onOpenChange}: Props) => {
 		}
 	}
 
-	const progressPercentage = exportStatus?.totalPhotos
-		? (exportStatus.processedPhotos / exportStatus.totalPhotos) * 100
+	const progressPercentage = activeExport?.totalPhotos
+		? (activeExport.processedPhotos / activeExport.totalPhotos) * 100
 		: 0
+
+	const isExportActive = activeExport?.status === 'pending' || activeExport?.status === 'processing' || activeExport?.status === 'ready'
+	const canStartNewExport = !isExportActive && !createExport.isPending
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
@@ -104,13 +118,13 @@ export const ExportDialog = ({open, onOpenChange}: Props) => {
 					</Alert>
 
 					{/* Export Status */}
-					{(exportStatus || createExport.isPending) && (
+					{(activeExport || createExport.isPending) && (
 						<div className="space-y-4">
 							<div className="flex items-center gap-3">
 								{getStatusIcon()}
 								<div className="flex-1">
 									<div className="font-medium">{getStatusText()}</div>
-									{exportStatus?.status === 'processing' && (
+									{activeExport?.status === 'processing' && (
 										<div className="text-sm text-muted-foreground">
 											This may take a few minutes...
 										</div>
@@ -118,33 +132,33 @@ export const ExportDialog = ({open, onOpenChange}: Props) => {
 								</div>
 							</div>
 
-							{exportStatus?.status === 'processing' && (
+							{activeExport?.status === 'processing' && (
 								<Progress value={progressPercentage} className="h-2"/>
 							)}
 
-							{exportStatus?.status === 'ready' && (
+							{activeExport?.status === 'ready' && (
 								<div className="space-y-3">
 									<div className="text-sm text-muted-foreground">
 										Export created
-										on {format(new Date(exportStatus.createdAt), 'MMM dd, yyyy at h:mm a')}
+										on {format(new Date(activeExport.createdAt), 'MMM dd, yyyy at h:mm a')}
 									</div>
-									{exportStatus.expiresAt && (
+									{activeExport.expiresAt && (
 										<div className="text-sm text-orange-600">
 											Download expires
-											on {format(new Date(exportStatus.expiresAt), 'MMM dd, yyyy')}
+											on {format(new Date(activeExport.expiresAt), 'MMM dd, yyyy')}
 										</div>
 									)}
 								</div>
 							)}
 
-							{exportStatus?.status === 'failed' && (
+							{activeExport?.status === 'failed' && (
 								<Alert variant="destructive">
 									<AlertCircle className="h-4 w-4"/>
 									<AlertDescription>
 										Export failed to complete.
-										{exportStatus.errorMessage && (
+										{activeExport.errorMessage && (
 											<div className="mt-1 text-sm">
-												Error: {exportStatus.errorMessage}
+												Error: {activeExport.errorMessage}
 											</div>
 										)}
 										Please try again or contact support if the issue persists.
@@ -154,13 +168,23 @@ export const ExportDialog = ({open, onOpenChange}: Props) => {
 						</div>
 					)}
 
+					{/* Active Export Notice */}
+					{isExportActive && activeExport?.status !== 'ready' && (
+						<Alert>
+							<Info className="h-4 w-4"/>
+							<AlertDescription>
+								You have an export in progress. You can only have one export at a time.
+							</AlertDescription>
+						</Alert>
+					)}
+
 					{/* Action Buttons */}
 					<div className="flex justify-end gap-3">
 						<Button variant="outline" onClick={() => onOpenChange(false)}>
 							Close
 						</Button>
 
-						{!exportStatus && !createExport.isPending && (
+						{canStartNewExport && (
 							<Button
 								onClick={handleStartExport}
 								disabled={createExport.isPending}
@@ -170,14 +194,14 @@ export const ExportDialog = ({open, onOpenChange}: Props) => {
 							</Button>
 						)}
 
-						{exportStatus?.status === 'ready' && (
+						{activeExport?.status === 'ready' && (
 							<Button onClick={handleDownload}>
 								<Download className="h-4 w-4 mr-2"/>
 								Download Export
 							</Button>
 						)}
 
-						{exportStatus?.status === 'failed' && (
+						{activeExport?.status === 'failed' && (
 							<Button
 								onClick={handleStartExport}
 								disabled={createExport.isPending}

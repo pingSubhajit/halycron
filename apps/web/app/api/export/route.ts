@@ -42,16 +42,18 @@ export const GET = async (req: NextRequest) => {
 		const {searchParams} = new URL(req.url)
 		const exportId = searchParams.get('exportId')
 
-		if (!exportId) {
-			return NextResponse.json({error: 'Export ID is required'}, {status: 400})
+		if (exportId) {
+			// Get specific export by ID
+			const exportData = await ExportService.getExportJob(exportId)
+			if (!exportData) {
+				return NextResponse.json({error: 'Export not found'}, {status: 404})
+			}
+			return NextResponse.json(exportData)
+		} else {
+			// Get current user's active export
+			const exportData = await ExportService.getCurrentUserExport(session.user.id)
+			return NextResponse.json(exportData) // Will be null if no active export
 		}
-
-		const exportData = await ExportService.getExportJob(exportId)
-		if (!exportData) {
-			return NextResponse.json({error: 'Export not found'}, {status: 404})
-		}
-
-		return NextResponse.json(exportData)
 	} catch (error) {
 		console.error('Export status error:', error)
 		return NextResponse.json(
