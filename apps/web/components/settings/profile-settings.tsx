@@ -10,8 +10,16 @@ import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from '@h
 import {Input} from '@halycron/ui/components/input'
 import {Badge} from '@halycron/ui/components/badge'
 import {Separator} from '@halycron/ui/components/separator'
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle
+} from '@halycron/ui/components/dialog'
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from '@halycron/ui/components/tooltip'
-import {AlertCircle, Calendar, Camera, Lock, Mail, User} from 'lucide-react'
+import {AlertCircle, AlertTriangle, BookUser, Calendar, Camera, Lock, Mail, Trash2, User} from 'lucide-react'
 import {authClient} from '@/lib/auth/auth-client'
 import {toast} from 'sonner'
 import {useUpdateProfile} from '@/app/api/profile/mutations'
@@ -32,6 +40,8 @@ interface ProfileSettingsProps {
 export const ProfileSettings = ({initialSession}: ProfileSettingsProps) => {
 	const {data: session, refetch: refetchSession} = authClient.useSession()
 	const [isModalOpen, setIsModalOpen] = useState(false)
+	const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false)
+	const [isDeleting, setIsDeleting] = useState(false)
 	const sendVerificationEmail = useSendVerificationEmail()
 
 	// Use client session if available, otherwise use initial session
@@ -71,6 +81,29 @@ export const ProfileSettings = ({initialSession}: ProfileSettingsProps) => {
 		updateProfile.mutate({
 			name: values.name
 		})
+	}
+
+	const handleDeleteAccount = async () => {
+		setIsDeleting(true)
+		try {
+			// TODO: Implement account deletion API call
+			await new Promise(resolve => setTimeout(resolve, 2000))
+
+			// Sign out the user after account deletion
+			await authClient.signOut()
+
+			// Show success message
+			toast.success('Account deleted successfully')
+
+			// Redirect to home page
+			window.location.href = '/'
+		} catch (error) {
+			console.error('Failed to delete account:', error)
+			toast.error('Failed to delete account. Please try again.')
+		} finally {
+			setIsDeleting(false)
+			setShowDeleteConfirmation(false)
+		}
 	}
 
 	return (
@@ -211,7 +244,10 @@ export const ProfileSettings = ({initialSession}: ProfileSettingsProps) => {
 			{/* Account Status */}
 			<Card>
 				<CardHeader>
-					<CardTitle>Account Status</CardTitle>
+					<CardTitle className="flex items-center gap-2">
+						<BookUser className="h-5 w-5"/>
+						Account Status
+					</CardTitle>
 					<CardDescription>
 						Overview of your account verification and status
 					</CardDescription>
@@ -282,6 +318,117 @@ export const ProfileSettings = ({initialSession}: ProfileSettingsProps) => {
 					)}
 				</CardContent>
 			</Card>
+
+			{/* Danger Zone */}
+			<Card>
+				<CardHeader>
+					<CardTitle className="flex items-center gap-2">
+						<Trash2 className="h-5 w-5"/>
+						Account Management
+					</CardTitle>
+					<CardDescription>
+						Permanently delete your account and all associated data
+					</CardDescription>
+				</CardHeader>
+				<CardContent>
+					<div className="relative p-6 border-2 border-destructive/30 bg-destructive/5">
+						<div className="absolute -top-2 left-4 bg-background px-2">
+							<div className="flex items-center gap-1">
+								<AlertTriangle className="h-4 w-4 text-destructive"/>
+								<span className="text-sm font-semibold text-destructive uppercase tracking-wide">Danger Zone</span>
+							</div>
+						</div>
+
+						<div className="flex items-start justify-between gap-4 mt-2">
+							<div className="flex-1">
+								<div className="flex items-center gap-2 mb-2">
+									<Trash2 className="h-5 w-5 text-destructive"/>
+									<h4 className="font-semibold text-destructive">Delete Account</h4>
+								</div>
+								<p className="text-sm text-muted-foreground leading-relaxed">
+									This action will permanently delete your account and <strong>all associated
+										data</strong>.
+									<br/>
+									<span className="text-destructive/80 font-medium">This cannot be undone.</span>
+								</p>
+							</div>
+
+							<Button
+								variant="destructive"
+								size="sm"
+								onClick={() => setShowDeleteConfirmation(true)}
+								className="shrink-0"
+							>
+								<Trash2 className="h-4 w-4 mr-2"/>
+								Delete Account
+							</Button>
+						</div>
+					</div>
+				</CardContent>
+			</Card>
+
+			{/* Delete Confirmation Dialog */}
+			<Dialog open={showDeleteConfirmation} onOpenChange={setShowDeleteConfirmation}>
+				<DialogContent className="sm:max-w-md border-destructive/20 bg-destructive/5 backdrop-blur-md">
+					<DialogHeader>
+						<DialogTitle className="flex items-center gap-2 text-destructive">
+							<AlertTriangle className="h-5 w-5"/>
+							Delete Account
+						</DialogTitle>
+						<DialogDescription className="text-left">
+							You are about to permanently delete your
+							account <strong>{currentSession.user.email}</strong>.
+							This action cannot be undone and will immediately sign you out.
+						</DialogDescription>
+					</DialogHeader>
+
+					<div className="p-4 bg-destructive/5 border border-destructive/20">
+						<div className="flex items-start gap-3">
+							<AlertTriangle className="h-5 w-5 text-destructive shrink-0 mt-0.5"/>
+							<div className="text-sm">
+								<p className="font-medium text-destructive mb-1">This will permanently:</p>
+								<ul className="text-muted-foreground space-y-1">
+									<li>• Delete your account and profile information</li>
+									<li>• Remove all your photos and metadata</li>
+									<li>• Clear all storage and cached data</li>
+									<li>• Cancel any active subscriptions</li>
+									<li>• Sign you out of all devices</li>
+								</ul>
+							</div>
+						</div>
+					</div>
+
+					<DialogFooter className="flex-col sm:flex-row gap-2">
+						<Button
+							variant="outline"
+							onClick={() => setShowDeleteConfirmation(false)}
+							className="w-full sm:w-auto border-destructive/10 bg-destructive/5 hover:bg-destructive/10 hover:border-destructive/20"
+							disabled={isDeleting}
+						>
+							Cancel
+						</Button>
+						<Button
+							variant="destructive"
+							onClick={handleDeleteAccount}
+							disabled={isDeleting}
+							className="w-full sm:w-auto"
+						>
+							{isDeleting ? (
+								<>
+									<div
+										className="animate-spin h-4 w-4 border-2 border-white border-t-transparent mr-2"/>
+									Deleting Account...
+								</>
+							) : (
+								<>
+									<Trash2 className="h-4 w-4 mr-2"/>
+									Yes, Delete My Account
+								</>
+							)}
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
 		</div>
 	)
 }

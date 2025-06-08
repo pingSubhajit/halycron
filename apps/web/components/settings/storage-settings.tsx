@@ -6,6 +6,15 @@ import {useForm} from 'react-hook-form'
 import * as z from 'zod'
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@halycron/ui/components/card'
 import {Button} from '@halycron/ui/components/button'
+import {Badge} from '@halycron/ui/components/badge'
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle
+} from '@halycron/ui/components/dialog'
 import {
 	Form,
 	FormControl,
@@ -18,7 +27,7 @@ import {
 import {Input} from '@halycron/ui/components/input'
 import {Switch} from '@halycron/ui/components/switch'
 import {Progress} from '@halycron/ui/components/progress'
-import {AlertCircle, CheckCircle, Cloud, Download, HardDrive, Info, Server, Trash2} from 'lucide-react'
+import {AlertCircle, AlertTriangle, CheckCircle, Cloud, Download, HardDrive, Info, Server, Trash2} from 'lucide-react'
 import {useStorageStats} from '@/app/api/storage/query'
 import {ExportDialog} from '@/components/export-dialog'
 import {TextShimmer} from '@halycron/ui/components/text-shimmer'
@@ -35,6 +44,7 @@ export const StorageSettings = () => {
 	const [useCustomS3, setUseCustomS3] = useState(false)
 	const [connectionTested, setConnectionTested] = useState(false)
 	const [showExportDialog, setShowExportDialog] = useState(false)
+	const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false)
 
 	// Fetch storage statistics
 	const {data: storageStats, isLoading: isLoadingStats, error} = useStorageStats()
@@ -69,6 +79,20 @@ export const StorageSettings = () => {
 			await new Promise(resolve => setTimeout(resolve, 1000))
 		} catch (error) {
 			console.error('Failed to save S3 config:', error)
+		} finally {
+			setIsLoading(false)
+		}
+	}
+
+	const handleDeleteAllPhotos = async () => {
+		setIsLoading(true)
+		try {
+			// TODO: Implement delete all photos functionality
+			await new Promise(resolve => setTimeout(resolve, 2000))
+			// Show success message or redirect
+			setShowDeleteConfirmation(false)
+		} catch (error) {
+			console.error('Failed to delete all photos:', error)
 		} finally {
 			setIsLoading(false)
 		}
@@ -217,7 +241,10 @@ export const StorageSettings = () => {
 				<CardContent className="space-y-6">
 					<div className="flex items-center justify-between p-4 border">
 						<div>
-							<div className="font-medium">Use Custom S3 Bucket</div>
+							<div className="flex items-center gap-2">
+								<span className="font-medium">Use Custom S3 Bucket</span>
+								<Badge variant="secondary" className="text-xs">Coming Soon</Badge>
+							</div>
 							<div className="text-sm text-muted-foreground">
 								Store your encrypted photos in your own AWS S3 bucket for complete control
 							</div>
@@ -225,6 +252,7 @@ export const StorageSettings = () => {
 						<Switch
 							checked={useCustomS3}
 							onCheckedChange={setUseCustomS3}
+							disabled
 						/>
 					</div>
 
@@ -360,41 +388,47 @@ export const StorageSettings = () => {
 						Manage your stored data and cleanup options
 					</CardDescription>
 				</CardHeader>
-				<CardContent className="space-y-4">
-					<div className="space-y-3">
-						<div className="flex items-center justify-between p-4 border">
-							<div>
-								<div className="font-medium">Download All Data</div>
-								<div className="text-sm text-muted-foreground">
-									Export all your photos and metadata in encrypted format
-								</div>
+				<CardContent className="space-y-8">
+					<div className="flex items-center justify-between p-4 border">
+						<div>
+							<div className="font-medium">Download All Data</div>
+							<div className="text-sm text-muted-foreground">
+								Export all your photos and metadata in encrypted format
 							</div>
-							<Button variant="outline" onClick={() => setShowExportDialog(true)}>
-								<Download className="h-4 w-4 mr-2"/>
-								Export Data
-							</Button>
+						</div>
+						<Button variant="outline" onClick={() => setShowExportDialog(true)}>
+							<Download className="h-4 w-4 mr-2"/>
+							Export Data
+						</Button>
+					</div>
+
+					<div className="relative p-6 border-2 border-destructive/30 bg-destructive/5">
+						<div className="absolute -top-2 left-4 bg-background px-2">
+							<div className="flex items-center gap-1">
+								<AlertTriangle className="h-4 w-4 text-destructive"/>
+								<span className="text-sm font-semibold text-destructive uppercase tracking-wide">Danger Zone</span>
+							</div>
 						</div>
 
-						<div className="flex items-center justify-between p-4 border">
-							<div>
-								<div className="font-medium">Clear Thumbnail Cache</div>
-								<div className="text-sm text-muted-foreground">
-									Clear locally cached thumbnails to free up space
+						<div className="flex items-start justify-between gap-4 mt-2">
+							<div className="flex-1">
+								<div className="flex items-center gap-2 mb-2">
+									<Trash2 className="h-5 w-5 text-destructive"/>
+									<h4 className="font-semibold text-destructive">Delete All Photos</h4>
 								</div>
+								<p className="text-sm text-muted-foreground leading-relaxed">
+									This action will permanently delete <strong>all photos</strong> from your storage.
+									<br/>
+									<span className="text-destructive/80 font-medium">This cannot be undone.</span>
+								</p>
 							</div>
-							<Button variant="outline">
-								Clear Cache
-							</Button>
-						</div>
 
-						<div className="flex items-center justify-between p-4 border border-destructive/20">
-							<div>
-								<div className="font-medium text-destructive">Delete All Photos</div>
-								<div className="text-sm text-muted-foreground">
-									Permanently delete all photos from your storage
-								</div>
-							</div>
-							<Button variant="destructive">
+							<Button
+								variant="destructive"
+								size="sm"
+								onClick={() => setShowDeleteConfirmation(true)}
+								className="shrink-0"
+							>
 								<Trash2 className="h-4 w-4 mr-2"/>
 								Delete All
 							</Button>
@@ -434,6 +468,67 @@ export const StorageSettings = () => {
 				open={showExportDialog}
 				onOpenChange={setShowExportDialog}
 			/>
+
+			{/* Delete Confirmation Dialog */}
+			<Dialog open={showDeleteConfirmation} onOpenChange={setShowDeleteConfirmation}>
+				<DialogContent className="sm:max-w-md border-destructive/20 bg-destructive/5 backdrop-blur-md">
+					<DialogHeader>
+						<DialogTitle className="flex items-center gap-2 text-destructive">
+							<AlertTriangle className="h-5 w-5"/>
+							Confirm Deletion
+						</DialogTitle>
+						<DialogDescription className="text-left">
+							You are about to permanently delete <strong>all {storageUsage.photos} photos</strong> from
+							your storage.
+							This action cannot be undone and will free up {storageUsage.used} GB of space.
+						</DialogDescription>
+					</DialogHeader>
+
+					<div className="p-4 bg-destructive/5 border border-destructive/20">
+						<div className="flex items-start gap-3">
+							<AlertTriangle className="h-5 w-5 text-destructive shrink-0 mt-0.5"/>
+							<div className="text-sm">
+								<p className="font-medium text-destructive mb-1">This will permanently:</p>
+								<ul className="text-muted-foreground space-y-1">
+									<li>• Delete all {storageUsage.photos} photos from storage</li>
+									<li>• Remove all associated metadata</li>
+									<li>• Clear all cached thumbnails</li>
+									<li>• Reset your storage usage to zero</li>
+								</ul>
+							</div>
+						</div>
+					</div>
+
+					<DialogFooter className="flex-col sm:flex-row gap-2">
+						<Button
+							variant="outline"
+							onClick={() => setShowDeleteConfirmation(false)}
+							className="w-full sm:w-auto border-destructive/10 bg-destructive/5 hover:bg-destructive/10 hover:border-destructive/20"
+						>
+							Cancel
+						</Button>
+						<Button
+							variant="destructive"
+							onClick={handleDeleteAllPhotos}
+							disabled={isLoading}
+							className="w-full sm:w-auto"
+						>
+							{isLoading ? (
+								<>
+									<div
+										className="animate-spin h-4 w-4 border-2 border-white border-t-transparent mr-2"/>
+									Deleting...
+								</>
+							) : (
+								<>
+									<Trash2 className="h-4 w-4 mr-2"/>
+									Yes, Delete All Photos
+								</>
+							)}
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
 		</div>
 	)
 }
