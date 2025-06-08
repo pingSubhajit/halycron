@@ -5,9 +5,10 @@ import {Button} from '@halycron/ui/components/button'
 import {Switch} from '@halycron/ui/components/switch'
 import {Separator} from '@halycron/ui/components/separator'
 import {Badge} from '@halycron/ui/components/badge'
-import {AlertCircle, CheckCircle, Download, FileText, Key, Lock, Shield} from 'lucide-react'
+import {AlertCircle, CheckCircle, ExternalLink, FileText, Key, Lock, Shield} from 'lucide-react'
 import {usePrivacySettings} from '@/app/api/privacy-settings/query'
 import {useUpdatePrivacySetting} from '@/app/api/privacy-settings/mutations'
+import Link from 'next/link'
 
 interface PrivacySetting {
 	id: string
@@ -328,10 +329,12 @@ export const PrivacySettings = () => {
 									Review our privacy policy and terms of service
 								</div>
 							</div>
-							<Button variant="outline">
-								<Download className="h-4 w-4 mr-2"/>
-								View Documents
-							</Button>
+							<Link href="/privacy">
+								<Button variant="outline">
+									<ExternalLink className="h-4 w-4 mr-2"/>
+									View Documents
+								</Button>
+							</Link>
 						</div>
 					</div>
 				</CardContent>

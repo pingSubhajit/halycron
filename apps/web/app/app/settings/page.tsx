@@ -1,9 +1,5 @@
 import {Metadata} from 'next'
-import {SettingsLayout} from '@/components/settings/settings-layout'
-import {auth} from '@/lib/auth/config'
-import {headers} from 'next/headers'
 import {redirect} from 'next/navigation'
-import type {Session} from '@/types/auth'
 
 export const metadata: Metadata = {
 	title: 'Settings – Halycron',
@@ -18,17 +14,8 @@ export const metadata: Metadata = {
 }
 
 const SettingsPage = async () => {
-	// Get session on server side
-	const session = await auth.api.getSession({
-		headers: await headers()
-	})
-
-	// Redirect to login if no session (shouldn't happen due to middleware, but good to be safe)
-	if (!session) {
-		redirect('/login')
-	}
-
-	return <SettingsLayout initialSession={session as unknown as Session}/>
+	// Redirect to profile settings by default
+	redirect('/app/settings/profile')
 }
 
 export default SettingsPage
