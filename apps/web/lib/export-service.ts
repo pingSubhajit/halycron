@@ -30,7 +30,7 @@ export class ExportService {
 		// Check if user already has an active export
 		const existingExport = await this.getCurrentUserExport(userId)
 		if (existingExport) {
-			throw new Error('You already have an active export. Please wait for it to complete or fail before starting a new one.')
+			throw new Error('You already have an export in progress. Please wait for it to complete before starting a new one.')
 		}
 
 		// Get total photo count for progress tracking
@@ -81,15 +81,40 @@ export class ExportService {
 	}
 
 	/**
-	 * Get user's current active export (pending, processing, or ready)
+	 * Get user's current ongoing export (pending or processing only)
 	 */
 	static async getCurrentUserExport(userId: string): Promise<ExportJobData | null> {
 		const [job] = await db
 			.select()
 			.from(exportJob)
 			.where(
-				sql`user_id = ${userId} AND status IN ('pending', 'processing', 'ready')`
+				sql`user_id
+                =
+                ${userId}
+                AND
+                status
+                IN
+                (
+                'pending',
+                'processing'
+                )`
 			)
+			.orderBy(sql`created_at DESC`)
+			.limit(1)
+
+		if (!job) return null
+
+		return this.formatJobData(job)
+	}
+
+	/**
+	 * Get user's latest export (any status) for UI display
+	 */
+	static async getLatestUserExport(userId: string): Promise<ExportJobData | null> {
+		const [job] = await db
+			.select()
+			.from(exportJob)
+			.where(eq(exportJob.userId, userId))
 			.orderBy(sql`created_at DESC`)
 			.limit(1)
 

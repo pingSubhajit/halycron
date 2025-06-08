@@ -6,7 +6,7 @@ import {Button} from '@halycron/ui/components/button'
 import {Progress} from '@halycron/ui/components/progress'
 import {Alert, AlertDescription} from '@halycron/ui/components/alert'
 import {AlertCircle, CheckCircle, Download, FileArchive, Info, Loader2, Shield} from 'lucide-react'
-import {useCreateExport, useCurrentUserExport, useExportStatus} from '@/app/api/export/query'
+import {useCreateExport, useCurrentUserExport, useExportStatus, useLatestUserExport} from '@/app/api/export/query'
 import {format} from 'date-fns'
 
 type Props = {
@@ -18,17 +18,19 @@ export const ExportDialog = ({open, onOpenChange}: Props) => {
 	const [exportId, setExportId] = useState<string | undefined>()
 	const createExport = useCreateExport()
 	const {data: exportStatus} = useExportStatus(exportId)
-	const {data: currentUserExport} = useCurrentUserExport()
+	const {data: ongoingExport} = useCurrentUserExport() // Only pending/processing exports
+	const {data: latestExport} = useLatestUserExport() // Latest export regardless of status
 
-	// Use current user export if available, otherwise use the local exportId
-	const activeExport = currentUserExport || exportStatus
+	// Use ongoing export if available, otherwise use latest export, otherwise use local exportId status
+	const activeExport = ongoingExport || latestExport || exportStatus
 
-	// Update local exportId when current user export changes
+	// Update local exportId when we have an export to track
 	useEffect(() => {
-		if (currentUserExport?.id && !exportId) {
-			setExportId(currentUserExport.id)
+		const exportToTrack = ongoingExport || latestExport
+		if (exportToTrack?.id && !exportId) {
+			setExportId(exportToTrack.id)
 		}
-	}, [currentUserExport?.id, exportId])
+	}, [ongoingExport?.id, latestExport?.id, exportId])
 
 	const handleStartExport = () => {
 		createExport.mutate(undefined, {
@@ -77,8 +79,9 @@ export const ExportDialog = ({open, onOpenChange}: Props) => {
 		? (activeExport.processedPhotos / activeExport.totalPhotos) * 100
 		: 0
 
-	const isExportActive = activeExport?.status === 'pending' || activeExport?.status === 'processing' || activeExport?.status === 'ready'
-	const canStartNewExport = !isExportActive && !createExport.isPending
+	// Only prevent new exports if there's an ongoing export (pending or processing)
+	const hasOngoingExport = ongoingExport?.status === 'pending' || ongoingExport?.status === 'processing'
+	const canStartNewExport = !hasOngoingExport && !createExport.isPending
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
@@ -169,11 +172,12 @@ export const ExportDialog = ({open, onOpenChange}: Props) => {
 					)}
 
 					{/* Active Export Notice */}
-					{isExportActive && activeExport?.status !== 'ready' && (
+					{hasOngoingExport && (
 						<Alert>
 							<Info className="h-4 w-4"/>
 							<AlertDescription>
-								You have an export in progress. You can only have one export at a time.
+								You have an export in progress. Please wait for it to complete before starting a new
+								one.
 							</AlertDescription>
 						</Alert>
 					)}

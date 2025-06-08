@@ -5,7 +5,8 @@ import {ExportData} from './route'
 export const exportQueryKeys = {
 	all: ['export'] as const,
 	status: (exportId: string) => [...exportQueryKeys.all, 'status', exportId] as const,
-	current: () => [...exportQueryKeys.all, 'current'] as const
+	current: () => [...exportQueryKeys.all, 'current'] as const,
+	latest: () => [...exportQueryKeys.all, 'latest'] as const
 }
 
 export const useCreateExport = () => {
@@ -18,8 +19,9 @@ export const useCreateExport = () => {
 		onSuccess: (data) => {
 			// Immediately start polling for status updates
 			queryClient.setQueryData(exportQueryKeys.status(data.id), data)
-			// Update the current user export query
+			// Update both current and latest user export queries
 			queryClient.setQueryData(exportQueryKeys.current(), data)
+			queryClient.setQueryData(exportQueryKeys.latest(), data)
 		}
 	})
 }
@@ -58,6 +60,20 @@ export const useCurrentUserExport = (
 			// Poll every 2 seconds while processing, stop when ready/failed/null
 			const status = query.state.data?.status
 			return status === 'processing' || status === 'pending' ? 2000 : false
+		},
+		...options
+	})
+}
+
+export const useLatestUserExport = (
+	options?: Omit<UseQueryOptions<ExportData | null, Error>, 'queryKey' | 'queryFn'>
+) => {
+	return useQuery({
+		queryKey: exportQueryKeys.latest(),
+		queryFn: async (): Promise<ExportData | null> => {
+			return api.get<ExportData | null>('/api/export', {
+				params: {latest: 'true'}
+			})
 		},
 		...options
 	})
