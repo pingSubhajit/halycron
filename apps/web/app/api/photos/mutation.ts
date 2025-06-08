@@ -9,8 +9,10 @@ import {
 	savePhotoToDB,
 	uploadEncryptedPhoto
 } from '@/app/api/photos/utils'
+import {processPhotoForPrivacy} from '@/app/api/photos/privacy-utils'
 import {photoQueryKeys} from '@/app/api/photos/keys'
 import {api} from '@/lib/data/api-client'
+import {PrivacySettingsResponse} from '@/app/api/privacy-settings/types'
 import {albumQueryKeys} from '@/app/api/albums/keys'
 import {toast} from 'sonner'
 import {useSendVerificationEmail} from '@/app/api/auth/mutations'
@@ -113,6 +115,7 @@ export const useDeletePhoto = (options?: MutationOptions<Photo, Error, Photo, De
 
 export const useUploadPhoto = (
 	setUploadStates: (value: SetStateAction<Record<string, UploadState>>) => void,
+	privacySettings?: PrivacySettingsResponse,
 	options?: MutationOptions<Photo, Error, File>
 ) => {
 	const sendVerificationEmail = useSendVerificationEmail()
@@ -120,22 +123,34 @@ export const useUploadPhoto = (
 	return useMutation({
 		mutationFn: async (file: File) => {
 			try {
-				// Get image dimensions
-				const dimensions = await getImageDimensions(file)
-
-				// Generate a secure random encryption key
-				const encryptionKey = generateEncryptionKey()
-
-				// Update state to encrypting
+				// Update state to processing
 				setUploadStates(prev => ({
 					...prev,
 					[file.name]: {progress: 0, status: 'encrypting'}
 				}))
 
-				// Encrypt the file
-				const {encryptedFile, iv, key} = await encryptFile(file, encryptionKey)
+				// Use provided privacy settings or default to safe settings
+				const privacyConfig = privacySettings ? {
+					stripLocationData: privacySettings.stripLocationData,
+					anonymizeTimestamps: privacySettings.anonymizeTimestamps
+				} : {
+					stripLocationData: false,
+					anonymizeTimestamps: false
+				}
 
-				// Get pre-signed URL
+				// Process file according to privacy settings
+				const processedFile = await processPhotoForPrivacy(file, privacyConfig)
+
+				// Get image dimensions from processed file
+				const dimensions = await getImageDimensions(processedFile)
+
+				// Generate a secure random encryption key
+				const encryptionKey = generateEncryptionKey()
+
+				// Encrypt the processed file
+				const {encryptedFile, iv, key} = await encryptFile(processedFile, encryptionKey)
+
+				// Get pre-signed URL (use original file name and type for consistency)
 				const {uploadUrl, fileKey} = await getPreSignedUploadUrl(file.name, file.type)
 
 				// Update state to uploading
@@ -147,7 +162,7 @@ export const useUploadPhoto = (
 				// Upload encrypted file
 				await uploadEncryptedPhoto(encryptedFile, uploadUrl)
 
-				// Save encryption details to database
+				// Save encryption details to database (use original file name and type)
 				const response = await savePhotoToDB(
 					fileKey,
 					key,

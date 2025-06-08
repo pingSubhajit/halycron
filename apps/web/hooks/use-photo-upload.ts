@@ -4,6 +4,7 @@ import {useUploadPhoto} from '@/app/api/photos/mutation'
 import {useQueryClient} from '@tanstack/react-query'
 import {photoQueryKeys} from '@/app/api/photos/keys'
 import {FileRejection} from 'react-dropzone'
+import {usePrivacySettings} from '@/app/api/privacy-settings/query'
 
 interface UsePhotoUploadOptions {
 	onPhotoUploaded?: (photo: Photo) => void
@@ -33,7 +34,10 @@ export const usePhotoUpload = ({
 	const queryClient = useQueryClient()
 	const hasSuccessfulUploads = useRef(false)
 
-	const {mutate: uploadFile} = useUploadPhoto(setUploadStates, {
+	// Get privacy settings from cache
+	const {data: privacySettings} = usePrivacySettings()
+
+	const {mutate: uploadFile} = useUploadPhoto(setUploadStates, privacySettings, {
 		onSuccess: (photo) => {
 			onPhotoUploaded?.(photo)
 		}

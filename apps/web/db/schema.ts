@@ -183,3 +183,16 @@ export const exportJob = pgTable('export_jobs', {
 	createdAt: timestamp('created_at', {withTimezone: true}).default(sql`CURRENT_TIMESTAMP`),
 	updatedAt: timestamp('updated_at', {withTimezone: true}).default(sql`CURRENT_TIMESTAMP`)
 })
+
+// Privacy Settings Table
+export const privacySettings = pgTable('privacy_settings', {
+	id: uuid('id').primaryKey().default(sql`gen_random_uuid
+    ()`),
+	userId: uuid('user_id').notNull().references(() => user.id, {onDelete: 'cascade'}).unique(),
+	stripLocationData: boolean('strip_location_data').default(false).notNull(),
+	anonymizeTimestamps: boolean('anonymize_timestamps').default(false).notNull(),
+	disableAnalytics: boolean('disable_analytics').default(false).notNull(),
+	minimalServerLogs: boolean('minimal_server_logs').default(true).notNull(),
+	createdAt: timestamp('created_at', {withTimezone: true}).default(sql`CURRENT_TIMESTAMP`),
+	updatedAt: timestamp('updated_at', {withTimezone: true}).default(sql`CURRENT_TIMESTAMP`)
+})

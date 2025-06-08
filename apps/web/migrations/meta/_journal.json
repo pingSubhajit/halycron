@@ -64,6 +64,13 @@
       "when": 1749310617134,
       "tag": "0008_sparkling_shaman",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1749388236034,
+      "tag": "0009_violet_luminals",
+      "breakpoints": true
     }
   ]
 }

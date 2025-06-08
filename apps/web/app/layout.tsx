@@ -22,7 +22,7 @@ const fontMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-	metadataBase: new URL(process.env.BETTER_AUTH_URL),
+	metadataBase: new URL(process.env.BETTER_AUTH_URL!),
 	authors: [{name: 'Subhajit Kundu', url: 'https://subhajit.lol'}]
 }
 

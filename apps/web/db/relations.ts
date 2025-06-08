@@ -1,5 +1,5 @@
 import {relations} from 'drizzle-orm'
-import {album, photo, photosToAlbums, sharedAlbums, sharedLink, sharedPhotos} from '@/db/schema'
+import {album, photo, photosToAlbums, privacySettings, sharedAlbums, sharedLink, sharedPhotos, user} from '@/db/schema'
 
 export const photoRelations = relations(photo, ({many}) => ({
 	albums: many(photosToAlbums)
@@ -47,5 +47,21 @@ export const sharedAlbumsRelations = relations(sharedAlbums, ({one}) => ({
 	album: one(album, {
 		fields: [sharedAlbums.albumId],
 		references: [album.id]
+	})
+}))
+
+// User Relations
+export const userRelations = relations(user, ({one}) => ({
+	privacySettings: one(privacySettings, {
+		fields: [user.id],
+		references: [privacySettings.userId]
+	})
+}))
+
+// Privacy Settings Relations
+export const privacySettingsRelations = relations(privacySettings, ({one}) => ({
+	user: one(user, {
+		fields: [privacySettings.userId],
+		references: [user.id]
 	})
 }))
