@@ -5,16 +5,18 @@ import {ArrowUpRight} from 'lucide-react'
 import letrazLogo from '@halycron/ui/media/letraz-logo.svg'
 
 export const LandingPage = () => (
-	<div className="flex flex-col items-center gap-32 min-h-svh relative pt-40 pb-8 px-4 bg-neutral-950">
-		<div className="max-w-[800px] w-full flex flex-col gap-32 items-center">
-			<section className="flex flex-col gap-10 items-center">
-				<Image src={logo} alt="Halycron Logo" className="w-44"/>
+	<div
+		className="flex flex-col items-center gap-8 sm:gap-12 md:gap-20 lg:gap-32 min-h-svh relative pt-40 pb-8 px-4 bg-neutral-950">
+		<div className="max-w-[800px] w-full flex flex-col gap-8 sm:gap-12 md:gap-20 lg:gap-32 items-center">
+			<section className="flex flex-col gap-4 sm:gap-6 md:gap-8 lg:gap-10 items-center">
+				<Image src={logo} alt="Halycron Logo" className="w-24 sm:w-32 md:w-36 lg:w-44"/>
 
 				<div className="flex flex-col items-center justify-center gap-4">
-					<h1 className="font-semibold text-6xl text-center leading-tight">Truly private photo storage on
+					<h1 className="font-semibold text-4xl lg:text-5xl xl:text-6xl text-center leading-tight">Truly
+						private photo storage on
 						cloud</h1>
 
-					<p className="text-lg opacity-60 leading-normal text-center max-w-[80%]">
+					<p className="text-sm sm:text-base md:text-lg opacity-60 leading-normal text-center max-w-[98%] sm:max-w-[95%] md:max-w-[90%] lg:max-w-[80%]">
 						Halycron is a <em className="font-serif font-medium">secure, private</em> photo vault designed
 						to keep
 						your memories safe. With advanced end-to-end encryption, album protection, and complete control
@@ -27,7 +29,7 @@ export const LandingPage = () => (
 					<GetStartedButton/>
 
 					<a href="https://github.com/pingSubhajit/halycron?tab=readme-ov-file" target="_blank"
-						className="flex items-center gap-1 hover:underline underline-offset-8 opacity-60 hover:opacity-100 focus-visible:opacity-100 transition-opacity"
+						className="flex items-center gap-1 hover:underline underline-offset-8 opacity-60 hover:opacity-100 focus-visible:opacity-100 transition-opacity text-xs sm:text-sm md:text-base text-center"
 						rel="noreferrer">
 						<h2 className="font-medium">Check the source code on <em className="font-serif">Github</em></h2>
 						<ArrowUpRight className="w-4 h-4"/>
@@ -35,13 +37,13 @@ export const LandingPage = () => (
 				</div>
 			</section>
 
-			<section className="grid grid-cols-2 gap-4">
+			<section className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 w-full">
 				{/* MANDATORY MFA */}
-				<div className="bg-card p-4 flex flex-col gap-2">
-					<video src="/mandatory-mfa.mp4" autoPlay muted loop></video>
+				<div className="bg-card p-3 sm:p-4 flex flex-col gap-2">
+					<video src="/mandatory-mfa.mp4" autoPlay muted loop className="w-full h-auto"></video>
 
-					<h3 className="mt-4 font-medium text-lg">Mandatory MFA</h3>
-					<p className="text-sm opacity-60 leading-normal">
+					<h3 className="mt-3 sm:mt-4 font-medium text-base sm:text-lg">Mandatory MFA</h3>
+					<p className="text-xs sm:text-sm opacity-60 leading-normal">
 						Two factor authentication and strong password is a requirement for each account. While it
 						might be inconvenient for most, we strongly believe that it's benefit outweigh the
 						compromises by a large margin for such security critical app.
@@ -49,11 +51,11 @@ export const LandingPage = () => (
 				</div>
 
 				{/* ZERO-KNOWLEDGE ARCHITECTURE */}
-				<div className="bg-card p-4 flex flex-col gap-2">
-					<video src="/zero-knowledge.mp4" autoPlay muted loop></video>
+				<div className="bg-card p-3 sm:p-4 flex flex-col gap-2">
+					<video src="/zero-knowledge.mp4" autoPlay muted loop className="w-full h-auto"></video>
 
-					<h3 className="mt-4 font-medium text-lg">Zero-knowledge architecture</h3>
-					<p className="text-sm opacity-60 leading-normal">
+					<h3 className="mt-3 sm:mt-4 font-medium text-base sm:text-lg">Zero-knowledge architecture</h3>
+					<p className="text-xs sm:text-sm opacity-60 leading-normal">
 						Nobody except you can decrypt your photos, even those with the physical access of the server. We
 						encrypt and decrypt your photos on your device and store the encrypted data on the server. The
 						keys are also encrypted securely.
@@ -61,10 +63,10 @@ export const LandingPage = () => (
 				</div>
 			</section>
 
-			<section>
-				<p className="text-3xl leading-snug text-center">
-					I believe that privacy is not a privilege — it’s a right. In an age where our memories are
-					scattered across the cloud, buried in algorithms, and vulnerable to prying eyes, we’ve lost
+			<section className="max-w-[98%] sm:max-w-[95%] md:max-w-full">
+				<p className="text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl leading-snug text-center">
+					I believe that privacy is not a privilege — it's a right. In an age where our memories are
+					scattered across the cloud, buried in algorithms, and vulnerable to prying eyes, we've lost
 					control over what should be <em className="font-serif font-medium">ours alone.</em> Halycron was
 					born from the frustration of not having a <em className="font-serif font-medium">truly private
 						space</em> for
@@ -74,25 +76,25 @@ export const LandingPage = () => (
 				</p>
 			</section>
 
-			<section className="grid grid-cols-2 gap-4">
-				{/* MANDATORY MFA */}
-				<div className="bg-card p-4 flex flex-col gap-2">
-					<video src="/protected-album.mp4" autoPlay muted loop></video>
+			<section className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 w-full">
+				{/* PROTECTED ALBUMS */}
+				<div className="bg-card p-3 sm:p-4 flex flex-col gap-2">
+					<video src="/protected-album.mp4" autoPlay muted loop className="w-full h-auto"></video>
 
-					<h3 className="mt-4 font-medium text-lg">Sensitive & protected albums</h3>
-					<p className="text-sm opacity-60 leading-normal">
+					<h3 className="mt-3 sm:mt-4 font-medium text-base sm:text-lg">Sensitive & protected albums</h3>
+					<p className="text-xs sm:text-sm opacity-60 leading-normal">
 						Protect your most sensitive photos with a password. Save them from people with physical access
 						of your device or just add them as an extra layer of security on top. Sensitive photos and
 						totally protected photos do not show up in the gallery.
 					</p>
 				</div>
 
-				{/* ZERO-KNOWLEDGE ARCHITECTURE */}
-				<div className="bg-card p-4 flex flex-col gap-2">
-					<video src="/shareable-link.mp4" autoPlay muted loop></video>
+				{/* SHAREABLE LINKS */}
+				<div className="bg-card p-3 sm:p-4 flex flex-col gap-2">
+					<video src="/shareable-link.mp4" autoPlay muted loop className="w-full h-auto"></video>
 
-					<h3 className="mt-4 font-medium text-lg">Share securely with others</h3>
-					<p className="text-sm opacity-60 leading-normal">
+					<h3 className="mt-3 sm:mt-4 font-medium text-base sm:text-lg">Share securely with others</h3>
+					<p className="text-xs sm:text-sm opacity-60 leading-normal">
 						Create auto-expiring, even optionally pin-secured shareable link for your photos or albums.
 						Anybody with access to the link, provided they entered the correct pin set by you would be
 						able to see what you shared for the set amount of time that you choose.
@@ -100,36 +102,39 @@ export const LandingPage = () => (
 				</div>
 			</section>
 
-			<section>
-				<p className="text-3xl leading-snug text-center">
+			<section className="max-w-[98%] sm:max-w-[95%] md:max-w-full">
+				<p className="text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl leading-snug text-center">
 					I built Halycron for those who want <em className="font-serif font-medium">peace of mind</em>, not
 					just convenience. A place where your photos stay locked away unless you decide otherwise. A place
-					where trust isn’t assumed but proven
+					where trust isn't assumed but proven
 					through <em className="font-serif font-medium">encryption, protection, and control.</em> Every
 					image you store here is yours — untouched, untracked, and inaccessible to anyone but you. Because
-					privacy isn’t something you should have to ask for. It should be
+					privacy isn't something you should have to ask for. It should be
 					the <em className="font-serif font-medium">default</em>.
 				</p>
 			</section>
 
-			<section className="flex flex-col gap-4 items-center max-w-[80%]">
-				<h2 className="font-semibold text-4xl text-center leading-snug">Start saving your memories from prying
+			<section
+				className="flex flex-col gap-4 items-center max-w-[98%] sm:max-w-[95%] md:max-w-[90%] lg:max-w-[80%]">
+				<h2 className="font-semibold text-xl sm:text-2xl md:text-3xl lg:text-4xl text-center leading-snug">Start
+					saving your memories from prying
 					eyes starting today</h2>
 
 				<GetStartedButton/>
 			</section>
 		</div>
 
-		<footer className="max-w-[1200px] w-full flex items-center justify-center gap-8">
-			<p className="text-center text-sm opacity-60 hover:opacity-100 transition-opacity">
+		<footer
+			className="max-w-[1200px] w-full flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 md:gap-6 lg:gap-8 px-4">
+			<p className="text-center text-xs sm:text-sm opacity-60 hover:opacity-100 transition-opacity">
 				&copy; Built by <a href="https://x.com/ping_subhajit" target="_blank" className="underline"
 					rel="noreferrer">@ping_subhajit</a>
 			</p>
 
-			<p className="text-center text-sm opacity-60 hover:opacity-100 transition-opacity flex items-center gap-1">
+			<p className="text-center text-xs sm:text-sm opacity-60 hover:opacity-100 transition-opacity flex items-center gap-1">
 				A product from <a href="https://letraz.app" target="_blank"
 					className="underline flex items-center gap-1" rel="noreferrer">
-					<Image src={letrazLogo} alt="Letraz logo" className="w-8"/> @letrazApp
+					<Image src={letrazLogo} alt="Letraz logo" className="w-6 sm:w-8"/> @letrazApp
 				</a>
 			</p>
 		</footer>
