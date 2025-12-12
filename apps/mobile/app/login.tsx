@@ -9,6 +9,7 @@ import logo from '@halycron/ui/media/logo.svg'
 import {Image} from '@/src/components/interops'
 import {useSession} from '@/src/components/session-provider'
 import {useAuthRedirect} from '@/src/hooks/useAuthRedirect'
+import {Feather} from '@expo/vector-icons'
 
 const Login = () => {
 	const {theme} = useTheme()
@@ -122,6 +123,22 @@ const Login = () => {
 						<Text className="text-primary font-medium">Create account</Text>
 					</TouchableOpacity>
 				</View>
+
+				{/* Separator */}
+				<View className="flex-row items-center my-6">
+					<View className="flex-1 h-px bg-white/20" />
+					<Text className="mx-4 text-primary-foreground/60 text-sm">or</Text>
+					<View className="flex-1 h-px bg-white/20" />
+				</View>
+
+				{/* Scan QR to login button */}
+				<TouchableOpacity
+					onPress={() => router.push('/qr-login-scanner')}
+					className="flex-row items-center justify-center py-4 border border-white/20 rounded-lg"
+				>
+					<Feather name="maximize" size={20} color="#fff" style={{marginRight: 8}} />
+					<Text className="text-primary-foreground font-medium">Scan QR to login</Text>
+				</TouchableOpacity>
 			</View>
 		</View>
 	)

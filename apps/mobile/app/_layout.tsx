@@ -190,6 +190,7 @@ const RootNavigator = () => {
 			<Stack.Screen name="onboarding"/>
 			<Stack.Screen name="login"/>
 			<Stack.Screen name="two-factor"/>
+			<Stack.Screen name="qr-login-scanner"/>
 		</Stack>
 	)
 }

@@ -13,6 +13,7 @@ interface SessionContextValue {
 	initialRoute: Route | null;
 	status: 'loading' | 'authenticated' | 'unauthenticated';
 	signOut: () => Promise<void>;
+	setSessionData: (session: Session, user: User) => Promise<void>;
 }
 
 const SessionContext = createContext<SessionContextValue | undefined>(undefined)
@@ -108,6 +109,23 @@ export const SessionProvider = ({children}: { children: React.ReactNode }) => {
 			router.push('/onboarding')
 		} catch (error) {
 			console.error('Error signing out:', error)
+		}
+	}
+
+	// Method to directly set session data (used by QR login)
+	const setSessionData = async (session: Session, user: User) => {
+		try {
+			// Save to AsyncStorage
+			await AsyncStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session))
+			await AsyncStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user))
+			
+			// Update state immediately
+			setSessionState(session)
+			setUserState(user)
+			setStatus('authenticated')
+		} catch (error) {
+			console.error('Error setting session data:', error)
+			throw error
 		}
 	}
 
@@ -214,7 +232,8 @@ export const SessionProvider = ({children}: { children: React.ReactNode }) => {
 				user: userState,
 				initialRoute,
 				status,
-				signOut
+				signOut,
+				setSessionData
 			}}
 		>
 			{!initialRoute && <CustomSplashScreen/>}

@@ -1,6 +1,7 @@
 'use client'
 
-import {LogOut} from 'lucide-react'
+import {useState} from 'react'
+import {LogOut, QrCode} from 'lucide-react'
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -14,9 +15,11 @@ import {useLogout} from '@/lib/auth/use-logout'
 import {authClient} from '@/lib/auth/auth-client'
 import {ProfilePicture} from '@/components/profile-picture'
 import Link from 'next/link'
+import {MobileLoginQr} from './mobile-login-qr'
 
 export const UserMenu = () => {
 	const {logout, isLoading} = useLogout()
+	const [showMobileLoginQr, setShowMobileLoginQr] = useState(false)
 
 	const {
 		data: session
@@ -81,6 +84,13 @@ export const UserMenu = () => {
 					<span>Home page</span>
 				</DropdownMenuItem></Link>
 				<DropdownMenuItem
+					onSelect={() => setShowMobileLoginQr(true)}
+					className="flex items-center justify-between"
+				>
+					<span>Login to mobile</span>
+					<QrCode className="h-4 w-4" />
+				</DropdownMenuItem>
+				<DropdownMenuItem
 					disabled={isLoading}
 					onSelect={() => logout()}
 					className="flex items-center justify-between"
@@ -89,6 +99,11 @@ export const UserMenu = () => {
 					<LogOut className="h-4 w-4" />
 				</DropdownMenuItem>
 			</DropdownMenuContent>
+
+			<MobileLoginQr 
+				open={showMobileLoginQr} 
+				onOpenChange={setShowMobileLoginQr} 
+			/>
 		</DropdownMenu>
 	)
 }

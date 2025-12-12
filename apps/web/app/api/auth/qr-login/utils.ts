@@ -25,10 +25,16 @@ export interface QrLoginStatusResponse {
 	userAgent?: string | null
 }
 
-// Exchange token data structure
+// Exchange token data structure (for web login flow)
 interface ExchangeTokenData {
 	userId: string
 	qrToken: string
+	expiresAt: number
+}
+
+// Mobile login token data structure (for mobile login flow)
+interface MobileLoginTokenData {
+	userId: string
 	expiresAt: number
 }
 
@@ -36,6 +42,7 @@ interface ExchangeTokenData {
 const globalForQrLogin = globalThis as unknown as {
 	oneTimeTokenStore: Map<string, string>
 	exchangeTokenStore: Map<string, ExchangeTokenData>
+	mobileLoginTokenStore: Map<string, MobileLoginTokenData>
 }
 
 // In-memory store for mapping QR tokens to exchange tokens
@@ -48,6 +55,12 @@ if (!globalForQrLogin.oneTimeTokenStore) {
 const exchangeTokenStore = globalForQrLogin.exchangeTokenStore ?? new Map<string, ExchangeTokenData>()
 if (!globalForQrLogin.exchangeTokenStore) {
 	globalForQrLogin.exchangeTokenStore = exchangeTokenStore
+}
+
+// In-memory store for mobile login tokens (maps token -> user data)
+const mobileLoginTokenStore = globalForQrLogin.mobileLoginTokenStore ?? new Map<string, MobileLoginTokenData>()
+if (!globalForQrLogin.mobileLoginTokenStore) {
+	globalForQrLogin.mobileLoginTokenStore = mobileLoginTokenStore
 }
 
 // Generate a secure random token
@@ -207,4 +220,46 @@ export const cleanupExpiredRequests = async () => {
 	await db
 		.delete(qrLoginRequest)
 		.where(lt(qrLoginRequest.createdAt, oneDayAgo))
+}
+
+// ============================================
+// Mobile Login Functions (Web -> Mobile flow)
+// ============================================
+
+// Create a mobile login token for an authenticated web user
+export const createMobileLoginToken = (userId: string): string => {
+	const token = generateSecureExchangeToken()
+	const expiresAt = Date.now() + QR_LOGIN_EXPIRY_MS
+	
+	mobileLoginTokenStore.set(token, {
+		userId,
+		expiresAt
+	})
+	
+	// Auto-cleanup after expiry
+	setTimeout(() => {
+		mobileLoginTokenStore.delete(token)
+	}, QR_LOGIN_EXPIRY_MS)
+	
+	return token
+}
+
+// Verify and consume mobile login token (one-time use)
+export const verifyMobileLoginToken = (token: string): MobileLoginTokenData | null => {
+	const data = mobileLoginTokenStore.get(token)
+	
+	if (!data) {
+		return null
+	}
+	
+	// Check if expired
+	if (Date.now() > data.expiresAt) {
+		mobileLoginTokenStore.delete(token)
+		return null
+	}
+	
+	// Consume the token (one-time use)
+	mobileLoginTokenStore.delete(token)
+	
+	return data
 }
