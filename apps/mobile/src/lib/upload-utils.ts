@@ -11,8 +11,8 @@ export const generateEncryptionKey = () => {
 }
 
 export const encryptFile = async (fileUri: string, encryptionKey: string) => {
-	// Generate a random IV (16 bytes for AES-CBC)
-	const iv = crypto.randomBytes(16)
+	// Generate a random IV (12 bytes for AES-GCM - recommended size)
+	const iv = crypto.randomBytes(12)
 
 	// Convert base64 key back to bytes
 	const keyBuffer = Buffer.from(encryptionKey, 'base64')
@@ -22,16 +22,20 @@ export const encryptFile = async (fileUri: string, encryptionKey: string) => {
 	const arrayBuffer = await response.arrayBuffer()
 	const fileBuffer = Buffer.from(arrayBuffer)
 
-	// Create cipher and encrypt
-	const cipher = crypto.createCipheriv('aes-256-cbc', keyBuffer, iv)
-	const encryptedData = Buffer.concat([
+	// Create cipher and encrypt using AES-256-GCM
+	const cipher = crypto.createCipheriv('aes-256-gcm', keyBuffer, iv)
+	const encrypted = Buffer.concat([
 		cipher.update(fileBuffer),
 		cipher.final()
 	])
 
+	// Get the authentication tag (16 bytes) and append to ciphertext
+	const authTag = cipher.getAuthTag()
+	const encryptedData = Buffer.concat([encrypted, authTag])
+
 	return {
 		encryptedData,
-		iv: iv.toString('hex'), // Convert to hex string
+		iv: iv.toString('hex'), // Convert to hex string (24 chars for 12 bytes)
 		key: encryptionKey
 	}
 }

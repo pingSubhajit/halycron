@@ -79,7 +79,7 @@ export const EncryptedImage = ({photo, hasNext, hasPrev, onOpen, onDelete, curre
 			<ContextMenuContent>
 				<div className="p-2">
 					<p className="text-sm opacity-80">Uploaded on: {format(photo.createdAt || new Date(), 'MMM dd, yyyy')}</p>
-					<p className="mt-0.5 text-xs opacity-60 font-bold">Secured using 256-bit AES-CBC key</p>
+					<p className="mt-0.5 text-xs opacity-60 font-bold">Secured using 256-bit AES-GCM key</p>
 				</div>
 
 				<ContextMenuSeparator />

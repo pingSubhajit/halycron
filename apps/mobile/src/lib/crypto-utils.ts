@@ -2,21 +2,23 @@ import crypto from 'react-native-quick-crypto'
 import {Buffer} from 'buffer'
 import {fileCacheManager} from './file-cache-manager'
 
-// Cache algorithm lookup to avoid repeated switch statements
-const getAlgorithmForKeyLength = (() => {
-	const cache = new Map<number, 'aes-128-cbc' | 'aes-192-cbc' | 'aes-256-cbc'>()
-	cache.set(16, 'aes-128-cbc')
-	cache.set(24, 'aes-192-cbc')
-	cache.set(32, 'aes-256-cbc')
+// Determine algorithm based on key length and IV length
+// IV length determines mode: 12 bytes = GCM (new), 16 bytes = CBC (legacy)
+const getAlgorithm = (keyLength: number, ivLength: number): string => {
+	const isGCM = ivLength === 12
+	const mode = isGCM ? 'gcm' : 'cbc'
 
-	return (keyLength: number) => {
-		const algorithm = cache.get(keyLength)
-		if (!algorithm) {
+	switch (keyLength) {
+		case 16:
+			return `aes-128-${mode}`
+		case 24:
+			return `aes-192-${mode}`
+		case 32:
+			return `aes-256-${mode}`
+		default:
 			throw new Error(`Unsupported key length: ${keyLength}`)
-		}
-		return algorithm
 	}
-})()
+}
 
 export const downloadAndDecryptFile = async (fileUrl: string, key: string, iv: string, mimeType: string, id: string) => {
 	try {
@@ -29,7 +31,10 @@ export const downloadAndDecryptFile = async (fileUrl: string, key: string, iv: s
 		// Pre-parse key and IV to avoid doing it in the decrypt function
 		const keyBuffer = Buffer.from(key, 'base64')
 		const ivBuffer = Buffer.from(iv, 'hex')
-		const algorithm = getAlgorithmForKeyLength(keyBuffer.length)
+
+		// Detect algorithm based on key and IV length
+		const isGCM = ivBuffer.length === 12
+		const algorithm = getAlgorithm(keyBuffer.length, ivBuffer.length)
 
 		// Download the encrypted file
 		const response = await fetch(fileUrl)
@@ -39,10 +44,19 @@ export const downloadAndDecryptFile = async (fileUrl: string, key: string, iv: s
 
 		// Get ArrayBuffer directly instead of blob
 		const encryptedArrayBuffer = await response.arrayBuffer()
-		const encryptedData = Buffer.from(encryptedArrayBuffer)
+		let encryptedData = Buffer.from(encryptedArrayBuffer)
 
-		// Decrypt directly without intermediate blob conversion
+		// Create decipher with detected algorithm
 		const decipher = crypto.createDecipheriv(algorithm, keyBuffer, ivBuffer)
+
+		// For GCM mode, extract auth tag from the last 16 bytes
+		if (isGCM) {
+			const authTag = encryptedData.slice(-16)
+			encryptedData = encryptedData.slice(0, -16)
+			decipher.setAuthTag(authTag)
+		}
+
+		// Decrypt the data
 		const decryptedData = Buffer.concat([
 			decipher.update(encryptedData) as Uint8Array,
 			decipher.final() as Uint8Array
