@@ -7,9 +7,12 @@ import {PhotoGallery} from '@/src/components/photo-gallery'
 import {UserMenu} from '@/src/components/user-menu'
 import {ProfilePicture} from '@/src/components/profile-picture'
 import {Feather} from '@expo/vector-icons'
+import {useRouter} from 'expo-router'
+import {QrCode} from 'lucide-react-native'
 
 const Home = () => {
 	const {user} = useSession()
+	const router = useRouter()
 	const [shouldLoadGallery, setShouldLoadGallery] = useState(false)
 	const [showUserMenu, setShowUserMenu] = useState(false)
 	const [isAnimating, setIsAnimating] = useState(false)
@@ -92,6 +95,11 @@ const Home = () => {
 	}
 
 
+	// Navigate to QR scanner
+	const handleQrScan = () => {
+		router.push('/qr-scanner')
+	}
+
 	const renderHeader = () => (
 		<View className="mt-16 p-6 flex-1">
 			<View className="flex-row items-center justify-between mb-4">
@@ -100,7 +108,16 @@ const Home = () => {
 					<Text className="text-primary-foreground text-6xl font-bold mb-4">{user?.name.split(' ')[0]}</Text>
 				</View>
 
-				<View className="relative">
+				<View className="flex-row items-center gap-3">
+					{/* QR Code Scanner Button */}
+					<Pressable 
+						onPress={handleQrScan}
+						className="w-10 h-10 rounded-full bg-white/10 items-center justify-center"
+					>
+						<QrCode size={20} color="#fff" />
+					</Pressable>
+
+					{/* Profile Picture / Menu */}
 					<Pressable onPress={handleMenuToggle}>
 						<ProfilePicture
 							userImage={user?.image}

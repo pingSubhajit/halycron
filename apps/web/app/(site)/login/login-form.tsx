@@ -5,13 +5,14 @@ import {useRouter} from 'next/navigation'
 import {zodResolver} from '@hookform/resolvers/zod'
 import {useForm} from 'react-hook-form'
 import * as z from 'zod'
-import {Eye, EyeOff} from 'lucide-react'
+import {Eye, EyeOff, QrCode} from 'lucide-react'
 import {Button} from '@halycron/ui/components/button'
 import {Form, FormControl, FormField, FormItem, FormMessage} from '@halycron/ui/components/form'
 import {Input} from '@halycron/ui/components/input'
 import {authClient} from '@/lib/auth/auth-client'
 import {toast} from 'sonner'
 import {TwoFactorVerify} from '@/components/two-factor-verify'
+import {QrLogin} from '@/components/qr-login'
 import {AnimatePresence, LayoutGroup, motion} from 'motion/react'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -22,11 +23,17 @@ const formSchema = z.object({
 	password: z.string().min(1, 'We\'ll need your password to get you in')
 })
 
+type LoginView = 'credentials' | 'two-factor' | 'qr-login'
+
 const LoginForm = () => {
 	const router = useRouter()
 	const [showPassword, setShowPassword] = useState(false)
 	const [isLoading, setIsLoading] = useState(false)
-	const [showTwoFactorVerify, setShowTwoFactorVerify] = useState(false)
+	const [loginView, setLoginView] = useState<LoginView>('credentials')
+
+	// Backwards compatibility helpers
+	const showTwoFactorVerify = loginView === 'two-factor'
+	const setShowTwoFactorVerify = (show: boolean) => setLoginView(show ? 'two-factor' : 'credentials')
 
 	const form = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
@@ -114,7 +121,7 @@ const LoginForm = () => {
 					transition={springTransition}
 				>
 					<AnimatePresence mode="wait" initial={false}>
-						{showTwoFactorVerify ? (
+						{loginView === 'two-factor' && (
 							<motion.div
 								key="2FA_VERIFY"
 								initial={{opacity: 0}}
@@ -125,11 +132,30 @@ const LoginForm = () => {
 								<TwoFactorVerify
 									onVerify={handleTwoFactorVerify}
 									onCancel={() => {
-										setShowTwoFactorVerify(false)
+										setLoginView('credentials')
 									}}
 								/>
 							</motion.div>
-						) : (
+						)}
+						{loginView === 'qr-login' && (
+							<motion.div
+								key="QR_LOGIN"
+								initial={{opacity: 0}}
+								animate={{opacity: 1}}
+								exit={{opacity: 0}}
+								transition={{duration: 0.2}}
+							>
+								<QrLogin
+									onSuccess={() => {
+										window.location.href = '/app'
+									}}
+									onCancel={() => {
+										setLoginView('credentials')
+									}}
+								/>
+							</motion.div>
+						)}
+						{loginView === 'credentials' && (
 							<motion.div
 								key="LOGIN_CREDS"
 								initial={{opacity: 0}}
@@ -190,6 +216,25 @@ const LoginForm = () => {
 										/>
 										<Button type="submit" className="w-full h-12" disabled={isLoading}>
 											{isLoading ? 'Getting you in...' : 'Welcome back'}
+										</Button>
+
+										<div className="relative">
+											<div className="absolute inset-0 flex items-center">
+												<span className="w-full border-t" />
+											</div>
+											<div className="relative flex justify-center text-xs uppercase">
+												<span className="bg-background px-2 text-muted-foreground">Or</span>
+											</div>
+										</div>
+
+										<Button
+											type="button"
+											variant="outline"
+											className="w-full h-12"
+											onClick={() => setLoginView('qr-login')}
+										>
+											<QrCode className="h-4 w-4 mr-2" />
+											Login with Mobile App
 										</Button>
 									</form>
 								</Form>

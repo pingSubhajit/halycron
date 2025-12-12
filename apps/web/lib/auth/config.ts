@@ -5,6 +5,7 @@ import {db} from '@/db/drizzle'
 import * as schema from '@/db/schema'
 import {twoFactor} from 'better-auth/plugins'
 import {twoFactorClient} from 'better-auth/client/plugins'
+import {qrLoginPlugin} from './qr-login-plugin'
 
 export const auth: ReturnType<typeof betterAuth> = betterAuth({
 	appName: 'Halycron',
@@ -19,9 +20,12 @@ export const auth: ReturnType<typeof betterAuth> = betterAuth({
 	plugins: [
 		nextCookies(),
 		twoFactor(),
-		twoFactorClient()
+		twoFactorClient(),
+		qrLoginPlugin()
 	],
 	advanced: {
-		generateId: false
+		database: {
+			generateId: false
+		}
 	}
 })

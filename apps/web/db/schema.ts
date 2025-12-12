@@ -196,3 +196,18 @@ export const privacySettings = pgTable('privacy_settings', {
 	createdAt: timestamp('created_at', {withTimezone: true}).default(sql`CURRENT_TIMESTAMP`),
 	updatedAt: timestamp('updated_at', {withTimezone: true}).default(sql`CURRENT_TIMESTAMP`)
 })
+
+// QR Login Requests Table - for QR code based authentication
+export const qrLoginRequest = pgTable('qr_login_requests', {
+	id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
+	token: text('token').notNull().unique(),
+	status: varchar('status', {length: 20}).notNull().default('pending'), // pending, approved, expired, cancelled
+	userId: uuid('user_id').references(() => user.id, {onDelete: 'cascade'}),
+	webSessionId: uuid('web_session_id').references(() => session.id, {onDelete: 'set null'}),
+	approvedBySessionId: uuid('approved_by_session_id'),
+	ipAddress: varchar('ip_address'),
+	userAgent: text('user_agent'),
+	expiresAt: timestamp('expires_at', {withTimezone: true}).notNull(),
+	createdAt: timestamp('created_at', {withTimezone: true}).default(sql`CURRENT_TIMESTAMP`),
+	updatedAt: timestamp('updated_at', {withTimezone: true}).default(sql`CURRENT_TIMESTAMP`)
+})

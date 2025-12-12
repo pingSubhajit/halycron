@@ -13,10 +13,12 @@ export interface RateLimitConfig {
 }
 
 export const RATE_LIMIT_CONFIGS = {
-	standard: {limit: 500, window: 60}, // 100 requests per minute
-	login: {limit: 2, window: 60}, // 10 requests per minute
-	passwordReset: {limit: 1, window: 60}, // 2 requests per minute
-	emailVerification: {limit: 3, window: 300} // 3 requests per 5 minutes
+	standard: {limit: 500, window: 60}, // 500 requests per minute
+	login: {limit: 2, window: 60}, // 2 requests per minute
+	passwordReset: {limit: 1, window: 60}, // 1 request per minute
+	emailVerification: {limit: 3, window: 300}, // 3 requests per 5 minutes
+	qrLoginInitiate: {limit: 5, window: 60}, // 5 QR code generations per minute
+	qrLoginStatus: {limit: 60, window: 60} // 60 status checks per minute (for polling)
 } as const
 
 const getIpAddress = (request: NextRequest): string | undefined => {

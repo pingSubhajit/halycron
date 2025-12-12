@@ -91,6 +91,17 @@ const AuthenticatedAppLayout = () => {
 							}}
 						/>
 
+						<Stack.Screen
+							name="qr-scanner"
+							options={{
+								presentation: 'fullScreenModal',
+								animation: 'slide_from_bottom',
+								gestureEnabled: true,
+								gestureDirection: 'vertical',
+								headerShown: false
+							}}
+						/>
+
 						<Stack.Screen name="shared/[token]" options={{presentation: 'modal'}}/>
 					</Stack.Protected>
 				</Stack>
