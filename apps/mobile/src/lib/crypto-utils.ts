@@ -1,6 +1,7 @@
 import crypto from 'react-native-quick-crypto'
 import {Buffer} from 'buffer'
 import {fileCacheManager} from './file-cache-manager'
+import {base64ToUint8Array} from './base64-utils'
 
 // Determine algorithm based on key length and IV length
 // IV length determines mode: 12 bytes = GCM (new), 16 bytes = CBC (legacy)
@@ -28,8 +29,9 @@ export const downloadAndDecryptFile = async (fileUrl: string, key: string, iv: s
 			return cachedFilePath
 		}
 
-		// Pre-parse key and IV to avoid doing it in the decrypt function
-		const keyBuffer = Buffer.from(key, 'base64')
+		// Pre-parse key and IV using reliable base64 decoder
+		const keyUint8 = base64ToUint8Array(key)
+		const keyBuffer = Buffer.from(keyUint8)
 		const ivBuffer = Buffer.from(iv, 'hex')
 
 		// Detect algorithm based on key and IV length
