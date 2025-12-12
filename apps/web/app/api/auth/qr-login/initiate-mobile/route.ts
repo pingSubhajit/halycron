@@ -1,7 +1,7 @@
 import {NextRequest, NextResponse} from 'next/server'
 import {getSessionFromHeaders, createMobileLoginToken, QR_LOGIN_EXPIRY_MS} from '../utils'
 
-export async function POST(request: NextRequest) {
+export const POST = async (_request: NextRequest) => {
 	try {
 		// Verify the web session is authenticated
 		const sessionResult = await getSessionFromHeaders()

@@ -151,7 +151,7 @@ export const clearOneTimeToken = (qrToken: string): void => {
 // Store exchange token with user data
 export const storeExchangeToken = (token: string, data: ExchangeTokenData): void => {
 	exchangeTokenStore.set(token, data)
-	
+
 	// Auto-cleanup after expiry
 	const ttl = data.expiresAt - Date.now()
 	if (ttl > 0) {
@@ -164,20 +164,20 @@ export const storeExchangeToken = (token: string, data: ExchangeTokenData): void
 // Verify and consume exchange token (one-time use)
 export const verifyExchangeToken = (token: string): ExchangeTokenData | null => {
 	const data = exchangeTokenStore.get(token)
-	
+
 	if (!data) {
 		return null
 	}
-	
+
 	// Check if expired
 	if (Date.now() > data.expiresAt) {
 		exchangeTokenStore.delete(token)
 		return null
 	}
-	
+
 	// Consume the token (one-time use)
 	exchangeTokenStore.delete(token)
-	
+
 	return data
 }
 
@@ -203,7 +203,7 @@ export const getSessionFromHeaders = async () => {
 // Clean up expired QR login requests (utility for cron job)
 export const cleanupExpiredRequests = async () => {
 	const now = new Date()
-	
+
 	// Update status of expired pending requests
 	await db
 		.update(qrLoginRequest)
@@ -222,44 +222,44 @@ export const cleanupExpiredRequests = async () => {
 		.where(lt(qrLoginRequest.createdAt, oneDayAgo))
 }
 
-// ============================================
-// Mobile Login Functions (Web -> Mobile flow)
-// ============================================
+/*
+ * Mobile Login Functions (Web -> Mobile flow)
+ */
 
 // Create a mobile login token for an authenticated web user
 export const createMobileLoginToken = (userId: string): string => {
 	const token = generateSecureExchangeToken()
 	const expiresAt = Date.now() + QR_LOGIN_EXPIRY_MS
-	
+
 	mobileLoginTokenStore.set(token, {
 		userId,
 		expiresAt
 	})
-	
+
 	// Auto-cleanup after expiry
 	setTimeout(() => {
 		mobileLoginTokenStore.delete(token)
 	}, QR_LOGIN_EXPIRY_MS)
-	
+
 	return token
 }
 
 // Verify and consume mobile login token (one-time use)
 export const verifyMobileLoginToken = (token: string): MobileLoginTokenData | null => {
 	const data = mobileLoginTokenStore.get(token)
-	
+
 	if (!data) {
 		return null
 	}
-	
+
 	// Check if expired
 	if (Date.now() > data.expiresAt) {
 		mobileLoginTokenStore.delete(token)
 		return null
 	}
-	
+
 	// Consume the token (one-time use)
 	mobileLoginTokenStore.delete(token)
-	
+
 	return data
 }

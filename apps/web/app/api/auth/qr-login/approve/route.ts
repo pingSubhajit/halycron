@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
 
 		// Generate a secure exchange token for the web app to use
 		const exchangeToken = generateSecureExchangeToken()
-		
+
 		// Store the exchange token with the user ID (expires in 5 minutes)
 		storeExchangeToken(exchangeToken, {
 			userId: sessionResult.user.id,

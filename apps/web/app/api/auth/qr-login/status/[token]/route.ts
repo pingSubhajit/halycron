@@ -35,7 +35,7 @@ export async function GET(
 		// Check if expired and update status if needed
 		if (qrRequest.status === 'pending' && isTokenExpired(qrRequest.expiresAt)) {
 			await updateQrLoginRequestStatus(token, 'expired')
-			
+
 			const response: QrLoginStatusResponse = {
 				status: 'expired'
 			}
@@ -45,7 +45,7 @@ export async function GET(
 		// If approved, return the exchange token for the web app
 		if (qrRequest.status === 'approved') {
 			const exchangeToken = getOneTimeToken(token)
-			
+
 			if (!exchangeToken) {
 				// Token was already retrieved - return approved status only
 				const responseData: QrLoginStatusResponse = {
@@ -58,18 +58,18 @@ export async function GET(
 				status: 'approved',
 				oneTimeToken: exchangeToken
 			}
-			
+
 			// Clear from mapping after sending (exchange token store handles its own cleanup)
 			clearOneTimeToken(token)
-			
+
 			return NextResponse.json(responseData)
 		}
 
 		// Return current status with remaining time and device info
 		const response: QrLoginStatusResponse = {
 			status: qrRequest.status as QrLoginStatusResponse['status'],
-			remainingMs: qrRequest.status === 'pending' 
-				? getRemainingTimeMs(qrRequest.expiresAt) 
+			remainingMs: qrRequest.status === 'pending'
+				? getRemainingTimeMs(qrRequest.expiresAt)
 				: undefined,
 			ipAddress: qrRequest.ipAddress,
 			userAgent: qrRequest.userAgent

@@ -21,6 +21,13 @@ export async function POST(request: NextRequest) {
 		// Create new QR login request
 		const qrRequest = await createQrLoginRequest(ipAddress, userAgent)
 
+		if (!qrRequest) {
+			return NextResponse.json(
+				{error: 'Failed to create QR login request'},
+				{status: 500}
+			)
+		}
+
 		// Build the QR code data URL (deep link format)
 		const qrData = `halycron://qr-login/${qrRequest.token}`
 

@@ -100,9 +100,9 @@ export const UserMenu = () => {
 				</DropdownMenuItem>
 			</DropdownMenuContent>
 
-			<MobileLoginQr 
-				open={showMobileLoginQr} 
-				onOpenChange={setShowMobileLoginQr} 
+			<MobileLoginQr
+				open={showMobileLoginQr}
+				onOpenChange={setShowMobileLoginQr}
 			/>
 		</DropdownMenu>
 	)

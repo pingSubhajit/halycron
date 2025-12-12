@@ -31,7 +31,7 @@ export const QrLogin = ({onSuccess, onCancel}: QrLoginProps) => {
 	const [token, setToken] = useState<string | null>(null)
 	const [remainingTime, setRemainingTime] = useState<number>(180000) // 3 minutes default
 	const [error, setError] = useState<string | null>(null)
-	
+
 	const pollingRef = useRef<NodeJS.Timeout | null>(null)
 	const countdownRef = useRef<NodeJS.Timeout | null>(null)
 	const expiresAtRef = useRef<number>(0)
@@ -77,7 +77,7 @@ export const QrLogin = ({onSuccess, onCancel}: QrLoginProps) => {
 		}
 		isInitializedRef.current = true
 		isVerifyingRef.current = false // Reset for new session
-		
+
 		cleanup()
 		setState('loading')
 		setError(null)
@@ -93,22 +93,22 @@ export const QrLogin = ({onSuccess, onCancel}: QrLoginProps) => {
 			}
 
 			const data: QrLoginInitiateResponse = await response.json()
-			
+
 			setToken(data.token)
 			await generateQrImage(data.qrData)
-			
+
 			// Store expiration time in ref for accurate countdown
 			expiresAtRef.current = new Date(data.expiresAt).getTime()
 			const remaining = Math.max(0, expiresAtRef.current - Date.now())
 			setRemainingTime(remaining)
-			
+
 			setState('displaying')
 
 			// Start countdown timer - calculate from stored expiration time
 			countdownRef.current = setInterval(() => {
 				const newRemaining = Math.max(0, expiresAtRef.current - Date.now())
 				setRemainingTime(newRemaining)
-				
+
 				if (newRemaining <= 0) {
 					cleanup()
 					setState('expired')
@@ -119,10 +119,10 @@ export const QrLogin = ({onSuccess, onCancel}: QrLoginProps) => {
 			pollingRef.current = setInterval(async () => {
 				// Skip if we're already verifying
 				if (isVerifyingRef.current) return
-				
+
 				try {
 					const statusResponse = await fetch(`/api/auth/qr-login/status/${data.token}`)
-					
+
 					if (!statusResponse.ok) {
 						return
 					}
@@ -132,18 +132,18 @@ export const QrLogin = ({onSuccess, onCancel}: QrLoginProps) => {
 					if (statusData.status === 'approved') {
 						// Stop polling immediately
 						cleanup()
-						
+
 						// If we already started verifying, skip
 						if (isVerifyingRef.current) return
-						
+
 						// If no token, a previous poll already got it - just wait
 						if (!statusData.oneTimeToken) {
 							return
 						}
-						
+
 						isVerifyingRef.current = true
 						setState('approved')
-						
+
 						// Exchange the one-time token for a proper session using better-auth plugin
 						try {
 							const exchangeResponse = await fetch('/api/auth/qr-login/plugin-exchange', {
@@ -238,9 +238,9 @@ export const QrLogin = ({onSuccess, onCancel}: QrLoginProps) => {
 				{state === 'displaying' && qrDataUrl && (
 					<>
 						<div className="p-4 bg-white rounded-lg">
-							<img 
-								src={qrDataUrl} 
-								alt="QR Code for login" 
+							<img
+								src={qrDataUrl}
+								alt="QR Code for login"
 								className="w-56 h-56"
 							/>
 						</div>
