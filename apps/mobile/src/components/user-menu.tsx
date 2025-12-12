@@ -4,6 +4,7 @@ import {useSession} from './session-provider'
 import {ProfilePicture} from './profile-picture'
 import {Feather} from '@expo/vector-icons'
 import {BlurView} from 'expo-blur'
+import {useRouter} from 'expo-router'
 
 interface UserMenuProps {
 	onClose?: () => void
@@ -12,6 +13,12 @@ interface UserMenuProps {
 export const UserMenu = ({onClose}: UserMenuProps) => {
 	const {user, signOut} = useSession()
 	const [signingOut, setSigningOut] = useState<boolean>(false)
+	const router = useRouter()
+
+	const handleQrScan = () => {
+		onClose?.()
+		router.push('/qr-scanner')
+	}
 
 	const handleLogout = async () => {
 		setSigningOut(true)
@@ -72,6 +79,16 @@ export const UserMenu = ({onClose}: UserMenuProps) => {
 					</View>
 
 					{/* Menu options */}
+					<Pressable
+						onPress={handleQrScan}
+						className="flex-row items-center justify-between py-3 border-b border-white/10"
+					>
+						<Text className="text-primary-foreground text-base">
+							Scan QR to login
+						</Text>
+						<Feather name="maximize" size={18} color="#888"/>
+					</Pressable>
+
 					<Pressable
 						onPress={handleLogout}
 						className="flex-row items-center justify-between py-3"

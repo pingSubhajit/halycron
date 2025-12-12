@@ -63,7 +63,7 @@ export const BiometricGuard = ({children, fallback}: BiometricGuardProps) => {
 
 	// Show biometric authentication prompt
 	return (
-		<View className="flex-1 bg-dark justify-center items-center p-6 w-full max-w-sm">
+		<View className="flex-1 bg-dark justify-center items-center p-6 w-full">
 			<View className="flex-1 justify-center items-center">
 				<Image
 					style={{width: 200, height: 200}}

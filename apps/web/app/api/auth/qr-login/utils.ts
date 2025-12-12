@@ -7,16 +7,6 @@ import {headers} from 'next/headers'
 // QR login token expiry time in milliseconds (3 minutes)
 export const QR_LOGIN_EXPIRY_MS = 3 * 60 * 1000
 
-// Generate a secure random token
-export const generateQrToken = (): string => {
-	return crypto.randomUUID()
-}
-
-// Get the expiry timestamp
-export const getExpiryTimestamp = (): Date => {
-	return new Date(Date.now() + QR_LOGIN_EXPIRY_MS)
-}
-
 // Status types for QR login requests
 export type QrLoginStatus = 'pending' | 'approved' | 'expired' | 'cancelled'
 
@@ -33,6 +23,48 @@ export interface QrLoginStatusResponse {
 	oneTimeToken?: string
 	ipAddress?: string | null
 	userAgent?: string | null
+}
+
+// Exchange token data structure
+interface ExchangeTokenData {
+	userId: string
+	qrToken: string
+	expiresAt: number
+}
+
+// Use globalThis to persist stores across hot module reloads in development
+const globalForQrLogin = globalThis as unknown as {
+	oneTimeTokenStore: Map<string, string>
+	exchangeTokenStore: Map<string, ExchangeTokenData>
+}
+
+// In-memory store for mapping QR tokens to exchange tokens
+const oneTimeTokenStore = globalForQrLogin.oneTimeTokenStore ?? new Map<string, string>()
+if (!globalForQrLogin.oneTimeTokenStore) {
+	globalForQrLogin.oneTimeTokenStore = oneTimeTokenStore
+}
+
+// In-memory store for exchange tokens (maps exchangeToken -> user data)
+const exchangeTokenStore = globalForQrLogin.exchangeTokenStore ?? new Map<string, ExchangeTokenData>()
+if (!globalForQrLogin.exchangeTokenStore) {
+	globalForQrLogin.exchangeTokenStore = exchangeTokenStore
+}
+
+// Generate a secure random token
+export const generateQrToken = (): string => {
+	return crypto.randomUUID()
+}
+
+// Get the expiry timestamp for QR login requests
+export const getExpiryTimestamp = (): Date => {
+	return new Date(Date.now() + QR_LOGIN_EXPIRY_MS)
+}
+
+// Generate a secure exchange token
+export const generateSecureExchangeToken = (): string => {
+	const uuid = crypto.randomUUID()
+	const randomPart = crypto.randomUUID().replace(/-/g, '')
+	return `${uuid}-${randomPart}`
 }
 
 // Create a new QR login request
@@ -70,7 +102,7 @@ export const updateQrLoginRequestStatus = async (
 		userId?: string
 		webSessionId?: string
 		approvedBySessionId?: string
-		oneTimeToken?: string
+		exchangeToken?: string
 	}
 ) => {
 	const [updated] = await db
@@ -85,96 +117,47 @@ export const updateQrLoginRequestStatus = async (
 		.where(eq(qrLoginRequest.token, token))
 		.returning()
 
-	// Store one-time token separately (in memory for now, since it's short-lived)
-	if (additionalData?.oneTimeToken) {
-		oneTimeTokenStore.set(token, additionalData.oneTimeToken)
+	// Store exchange token mapping (QR token -> exchange token)
+	if (additionalData?.exchangeToken) {
+		oneTimeTokenStore.set(token, additionalData.exchangeToken)
 	}
 
 	return updated
 }
 
-// Use globalThis to persist stores across hot module reloads in development
-const globalForQrLogin = globalThis as unknown as {
-	oneTimeTokenStore: Map<string, string>
-	exchangeTokenStore: Map<string, ExchangeTokenData>
-}
-
-// Temporary in-memory store for one-time tokens (short-lived)
-const oneTimeTokenStore = globalForQrLogin.oneTimeTokenStore ?? new Map<string, string>()
-if (!globalForQrLogin.oneTimeTokenStore) {
-	globalForQrLogin.oneTimeTokenStore = oneTimeTokenStore
-}
-
-// Get one-time token for a QR login request
+// Get exchange token for a QR login request
 export const getOneTimeToken = (qrToken: string): string | undefined => {
 	return oneTimeTokenStore.get(qrToken)
 }
 
-// Clear one-time token after use
+// Clear exchange token mapping after use
 export const clearOneTimeToken = (qrToken: string): void => {
 	oneTimeTokenStore.delete(qrToken)
 }
 
-// Exchange token data structure
-interface ExchangeTokenData {
-	userId: string
-	qrToken: string
-	expiresAt: number
-}
-
-// Secure exchange token store (maps exchangeToken -> user data)
-// Uses globalThis to persist across hot module reloads
-const exchangeTokenStore = globalForQrLogin.exchangeTokenStore ?? new Map<string, ExchangeTokenData>()
-if (!globalForQrLogin.exchangeTokenStore) {
-	globalForQrLogin.exchangeTokenStore = exchangeTokenStore
-}
-
-// Generate a secure exchange token
-export const generateSecureExchangeToken = (): string => {
-	// Use a combination of UUID and random bytes for extra security
-	const uuid = crypto.randomUUID()
-	const randomPart = crypto.randomUUID().replace(/-/g, '')
-	return `${uuid}-${randomPart}`
-}
-
 // Store exchange token with user data
 export const storeExchangeToken = (token: string, data: ExchangeTokenData): void => {
-	console.log('[ExchangeToken] Storing token:', token.substring(0, 20) + '...')
-	console.log('[ExchangeToken] Data:', { userId: data.userId, qrToken: data.qrToken.substring(0, 10) + '...' })
-	console.log('[ExchangeToken] Store size before:', exchangeTokenStore.size)
-	
 	exchangeTokenStore.set(token, data)
-	
-	console.log('[ExchangeToken] Store size after:', exchangeTokenStore.size)
 	
 	// Auto-cleanup after expiry
 	const ttl = data.expiresAt - Date.now()
 	if (ttl > 0) {
 		setTimeout(() => {
-			console.log('[ExchangeToken] Auto-cleanup for token:', token.substring(0, 20) + '...')
 			exchangeTokenStore.delete(token)
 		}, ttl)
 	}
 }
 
-// Verify and consume exchange token
+// Verify and consume exchange token (one-time use)
 export const verifyExchangeToken = (token: string): ExchangeTokenData | null => {
-	console.log('[ExchangeToken] Verifying token:', token.substring(0, 20) + '...')
-	console.log('[ExchangeToken] Store size:', exchangeTokenStore.size)
-	console.log('[ExchangeToken] Store keys:', Array.from(exchangeTokenStore.keys()).map(k => k.substring(0, 20) + '...'))
-	
 	const data = exchangeTokenStore.get(token)
 	
 	if (!data) {
-		console.log('[ExchangeToken] Token NOT found in store')
 		return null
 	}
 	
-	console.log('[ExchangeToken] Token found! User:', data.userId)
-	
 	// Check if expired
 	if (Date.now() > data.expiresAt) {
-		console.log('[ExchangeToken] Token expired')
 		exchangeTokenStore.delete(token)
 		return null
 	}
@@ -225,4 +208,3 @@ export const cleanupExpiredRequests = async () => {
 		.delete(qrLoginRequest)
 		.where(lt(qrLoginRequest.createdAt, oneDayAgo))
 }
-

@@ -42,17 +42,12 @@ export async function GET(
 			return NextResponse.json(response)
 		}
 
-		// If approved, return the one-time token for the web app to verify
+		// If approved, return the exchange token for the web app
 		if (qrRequest.status === 'approved') {
-			const oneTimeToken = getOneTimeToken(token)
+			const exchangeToken = getOneTimeToken(token)
 			
-			console.log('[Status] Approved! QR token:', token.substring(0, 10) + '...')
-			console.log('[Status] Exchange token from store:', oneTimeToken ? oneTimeToken.substring(0, 20) + '...' : 'NOT FOUND')
-			
-			if (!oneTimeToken) {
-				// Token was already retrieved - the client should have it
-				// Return approved status without token (client should already be verifying)
-				console.log('[Status] Exchange token already retrieved, returning status only')
+			if (!exchangeToken) {
+				// Token was already retrieved - return approved status only
 				const responseData: QrLoginStatusResponse = {
 					status: 'approved'
 				}
@@ -61,12 +56,10 @@ export async function GET(
 
 			const responseData: QrLoginStatusResponse = {
 				status: 'approved',
-				oneTimeToken // Return the one-time token for the web to verify
+				oneTimeToken: exchangeToken
 			}
 			
-			console.log('[Status] Returning exchange token to client, then clearing from oneTimeTokenStore')
-			
-			// Clear from oneTimeTokenStore after sending (but NOT from exchangeTokenStore - that's for the exchange endpoint)
+			// Clear from mapping after sending (exchange token store handles its own cleanup)
 			clearOneTimeToken(token)
 			
 			return NextResponse.json(responseData)
@@ -91,4 +84,3 @@ export async function GET(
 		)
 	}
 }
-

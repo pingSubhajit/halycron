@@ -166,9 +166,8 @@ const QrScannerScreen = () => {
 
 				{/* Instructions */}
 				<SafeAreaView edges={['bottom']}>
-					<View className="items-center pb-8 px-6">
+					<View className="items-center pb-8 px-6 mb-24">
 						<View className="bg-black/50 rounded-xl p-4 items-center">
-							<QrCode size={24} color="#fff" className="mb-2" />
 							<Text className="text-white text-center">
 								Point your camera at the QR code on the login page
 							</Text>

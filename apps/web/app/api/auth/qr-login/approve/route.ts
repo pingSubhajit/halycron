@@ -60,31 +60,22 @@ export async function POST(request: NextRequest) {
 			)
 		}
 
-		// Generate a secure exchange token that we control
-		// This token contains the user ID and can be verified by the exchange endpoint
+		// Generate a secure exchange token for the web app to use
 		const exchangeToken = generateSecureExchangeToken()
-		
-		console.log('[Approve] Generated exchange token:', exchangeToken.substring(0, 20) + '...')
-		console.log('[Approve] Full token length:', exchangeToken.length)
 		
 		// Store the exchange token with the user ID (expires in 5 minutes)
 		storeExchangeToken(exchangeToken, {
 			userId: sessionResult.user.id,
 			qrToken: token,
-			expiresAt: Date.now() + 5 * 60 * 1000 // 5 minutes
+			expiresAt: Date.now() + 5 * 60 * 1000
 		})
-
-		console.log('[Approve] Stored exchange token for user:', sessionResult.user.id)
 
 		// Update the QR login request with approval details
-		// This also stores the token in oneTimeTokenStore for the status endpoint
 		await updateQrLoginRequestStatus(token, 'approved', {
 			userId: sessionResult.user.id,
-			oneTimeToken: exchangeToken,
+			exchangeToken,
 			approvedBySessionId: sessionResult.session?.id
 		})
-		
-		console.log('[Approve] Updated QR request status to approved')
 
 		return NextResponse.json({
 			success: true,
@@ -98,4 +89,3 @@ export async function POST(request: NextRequest) {
 		)
 	}
 }
-

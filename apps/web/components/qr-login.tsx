@@ -253,14 +253,14 @@ export const QrLogin = ({onSuccess, onCancel}: QrLoginProps) => {
 				)}
 
 				{state === 'approved' && (
-					<div className="w-64 h-64 flex flex-col items-center justify-center bg-green-500/10 rounded-lg">
+					<div className="w-64 h-64 flex flex-col items-center justify-center bg-transparent rounded-lg">
 						<CheckCircle2 className="h-16 w-16 text-green-500 mb-4" />
 						<p className="text-green-500 font-medium">Redirecting...</p>
 					</div>
 				)}
 
 				{state === 'expired' && (
-					<div className="w-64 h-64 flex flex-col items-center justify-center bg-muted rounded-lg space-y-4">
+					<div className="w-64 h-64 flex flex-col items-center justify-center bg-transparent rounded-lg space-y-4">
 						<p className="text-muted-foreground">QR code has expired</p>
 						<Button onClick={() => initializeQrLogin(true)} variant="outline" size="sm">
 							<RefreshCw className="h-4 w-4 mr-2" />
@@ -270,7 +270,7 @@ export const QrLogin = ({onSuccess, onCancel}: QrLoginProps) => {
 				)}
 
 				{state === 'error' && (
-					<div className="w-64 h-64 flex flex-col items-center justify-center bg-destructive/10 rounded-lg space-y-4">
+					<div className="w-64 h-64 flex flex-col items-center justify-center bg-transparent rounded-lg space-y-4">
 						<p className="text-destructive text-sm text-center px-4">{error}</p>
 						<Button onClick={() => initializeQrLogin(true)} variant="outline" size="sm">
 							<RefreshCw className="h-4 w-4 mr-2" />
