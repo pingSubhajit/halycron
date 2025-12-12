@@ -9,24 +9,25 @@ export const generateEncryptionKey = () => {
 
 export const encryptFile = async (file: File, encryptionKey: string) => {
 	const subtle = window.crypto.subtle
-	const iv = window.crypto.getRandomValues(new Uint8Array(16))
+	// Use 12-byte IV for AES-GCM (recommended size)
+	const iv = window.crypto.getRandomValues(new Uint8Array(12))
 
 	// Convert base64 key back to bytes
 	const keyBytes = Uint8Array.from(atob(encryptionKey), c => c.charCodeAt(0))
 
-	// Import the key
+	// Import the key for AES-GCM
 	const cryptoKey = await subtle.importKey(
 		'raw',
 		keyBytes,
-		{name: 'AES-CBC', length: 256},
+		{name: 'AES-GCM', length: 256},
 		false,
 		['encrypt']
 	)
 
-	// Encrypt the file
+	// Encrypt the file using AES-GCM (auth tag is automatically appended)
 	const arrayBuffer = await file.arrayBuffer()
 	const encryptedData = await subtle.encrypt(
-		{name: 'AES-CBC', iv},
+		{name: 'AES-GCM', iv},
 		cryptoKey,
 		arrayBuffer
 	)
@@ -35,7 +36,7 @@ export const encryptFile = async (file: File, encryptionKey: string) => {
 
 	return {
 		encryptedFile: new File([encryptedBlob], file.name, {type: file.type}),
-		iv: Array.from(iv).map(b => b.toString(16).padStart(2, '0')).join(''), // Convert to hex string
+		iv: Array.from(iv).map(b => b.toString(16).padStart(2, '0')).join(''), // Convert to hex string (24 chars for 12 bytes)
 		key: encryptionKey
 	}
 }
@@ -46,14 +47,20 @@ export const decryptFile = async (encryptedBlob: Blob, key: string, iv: string) 
 	// Convert hex IV back to Uint8Array
 	const ivArray = new Uint8Array(iv.match(/.{2}/g)!.map(byte => parseInt(byte, 16)))
 
+	// Detect algorithm based on IV length:
+	// - 12 bytes (24 hex chars) = AES-GCM (new)
+	// - 16 bytes (32 hex chars) = AES-CBC (legacy)
+	const isGCM = ivArray.length === 12
+	const algorithm = isGCM ? 'AES-GCM' : 'AES-CBC'
+
 	// Convert base64 key back to bytes
 	const keyBytes = Uint8Array.from(atob(key), c => c.charCodeAt(0))
 
-	// Import the key
+	// Import the key with detected algorithm
 	const cryptoKey = await subtle.importKey(
 		'raw',
 		keyBytes,
-		{name: 'AES-CBC', length: 256},
+		{name: algorithm, length: 256},
 		false,
 		['decrypt']
 	)
@@ -61,7 +68,7 @@ export const decryptFile = async (encryptedBlob: Blob, key: string, iv: string) 
 	// Decrypt the data
 	const encryptedData = await encryptedBlob.arrayBuffer()
 	const decryptedData = await subtle.decrypt(
-		{name: 'AES-CBC', iv: ivArray},
+		{name: algorithm, iv: ivArray},
 		cryptoKey,
 		encryptedData
 	)

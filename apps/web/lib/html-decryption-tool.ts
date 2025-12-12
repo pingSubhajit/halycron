@@ -424,12 +424,19 @@ export const generateDecryptionTool = () => {
                     'Decrypting photo ' + (i + 1) + ' of ' + photos.length + '...';
                 
                 try {
+                    // Convert IV from hex to determine algorithm
+                    // 24 hex chars (12 bytes) = AES-GCM (new)
+                    // 32 hex chars (16 bytes) = AES-CBC (legacy)
+                    const ivHex = photo.fileKeyIv;
+                    const isGCM = ivHex.length === 24;
+                    const algorithm = isGCM ? 'AES-GCM' : 'AES-CBC';
+                    
                     // Use the file key directly (it's not actually encrypted in current implementation)
                     const fileKeyBytes = base64ToArrayBuffer(photo.encryptedFileKey);
                     const fileKey = await crypto.subtle.importKey(
                         'raw',
                         fileKeyBytes,
-                        { name: 'AES-CBC' },  // Changed to AES-CBC to match utils.ts
+                        { name: algorithm },
                         false,
                         ['decrypt']
                     );
@@ -442,10 +449,10 @@ export const generateDecryptionTool = () => {
                     
                     const encryptedPhoto = await photoFile.arrayBuffer();
                     
-                    // Decrypt photo content using AES-CBC with IV from fileKeyIv (hex format)
-                    const fileKeyIv = hexToArrayBuffer(photo.fileKeyIv);
+                    // Decrypt photo content with detected algorithm
+                    const fileKeyIv = hexToArrayBuffer(ivHex);
                     const decryptedPhoto = await crypto.subtle.decrypt(
-                        { name: 'AES-CBC', iv: fileKeyIv },
+                        { name: algorithm, iv: fileKeyIv },
                         fileKey,
                         encryptedPhoto
                     );
