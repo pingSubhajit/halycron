@@ -81,7 +81,7 @@ export const UserMenu = ({onClose}: UserMenuProps) => {
 					{/* Menu options */}
 					<Pressable
 						onPress={handleQrScan}
-						className="flex-row items-center justify-between py-3 border-b border-white/10"
+						className="flex-row items-center justify-between py-3"
 					>
 						<Text className="text-primary-foreground text-base">
 							Scan QR to login

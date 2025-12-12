@@ -79,37 +79,3 @@ export const isMobileLoginUrl = (url: string): boolean => {
 	return parseMobileLoginUrl(url) !== null
 }
 
-interface MobileLoginExchangeResponse {
-	success: boolean
-	user?: {
-		id: string
-		email: string
-		name: string
-	}
-	token?: string
-	message?: string
-}
-
-/**
- * Exchange a mobile login token for a session
- * This is called when the mobile app scans a QR code from the logged-in web app
- */
-export const exchangeMobileLoginToken = async (token: string): Promise<MobileLoginExchangeResponse> => {
-	const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000'
-	
-	const response = await fetch(`${API_URL}/api/auth/qr-login/mobile-exchange`, {
-		method: 'POST',
-		headers: {
-			'Content-Type': 'application/json'
-		},
-		body: JSON.stringify({token})
-	})
-
-	if (!response.ok) {
-		const error = await response.json().catch(() => ({message: 'Failed to exchange token'}))
-		throw new Error(error.message || 'Failed to exchange token')
-	}
-
-	return response.json()
-}
-
