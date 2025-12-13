@@ -60,43 +60,10 @@ export const POST = async (req: NextRequest) => {
 // GET - Get presigned URL for current profile picture
 export const GET = async () => {
 	try {
-		const reqHeaders = await headers()
-		
-		// Debug: Log all relevant headers
-		const cookieHeader = reqHeaders.get('cookie')
-		const authHeader = reqHeaders.get('authorization')
-		console.log('[DEBUG /api/profile/picture GET] Headers:', {
-			cookie: cookieHeader,
-			authorization: authHeader,
-			'content-type': reqHeaders.get('content-type'),
-			'user-agent': reqHeaders.get('user-agent'),
-			'x-app-platform': reqHeaders.get('x-app-platform'),
-			'x-halycron-app': reqHeaders.get('x-halycron-app')
-		})
-		
-		// Log cookie parsing details
-		if (cookieHeader) {
-			const cookies = cookieHeader.split(';').map(c => c.trim())
-			console.log('[DEBUG /api/profile/picture GET] Parsed cookies:', cookies)
-			const sessionCookie = cookies.find(c => c.startsWith('better-auth.session_token='))
-			console.log('[DEBUG /api/profile/picture GET] Session token cookie:', sessionCookie ? sessionCookie.substring(0, 50) + '...' : 'NOT FOUND')
-		} else {
-			console.log('[DEBUG /api/profile/picture GET] No cookie header present')
-		}
-		
 		const session = await auth.api.getSession({
-			headers: reqHeaders
+			headers: await headers()
 		})
-		
-		console.log('[DEBUG /api/profile/picture GET] Session result:', session ? {
-			userId: session.user?.id,
-			sessionId: session.session?.id
-		} : 'null')
-		
-		if (!session) {
-			console.log('[DEBUG /api/profile/picture GET] No session found, returning 401')
-			return NextResponse.json({error: 'Unauthorized'}, {status: 401})
-		}
+		if (!session) return NextResponse.json({error: 'Unauthorized'}, {status: 401})
 
 		// Get user's current profile picture
 		const currentUser = await db.query.user.findFirst({
