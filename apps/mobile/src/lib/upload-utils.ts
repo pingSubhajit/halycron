@@ -4,23 +4,19 @@ import {Image} from 'react-native'
 import * as FileSystem from 'expo-file-system'
 import {api} from './api-client'
 import {Photo} from './types'
-import {base64ToUint8Array, uint8ArrayToBase64} from './base64-utils'
+import {uint8ArrayToBase64} from './base64-utils'
 
-export const generateEncryptionKey = () => {
-	// Generate 32 random bytes (256 bits) and convert to base64
+export const generatePhotoDek = () => {
+	// Generate 32 random bytes (256 bits)
 	const randomBytes = crypto.randomBytes(32)
-	// Convert to Uint8Array and use our reliable base64 encoder
-	const uint8Array = new Uint8Array(randomBytes)
-	return uint8ArrayToBase64(uint8Array)
+	return new Uint8Array(randomBytes)
 }
 
-export const encryptFile = async (fileUri: string, encryptionKey: string) => {
+export const encryptFile = async (fileUri: string, dek: Uint8Array) => {
 	// Generate a random IV (12 bytes for AES-GCM - recommended size)
 	const iv = crypto.randomBytes(12)
 
-	// Convert base64 key back to bytes using our reliable decoder
-	const keyUint8 = base64ToUint8Array(encryptionKey)
-	const keyBuffer = Buffer.from(keyUint8)
+	const keyBuffer = Buffer.from(dek)
 
 	// Read the file as buffer
 	const response = await fetch(fileUri)
@@ -45,7 +41,7 @@ export const encryptFile = async (fileUri: string, encryptionKey: string) => {
 	return {
 		encryptedData,
 		iv: iv.toString('hex'), // Convert to hex string (24 chars for 12 bytes)
-		key: encryptionKey
+		dek
 	}
 }
 
@@ -67,7 +63,6 @@ export const getImageDimensions = async (fileUri: string): Promise<{ width: numb
 
 export const getPreSignedUploadUrl = async (name: string, type: string) => {
 	const response = await api.post<{ uploadUrl: string, fileKey: string }>('/api/photos/upload-url', {
-		fileName: name,
 		contentType: type
 	})
 
@@ -112,18 +107,26 @@ export const uploadEncryptedPhoto = async (encryptedData: Buffer, uploadUrl: str
 
 export const savePhotoToDB = async (
 	fileKey: string,
-	key: string,
-	iv: string,
-	name: string,
+	payload: {
+		encryptionVersion: 1
+		contentIv: string
+		wrappedDek: string
+		wrappedDekIv: string
+		encryptedFilename: string
+		filenameIv: string
+	},
 	mimeType: string,
 	imageWidth?: number,
 	imageHeight?: number
 ) => {
 	return await api.post('/api/photos', {
 		fileKey,
-		encryptedFileKey: key,
-		fileKeyIv: iv,
-		originalFilename: name,
+		encryptionVersion: payload.encryptionVersion,
+		contentIv: payload.contentIv,
+		wrappedDek: payload.wrappedDek,
+		wrappedDekIv: payload.wrappedDekIv,
+		encryptedFilename: payload.encryptedFilename,
+		filenameIv: payload.filenameIv,
 		mimeType,
 		imageWidth,
 		imageHeight

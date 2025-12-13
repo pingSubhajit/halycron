@@ -378,7 +378,7 @@ Total Photos: ${photos.length}
 
 					// Add encrypted photo to archive
 					archive.append(photoBuffer, {
-						name: `photos/${photo.originalFilename}`
+						name: `photos/${photo.originalFilename || photo.id}`
 					})
 				}
 			} catch (error) {

@@ -26,6 +26,8 @@ import {usePhoto} from '@/app/api/photos/query'
 import {useDecryptedUrl} from '@/hooks/use-decrypted-url'
 import {toast} from 'sonner'
 import {CheckIcon, CopyIcon, Loader2} from 'lucide-react'
+import {useVault} from '@/components/vault-provider'
+import {aeadDecrypt, aeadEncrypt, b64Encode, b64UrlEncode, deriveKekPw, deriveUmkFileWrapKey, deriveUmkFilenameKey, randomBytes, type KdfParams} from '@/lib/crypto/e2ee'
 
 interface ShareDialogProps {
 	open: boolean
@@ -70,6 +72,7 @@ export const ShareDialog = ({
 
 	// Get the decrypted URL for the photo if available
 	const decryptedUrl = useDecryptedUrl(photo)
+	const {umk} = useVault()
 
 	const form = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
@@ -98,7 +101,7 @@ export const ShareDialog = ({
 
 	const {mutate: createShareLink, isPending} = useCreateShareLink()
 
-	const handleSubmit = (values: z.infer<typeof formSchema>) => {
+	const handleSubmit = async (values: z.infer<typeof formSchema>) => {
 		// Validate PIN if required
 		if (values.isPinProtected && (!values.pin || values.pin.length !== 4)) {
 			toast.error('Please add a 4-digit PIN to protect your shared content')
@@ -111,19 +114,105 @@ export const ShareDialog = ({
 			return
 		}
 
+		if (!umk) {
+			toast.error('Unlock your vault to share encrypted content.')
+			return
+		}
+
+		// Gather all photos to be shared (by photoIds and albumIds)
+		const photosToShare: any[] = []
+
+		for (const id of photoIds) {
+			const resp = await fetch(`/api/photos/${id}`)
+			if (!resp.ok) throw new Error('Failed to fetch photo for sharing')
+			photosToShare.push(await resp.json())
+		}
+
+		for (const albumId of albumIds) {
+			const resp = await fetch(`/api/albums/${albumId}/photos`)
+			if (!resp.ok) throw new Error('Failed to fetch album photos for sharing')
+			const items = await resp.json()
+			photosToShare.push(...(items as any[]))
+		}
+
+		// Dedupe by id
+		const byId = new Map<string, any>()
+		for (const p of photosToShare) byId.set(p.id, p)
+		const uniquePhotos = Array.from(byId.values())
+
+		// Share Key (SK) for this link (32 bytes)
+		const skBytes = await randomBytes(32)
+		const skFragment = await b64UrlEncode(skBytes)
+
+		const wrapKey = await deriveUmkFileWrapKey(umk)
+		const filenameKey = await deriveUmkFilenameKey(umk)
+		const enc = new TextEncoder()
+
+		// Build per-photo share key material
+		const sharePhotosPayload: CreateShareLinkRequest['sharePhotos'] = []
+
+		for (const p of uniquePhotos) {
+			// 1) Get per-photo DEK (either legacy plaintext DEK or unwrap v1 wrapped DEK)
+			let dekBytes: Uint8Array
+			if ((p.encryptionVersion ?? 0) === 1) {
+				dekBytes = await aeadDecrypt({ciphertextB64: p.wrappedDek, nonceB64: p.wrappedDekIv}, wrapKey)
+			} else {
+				dekBytes = Uint8Array.from(atob(p.encryptedFileKey), c => c.charCodeAt(0))
+			}
+
+			// 2) Get plaintext filename (decrypt for v1)
+			let filename: string
+			if ((p.encryptionVersion ?? 0) === 1) {
+				const bytes = await aeadDecrypt({ciphertextB64: p.encryptedFilename, nonceB64: p.filenameIv}, filenameKey)
+				filename = new TextDecoder().decode(bytes)
+			} else {
+				filename = p.originalFilename || 'photo'
+			}
+
+			// 3) Wrap DEK under SK + encrypt filename under SK
+			const wrappedDekForShare = await aeadEncrypt(dekBytes, skBytes)
+			const encryptedFilenameForShare = await aeadEncrypt(enc.encode(filename), skBytes)
+
+			sharePhotosPayload.push({
+				photoId: p.id,
+				wrappedDekForShare: wrappedDekForShare.ciphertextB64,
+				wrappedDekForShareIv: wrappedDekForShare.nonceB64,
+				encryptedFilenameForShare: encryptedFilenameForShare.ciphertextB64,
+				filenameForShareIv: encryptedFilenameForShare.nonceB64
+			})
+		}
+
+		// PIN shares: wrap SK under a PIN-derived key (Argon2id) and store KDF params.
+		let pinWrappedShareKey: CreateShareLinkRequest['pinWrappedShareKey'] | undefined
+		if (values.isPinProtected && values.pin) {
+			const pinSalt = await b64Encode(await randomBytes(16))
+			const pinParams: KdfParams = {alg: 'argon2id13', opslimit: 3, memlimit: 64 * 1024 * 1024}
+			const pinKey = await deriveKekPw(values.pin, pinSalt, pinParams)
+			const wrappedSk = await aeadEncrypt(skBytes, pinKey)
+			pinWrappedShareKey = {
+				skWrappedByPin: wrappedSk.ciphertextB64,
+				pinKdfSalt: pinSalt,
+				pinKdfParams: JSON.stringify(pinParams),
+				skWrapIv: wrappedSk.nonceB64
+			}
+		}
+
 		const shareData: CreateShareLinkRequest = {
 			expiryOption: values.expiryOption as ExpiryOption,
 			...(photoIds.length > 0 && {photoIds}),
 			...(albumIds.length > 0 && {albumIds}),
-			...(values.isPinProtected && values.pin && {pin: values.pin})
+			...(values.isPinProtected && values.pin && {pin: values.pin}),
+			sharePhotos: sharePhotosPayload,
+			...(pinWrappedShareKey ? {pinWrappedShareKey} : {})
 		}
 
 		createShareLink(shareData, {
 			onSuccess: (data) => {
-				setShareUrl(data.shareUrl)
+				const finalUrl = values.isPinProtected ? data.shareUrl : `${data.shareUrl}#k=${skFragment}`
+				setShareUrl(finalUrl)
 				setStep('link')
 				// Automatically copy the link to clipboard
-				navigator.clipboard.writeText(data.shareUrl)
+				navigator.clipboard.writeText(finalUrl)
 					.then(() => {
 						setCopied(true)
 						toast.success('Sharing link created and copied to your clipboard!')
@@ -201,7 +290,7 @@ export const ShareDialog = ({
 				<div className="relative">
 					<img
 						src={decryptedUrl}
-						alt={photo.originalFilename}
+						alt={photo.originalFilename || 'Photo'}
 						className="w-full h-auto object-contain"
 						style={{
 							maxHeight: '250px',

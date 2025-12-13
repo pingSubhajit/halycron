@@ -8,6 +8,7 @@ import {uploadNotificationManager} from '@/src/lib/notification-utils'
 import * as ScreenCapture from 'expo-screen-capture'
 import {useCloseAllDialogs} from '@/src/components/dialog-provider'
 import * as Linking from 'expo-linking'
+import {VaultGate} from '@/src/components/vault-gate'
 
 const DeepLinkHandler = () => {
 	const {closeAllDialogs} = useCloseAllDialogs()
@@ -67,46 +68,48 @@ const AuthenticatedAppLayout = () => {
 
 	return (
 		<BiometricGuard>
-			<DeepLinkHandler/>
+			<VaultGate>
+				<DeepLinkHandler/>
 
-			<View className="flex-1 bg-background">
-				<Stack
-					screenOptions={{
-						headerShown: false, // Hides the header for all screens
-						animation: 'fade'
-					}}
-				>
-					<Stack.Protected guard={!!session}>
-						<Stack.Screen name="index"/>
-						<Stack.Screen name="albums"/>
-						<Stack.Screen
-							name="upload"
-							options={{
-								presentation: Platform.OS === 'android' ? 'fullScreenModal' : 'modal',
-								animation: 'slide_from_bottom',
-								animationDuration: 50,
-								gestureEnabled: true,
-								gestureDirection: 'vertical',
-								headerShown: false
-							}}
-						/>
+				<View className="flex-1 bg-background">
+					<Stack
+						screenOptions={{
+							headerShown: false, // Hides the header for all screens
+							animation: 'fade'
+						}}
+					>
+						<Stack.Protected guard={!!session}>
+							<Stack.Screen name="index"/>
+							<Stack.Screen name="albums"/>
+							<Stack.Screen
+								name="upload"
+								options={{
+									presentation: Platform.OS === 'android' ? 'fullScreenModal' : 'modal',
+									animation: 'slide_from_bottom',
+									animationDuration: 50,
+									gestureEnabled: true,
+									gestureDirection: 'vertical',
+									headerShown: false
+								}}
+							/>
 
-						<Stack.Screen
-							name="qr-scanner"
-							options={{
-								presentation: 'fullScreenModal',
-								animation: 'slide_from_bottom',
-								gestureEnabled: true,
-								gestureDirection: 'vertical',
-								headerShown: false
-							}}
-						/>
+							<Stack.Screen
+								name="qr-scanner"
+								options={{
+									presentation: 'fullScreenModal',
+									animation: 'slide_from_bottom',
+									gestureEnabled: true,
+									gestureDirection: 'vertical',
+									headerShown: false
+								}}
+							/>
 
-						<Stack.Screen name="shared/[token]" options={{presentation: 'modal'}}/>
-					</Stack.Protected>
-				</Stack>
-				<TabBar/>
-			</View>
+							<Stack.Screen name="shared/[token]" options={{presentation: 'modal'}}/>
+						</Stack.Protected>
+					</Stack>
+					<TabBar/>
+				</View>
+			</VaultGate>
 		</BiometricGuard>
 	)
 }

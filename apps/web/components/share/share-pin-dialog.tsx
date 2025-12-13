@@ -20,7 +20,7 @@ interface SharePinDialogProps {
 	open: boolean
 	onOpenChange: (open: boolean) => void
 	token: string
-	onPinVerified: () => void
+	onPinVerified: (pin: string) => void
 }
 
 export const SharePinDialog = ({
@@ -56,7 +56,7 @@ export const SharePinDialog = ({
 			{
 				onSuccess: (data) => {
 					if (data.isValid) {
-						onPinVerified()
+						onPinVerified(pin)
 						onOpenChange(false)
 					} else {
 						toast.error('Hmm, that PIN didn\'t work. Want to try again?')

@@ -51,7 +51,24 @@ export async function POST(req: NextRequest) {
 		const hashedPin = hashPin(pin)
 		const isValid = hashedPin === link.pinHash
 
-		return NextResponse.json({isValid} as VerifyPinResponse)
+		const res = NextResponse.json({
+			isValid,
+			...(isValid ? {cookie: {name: `shared-access-${token}`, value: '1'}} : {})
+		} as VerifyPinResponse)
+
+		// If valid, set a short-lived access cookie so /api/shared/[token] can return content.
+		if (isValid) {
+			res.cookies.set({
+				name: `shared-access-${token}`,
+				value: '1',
+				httpOnly: true,
+				secure: process.env.NODE_ENV === 'production',
+				sameSite: 'lax',
+				maxAge: 10 * 60 // 10 minutes
+			})
+		}
+
+		return res
 	} catch (error) {
 		console.error('Error verifying PIN:', error)
 		return NextResponse.json({error: 'Failed to verify PIN'}, {status: 500})

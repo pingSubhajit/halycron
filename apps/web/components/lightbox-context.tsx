@@ -71,7 +71,7 @@ const Lightbox = ({
 		// Create a temporary anchor element
 		const a = document.createElement('a')
 		a.href = decryptedUrl
-		a.download = photo.originalFilename || 'encrypted-image.jpg'
+			a.download = photo.originalFilename || 'photo.jpg'
 		document.body.appendChild(a)
 		a.click()
 		document.body.removeChild(a)
@@ -425,7 +425,7 @@ const Lightbox = ({
 							>
 								<Image
 									src={decryptedUrl}
-									alt={photo.originalFilename}
+									alt={photo.originalFilename || 'Photo'}
 									width={photo.imageWidth || 1920}
 									height={photo.imageHeight || 1080}
 									className="max-h-[90vh] w-auto object-contain select-none"

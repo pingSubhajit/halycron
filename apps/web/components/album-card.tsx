@@ -92,7 +92,7 @@ const PhotoLayer = ({
 			>
 				<Image
 					src={decryptedUrl}
-					alt={photo.originalFilename}
+					alt={photo.originalFilename || 'Album photo'}
 					width={photo.imageWidth || 800}
 					height={photo.imageHeight || 600}
 					className="rounded-lg shadow-lg object-contain"

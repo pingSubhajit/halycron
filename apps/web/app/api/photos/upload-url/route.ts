@@ -8,7 +8,8 @@ import {photo} from '@/db/schema'
 import {count, eq} from 'drizzle-orm'
 
 const requestSchema = z.object({
-	fileName: z.string(),
+	// Legacy clients may send fileName; v1 clients should omit to avoid leaking filenames.
+	fileName: z.string().optional(),
 	contentType: z.string().regex(
 		/^(image\/(jpeg|png|jpg|heic|heif|avif|avis|webp|raw|arw|cr2|nef|orf|rw2)|application\/octet-stream)$/,
 		'Unsupported image format'

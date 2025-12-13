@@ -31,6 +31,7 @@ import {AlertCircle, AlertTriangle, CheckCircle, Cloud, Download, HardDrive, Inf
 import {useStorageStats} from '@/app/api/storage/query'
 import {ExportDialog} from '@/components/export-dialog'
 import {TextShimmer} from '@halycron/ui/components/text-shimmer'
+import {useLegacyPhotoMigration} from '@/hooks/use-legacy-photo-migration'
 
 const s3ConfigSchema = z.object({
 	bucketName: z.string().min(3, 'Bucket name must be at least 3 characters'),
@@ -45,6 +46,7 @@ export const StorageSettings = () => {
 	const [connectionTested, setConnectionTested] = useState(false)
 	const [showExportDialog, setShowExportDialog] = useState(false)
 	const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false)
+	const {legacyCount, isMigrating, lastError: migrationError, migrateBatch} = useLegacyPhotoMigration()
 
 	// Fetch storage statistics
 	const {data: storageStats, isLoading: isLoadingStats, error} = useStorageStats()
@@ -133,6 +135,32 @@ export const StorageSettings = () => {
 
 	return (
 		<div className="space-y-6">
+			{legacyCount > 0 && (
+				<Card>
+					<CardHeader>
+						<CardTitle>Zero‑knowledge migration</CardTitle>
+						<CardDescription>
+							You have {legacyCount} legacy photos that still store plaintext keys/filenames in the database. Migrate them to zero‑knowledge format.
+						</CardDescription>
+					</CardHeader>
+					<CardContent className="space-y-3">
+						{migrationError && (
+							<p className="text-sm text-destructive">{migrationError}</p>
+						)}
+						<Button
+							variant="default"
+							size="sm"
+							disabled={isMigrating}
+							onClick={() => migrateBatch(10)}
+						>
+							{isMigrating ? 'Migrating…' : 'Migrate next 10 photos'}
+						</Button>
+						<p className="text-xs text-muted-foreground">
+							This runs locally in your browser. Existing encrypted bytes may be copied to a new S3 key to remove filename leakage.
+						</p>
+					</CardContent>
+				</Card>
+			)}
 			{/* Storage Overview */}
 			<Card>
 				<CardHeader>

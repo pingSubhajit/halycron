@@ -78,6 +78,13 @@
       "when": 1765533200651,
       "tag": "0010_nervous_romulus",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1765643483198,
+      "tag": "0011_curious_meltdown",
+      "breakpoints": true
     }
   ]
 }

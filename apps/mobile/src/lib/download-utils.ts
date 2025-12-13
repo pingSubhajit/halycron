@@ -2,6 +2,8 @@ import * as MediaLibrary from 'expo-media-library'
 import * as FileSystem from 'expo-file-system'
 import {Photo} from './types'
 import {downloadAndDecryptFile} from './crypto-utils'
+import {aeadDecrypt, deriveUmkFileWrapKey} from '@/src/lib/crypto/e2ee'
+import {base64ToUint8Array} from '@/src/lib/base64-utils'
 
 export interface DownloadResult {
 	success: boolean
@@ -64,7 +66,7 @@ const requestPermissionsWithRetry = async (): Promise<MediaLibrary.PermissionRes
 }
 
 
-export const downloadImageToGallery = async (photo: Photo): Promise<DownloadResult> => {
+export const downloadImageToGallery = async (photo: Photo, umk: Uint8Array): Promise<DownloadResult> => {
 	let decryptedFilePath: string | null = null
 
 	try {
@@ -77,14 +79,26 @@ export const downloadImageToGallery = async (photo: Photo): Promise<DownloadResu
 			}
 		}
 
-		// Get the decrypted file path using existing crypto utils
-		decryptedFilePath = await downloadAndDecryptFile(
-			photo.url,
-			photo.encryptedFileKey,
-			photo.fileKeyIv,
-			photo.mimeType,
-			photo.id
-		)
+		let dekBytes: Uint8Array
+		let ivHex: string
+
+		if ((photo.encryptionVersion ?? 0) === 1) {
+			if (!photo.wrappedDek || !photo.wrappedDekIv || !photo.contentIv) {
+				return {success: false, message: 'Missing encrypted key material for this photo.'}
+			}
+			const wrapKey = await deriveUmkFileWrapKey(umk)
+			dekBytes = await aeadDecrypt({ciphertextB64: photo.wrappedDek, nonceB64: photo.wrappedDekIv}, wrapKey)
+			ivHex = photo.contentIv
+		} else {
+			if (!photo.encryptedFileKey || !photo.fileKeyIv) {
+				return {success: false, message: 'Missing legacy key material for this photo.'}
+			}
+			dekBytes = base64ToUint8Array(photo.encryptedFileKey)
+			ivHex = photo.fileKeyIv
+		}
+
+		// Get the decrypted file path using crypto utils
+		decryptedFilePath = await downloadAndDecryptFile(photo.url, dekBytes, ivHex, photo.mimeType, photo.id)
 
 		// Ensure the file exists
 		const fileInfo = await FileSystem.getInfoAsync(decryptedFilePath)

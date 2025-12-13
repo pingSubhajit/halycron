@@ -3,7 +3,7 @@ import {createElement, SetStateAction} from 'react'
 import {Photo, UploadState} from '@/app/api/photos/types'
 import {
 	encryptFile,
-	generateEncryptionKey,
+	generatePhotoDek,
 	getImageDimensions,
 	getPreSignedUploadUrl,
 	savePhotoToDB,
@@ -17,6 +17,8 @@ import {albumQueryKeys} from '@/app/api/albums/keys'
 import {toast} from 'sonner'
 import {useSendVerificationEmail} from '@/app/api/auth/mutations'
 import {AlertCircle, Mail} from 'lucide-react'
+import {useVault} from '@/components/vault-provider'
+import {aeadEncrypt, deriveUmkFileWrapKey, deriveUmkFilenameKey} from '@/lib/crypto/e2ee'
 
 type DeletePhotoContext = {
 	previousPhotos: Photo[] | undefined
@@ -119,10 +121,15 @@ export const useUploadPhoto = (
 	options?: MutationOptions<Photo, Error, File>
 ) => {
 	const sendVerificationEmail = useSendVerificationEmail()
+	const {umk} = useVault()
 
 	return useMutation({
 		mutationFn: async (file: File) => {
 			try {
+				if (!umk) {
+					throw new Error('Vault is locked. Please unlock your vault to upload photos.')
+				}
+
 				// Update state to processing
 				setUploadStates(prev => ({
 					...prev,
@@ -144,14 +151,22 @@ export const useUploadPhoto = (
 				// Get image dimensions from processed file
 				const dimensions = await getImageDimensions(processedFile)
 
-				// Generate a secure random encryption key
-				const encryptionKey = generateEncryptionKey()
+				// Generate a secure random per-photo DEK
+				const dek = generatePhotoDek()
 
 				// Encrypt the processed file
-				const {encryptedFile, iv, key} = await encryptFile(processedFile, encryptionKey)
+				const {encryptedFile, iv} = await encryptFile(processedFile, dek)
 
-				// Get pre-signed URL (use original file name and type for consistency)
-				const {uploadUrl, fileKey} = await getPreSignedUploadUrl(file.name, file.type)
+				// Wrap DEK with UMK-derived key (server never sees plaintext DEK)
+				const wrapKey = await deriveUmkFileWrapKey(umk)
+				const wrappedDek = await aeadEncrypt(dek, wrapKey)
+
+				// Encrypt filename with UMK-derived filename key (server never sees plaintext filename)
+				const filenameKey = await deriveUmkFilenameKey(umk)
+				const encName = await aeadEncrypt(new TextEncoder().encode(file.name), filenameKey)
+
+				// Get pre-signed URL (do not send filename to server)
+				const {uploadUrl, fileKey} = await getPreSignedUploadUrl(file.type)
 
 				// Update state to uploading
 				setUploadStates(prev => ({
@@ -162,12 +177,17 @@ export const useUploadPhoto = (
 				// Upload encrypted file
 				await uploadEncryptedPhoto(encryptedFile, uploadUrl)
 
-				// Save encryption details to database (use original file name and type)
+				// Save encryption details to database (v1 E2EE)
 				const response = await savePhotoToDB(
 					fileKey,
-					key,
-					iv,
-					file.name,
+					{
+						encryptionVersion: 1,
+						contentIv: iv,
+						wrappedDek: wrappedDek.ciphertextB64,
+						wrappedDekIv: wrappedDek.nonceB64,
+						encryptedFilename: encName.ciphertextB64,
+						filenameIv: encName.nonceB64
+					},
 					file.type,
 					dimensions.width,
 					dimensions.height

@@ -1,19 +1,21 @@
 'use client'
 
 import React, {useEffect, useRef, useState} from 'react'
-import {Photo} from '@/app/api/photos/types'
 import {Button} from '@halycron/ui/components/button'
 import {ZoomIn, ZoomOut} from 'lucide-react'
 import {AnimatePresence, motion} from 'motion/react'
 import {downloadAndDecryptFile} from '@/app/api/photos/utils'
+import {SharedPhoto} from '@/app/api/shared/types'
+import {aeadDecrypt} from '@/lib/crypto/e2ee'
 
-export const PhotoView = ({photo}: { photo: Photo }) => {
+export const PhotoView = ({photo, shareKey}: { photo: SharedPhoto; shareKey: Uint8Array | null }) => {
 	const [scale, setScale] = useState(1)
 	const [position, setPosition] = useState({x: 0, y: 0})
 	const [isDragging, setIsDragging] = useState(false)
 	const [dragStart, setDragStart] = useState({x: 0, y: 0})
 	const [pinchStart, setPinchStart] = useState<{ distance: number; scale: number } | null>(null)
 	const [decryptedUrl, setDecryptedUrl] = useState<string | null>(null)
+	const [decryptedFilename, setDecryptedFilename] = useState<string | null>(null)
 	const [isLoading, setIsLoading] = useState(true)
 	const imageRef = useRef<HTMLDivElement>(null)
 	const containerRef = useRef<HTMLDivElement>(null)
@@ -23,17 +25,30 @@ export const PhotoView = ({photo}: { photo: Photo }) => {
 		const decryptImage = async () => {
 			try {
 				setIsLoading(true)
-				if (photo.encryptedFileKey && photo.fileKeyIv) {
-					const url = await downloadAndDecryptFile(
-						photo.url,
-						photo.encryptedFileKey,
-						photo.fileKeyIv,
-						photo.mimeType
+				if (!shareKey) {
+					throw new Error('Missing share key')
+				}
+
+				if (!photo.wrappedDekForShare || !photo.wrappedDekForShareIv || !photo.contentIv) {
+					throw new Error('Missing shared key material')
+				}
+
+				const dekBytes = await aeadDecrypt(
+					{ciphertextB64: photo.wrappedDekForShare, nonceB64: photo.wrappedDekForShareIv},
+					shareKey
+				)
+
+				const url = await downloadAndDecryptFile(photo.url, dekBytes, photo.contentIv, photo.mimeType)
+				setDecryptedUrl(url)
+
+				if (photo.encryptedFilenameForShare && photo.filenameForShareIv) {
+					const nameBytes = await aeadDecrypt(
+						{ciphertextB64: photo.encryptedFilenameForShare, nonceB64: photo.filenameForShareIv},
+						shareKey
 					)
-					setDecryptedUrl(url)
+					setDecryptedFilename(new TextDecoder().decode(nameBytes))
 				} else {
-					// For non-encrypted images
-					setDecryptedUrl(photo.url)
+					setDecryptedFilename(null)
 				}
 			} catch (error) {
 				console.error('Failed to decrypt image:', error)
@@ -43,7 +58,7 @@ export const PhotoView = ({photo}: { photo: Photo }) => {
 		}
 
 		decryptImage()
-	}, [photo])
+	}, [photo, shareKey])
 
 	const handleZoom = (zoomIn: boolean) => {
 		const zoomFactor = 0.25
@@ -331,7 +346,7 @@ export const PhotoView = ({photo}: { photo: Photo }) => {
 							>
 								<img
 									src={decryptedUrl}
-									alt={photo.originalFilename || 'Shared photo'}
+									alt={decryptedFilename || 'Shared photo'}
 									className="max-h-[90vh] max-w-full h-auto w-auto object-contain select-none"
 									draggable={false}
 								/>
