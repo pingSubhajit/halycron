@@ -39,7 +39,7 @@ export const POST = async (request: NextRequest) => {
 				const cookies = cookieHeader.split(';').map(c => c.trim())
 				const sessionCookie = cookies.find(c => c.startsWith('better-auth.session_token='))
 				if (sessionCookie) {
-					sessionToken = sessionCookie.split('=')[1]
+					sessionToken = sessionCookie.split('=')[1] ?? null
 				}
 			}
 		}
