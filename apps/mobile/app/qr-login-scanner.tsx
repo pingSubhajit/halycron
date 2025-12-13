@@ -68,17 +68,30 @@ const QrLoginScannerScreen = () => {
 
 					const responseData = await response.json()
 
-					if (responseData.success && responseData.token && responseData.user && responseData.session) {
+					if (responseData.success && responseData.user && responseData.session) {
 						// Convert expiresAt to timestamp if it's a string (for proper comparison)
 						const expiresAt = typeof responseData.session.expiresAt === 'string'
 							? new Date(responseData.session.expiresAt).getTime()
 							: responseData.session.expiresAt
 
-						// Store the session token in SecureStore in the correct format
-						// The expo-client expects: { "cookie_name": { "value": "token", "expires": date } }
+						/**
+						 * Store the Better Auth session cookie in SecureStore in the format expected by expo-client:
+						 * { "cookie_name": { "value": "cookie-value", "expires": date } }
+						 *
+						 * IMPORTANT:
+						 * Better Auth expects `better-auth.session_token` to be a SIGNED cookie value
+						 * (it verifies via getSignedCookie()). The server now returns that signed value
+						 * in `responseData.cookie.value`.
+						 */
+						const sessionCookieValue = responseData?.cookie?.value || responseData.token
+
+						if (!sessionCookieValue) {
+							throw new Error('Missing session cookie value from server')
+						}
+
 						const cookieData = {
 							'better-auth.session_token': {
-								value: responseData.token,
+								value: sessionCookieValue,
 								expires: new Date(expiresAt).toISOString()
 							}
 						}

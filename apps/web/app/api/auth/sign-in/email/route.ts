@@ -19,6 +19,18 @@ const generateSecureToken = (length: number): string => {
 }
 
 /**
+ * Hash a session token using SHA-256 (matching better-auth's internal behavior)
+ * Better-auth stores hashed tokens in the database for security
+ */
+const hashSessionToken = async (token: string): Promise<string> => {
+	const encoder = new TextEncoder()
+	const data = encoder.encode(token)
+	const hashBuffer = await crypto.subtle.digest('SHA-256', data)
+	const hashArray = Array.from(new Uint8Array(hashBuffer))
+	return hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
+}
+
+/**
  * Email/Password Sign In Endpoint
  * Handles authentication for mobile apps by bypassing CSRF checks
  * 
