@@ -10,9 +10,15 @@ interface ExtendedAuthClient extends ReturnType<typeof createAuthClient> {
 	twoFactor: TwoFactorClient;
 }
 
+const envBaseURL = process.env.NEXT_PUBLIC_BETTER_AUTH_URL || 'http://localhost:3000'
+const baseURL = typeof window === 'undefined' ? envBaseURL : window.location.origin
+
 export const authClient = createAuthClient({
 	// you can pass client configuration here
-	baseURL: process.env.NEXT_PUBLIC_BETTER_AUTH_URL || 'http://localhost:3000',
+	baseURL,
+	fetchOptions: {
+		credentials: 'include'
+	},
 	plugins: [
 		twoFactorClient()
 	]

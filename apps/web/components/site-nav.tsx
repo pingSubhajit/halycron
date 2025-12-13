@@ -44,8 +44,14 @@ const AuthLinks = async () => {
 				</>
 			) : (
 				<>
-					<Link href="/api/auth/logout" className="text-sm sm:text-base hover:opacity-70 transition-opacity">Log
-						out</Link>
+					<form action="/api/auth/logout" method="post">
+						<button
+							type="submit"
+							className="text-sm sm:text-base hover:opacity-70 transition-opacity"
+						>
+							Log out
+						</button>
+					</form>
 					<Link prefetch={true} href="/app">
 						<Button size="sm" className="text-xs sm:text-sm px-3 py-1.5 sm:px-4 sm:py-2">Dashboard</Button>
 					</Link>

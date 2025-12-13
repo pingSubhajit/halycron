@@ -1,6 +1,7 @@
 import {Resend} from 'resend'
 import {EmailVerification} from '@halycron/email/emails/email-verification'
 import {ExportReady} from '@halycron/email/emails/export-ready'
+import {PasswordReset} from '@halycron/email/emails/password-reset'
 
 let resendInstance: Resend | null = null
 
@@ -88,6 +89,42 @@ export const sendExportReadyEmail = async ({
 		return {success: true, messageId: data?.id}
 	} catch (error) {
 		console.error('Export email sending error:', error)
+		throw error
+	}
+}
+
+interface SendPasswordResetEmailParams {
+	to: string
+	resetUrl: string
+	userName?: string
+}
+
+export const sendPasswordResetEmail = async ({
+	to,
+	resetUrl,
+	userName
+}: SendPasswordResetEmailParams) => {
+	try {
+		const resend = getResendClient()
+
+		const {data, error} = await resend.emails.send({
+			from: 'Halycron <hello@halycron.space>',
+			to: [to],
+			subject: 'Reset your password - Halycron',
+			react: PasswordReset({
+				resetUrl,
+				userName
+			})
+		})
+
+		if (error) {
+			console.error('Resend error:', error)
+			throw new Error(`Failed to send password reset email: ${error.message}`)
+		}
+
+		return {success: true, messageId: data?.id}
+	} catch (error) {
+		console.error('Password reset email sending error:', error)
 		throw error
 	}
 }

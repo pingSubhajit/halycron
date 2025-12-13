@@ -135,6 +135,43 @@ export const SessionProvider = ({children}: { children: React.ReactNode }) => {
 			try {
 				if (!isPending) {
 					setTimeout(async () => {
+						// First: honor password reset deep links even when unauthenticated.
+						let unauthInitialUrl = await Linking.getInitialURL()
+						if (!unauthInitialUrl) {
+							for (let i = 0; i < 3; i++) {
+								await new Promise(resolve => setTimeout(resolve, 500))
+								unauthInitialUrl = await Linking.getInitialURL()
+								if (unauthInitialUrl) break
+							}
+						}
+
+						if (unauthInitialUrl) {
+							try {
+								const parsed = Linking.parse(unauthInitialUrl)
+								const path = parsed.path || ''
+								const isResetLink = parsed.scheme === 'halycron' && (path === 'reset-password' || path.startsWith('reset-password'))
+								if (isResetLink) {
+									// Preserve query params so ResetPassword can read token/error reliably.
+									const qp = parsed.queryParams || {}
+									const tokenParam = typeof qp.token === 'string' ? qp.token : Array.isArray(qp.token) ? qp.token[0] : undefined
+									const errorParam = typeof qp.error === 'string' ? qp.error : Array.isArray(qp.error) ? qp.error[0] : undefined
+
+									const query = new URLSearchParams(
+										{
+											...(tokenParam ? {token: tokenParam} : {}),
+											...(errorParam ? {error: errorParam} : {})
+										}
+									).toString()
+
+									setInitialRoute(query ? `/reset-password?${query}` : '/reset-password')
+									SplashScreen.hideAsync()
+									return
+								}
+							} catch {
+								// ignore parsing errors and continue normal routing
+							}
+						}
+
 						// Use sessionData from an auth client as the source of truth, with fallback to local sessionState
 						const currentSession = sessionData?.session || sessionState
 

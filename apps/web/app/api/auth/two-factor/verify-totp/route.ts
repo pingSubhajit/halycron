@@ -9,6 +9,10 @@ import {
 import {eq, and, gt} from 'drizzle-orm'
 import {symmetricDecrypt} from 'better-auth/crypto'
 import {createOTP} from '@better-auth/utils/otp'
+import {auth} from '@/lib/auth/config'
+import {toNextJsHandler} from 'better-auth/next-js'
+
+const betterAuthHandler = toNextJsHandler(auth.handler)
 
 /**
  * Generate a secure random token matching better-auth's format
@@ -29,19 +33,26 @@ const generateSecureToken = (length: number): string => {
  */
 export const POST = async (request: NextRequest) => {
 	try {
-		const body = await request.json()
-		const {code, twoFactorToken} = body as {code: string; twoFactorToken?: string}
+		// Read body from a clone so we can still forward the original request to Better Auth
+		// (request bodies are single-read).
+		const body = await request.clone().json().catch(() => ({}))
+		const {code, twoFactorToken} = body as {code?: string; twoFactorToken?: string}
+
+		/**
+		 * IMPORTANT:
+		 * This route exists to bypass CSRF for mobile apps (which may not send Origin headers),
+		 * but it *must not* break the web flow.
+		 *
+		 * If no `twoFactorToken` is provided, delegate to Better Auth’s built-in handler
+		 * for `/api/auth/two-factor/verify-totp`, which expects cookie-based sessions.
+		 */
+		if (!twoFactorToken) {
+			return betterAuthHandler.POST(request)
+		}
 
 		if (!code) {
 			return NextResponse.json(
 				{error: 'Verification code is required'},
-				{status: 400}
-			)
-		}
-
-		if (!twoFactorToken) {
-			return NextResponse.json(
-				{error: 'Two-factor token is required'},
 				{status: 400}
 			)
 		}

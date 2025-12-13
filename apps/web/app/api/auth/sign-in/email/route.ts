@@ -3,6 +3,10 @@ import {db} from '@/db/drizzle'
 import {user as userTable, account as accountTable, session as sessionTable, verification as verificationTable} from '@/db/schema'
 import {eq, and} from 'drizzle-orm'
 import {verifyPassword} from 'better-auth/crypto'
+import {auth} from '@/lib/auth/config'
+import {toNextJsHandler} from 'better-auth/next-js'
+
+const betterAuthHandler = toNextJsHandler(auth.handler)
 
 /**
  * Generate a secure random token matching better-auth's format
@@ -23,6 +27,20 @@ const generateSecureToken = (length: number): string => {
  */
 export const POST = async (request: NextRequest) => {
 	try {
+		/**
+		 * IMPORTANT:
+		 * This endpoint exists to support mobile clients that may not send Origin/Referer headers,
+		 * which can trip CSRF checks. For regular browser requests, we should use Better Auth's
+		 * built-in handler so the 2FA flow works (it sets the temporary two-factor cookie).
+		 */
+		const appPlatform = request.headers.get('x-app-platform') || request.headers.get('x-halycron-app')
+		const hasOrigin = Boolean(request.headers.get('origin') || request.headers.get('referer'))
+		const isMobileClient = typeof appPlatform === 'string' && appPlatform.toLowerCase().includes('mobile')
+
+		if (!isMobileClient && hasOrigin) {
+			return betterAuthHandler.POST(request)
+		}
+
 		const body = await request.json()
 		const {email, password} = body as {email: string; password: string}
 

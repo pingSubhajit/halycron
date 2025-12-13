@@ -23,13 +23,15 @@ const formSchema = z.object({
 	password: z.string().min(1, 'We\'ll need your password to get you in')
 })
 
-type LoginView = 'credentials' | 'two-factor' | 'qr-login'
+type LoginView = 'credentials' | 'two-factor' | 'qr-login' | 'forgot-password'
 
 const LoginForm = () => {
 	const router = useRouter()
 	const [showPassword, setShowPassword] = useState(false)
 	const [isLoading, setIsLoading] = useState(false)
 	const [loginView, setLoginView] = useState<LoginView>('credentials')
+	const [forgotEmail, setForgotEmail] = useState('')
+	const [forgotLoading, setForgotLoading] = useState(false)
 
 	// Backwards compatibility helpers
 	const showTwoFactorVerify = loginView === 'two-factor'
@@ -75,6 +77,38 @@ const LoginForm = () => {
 			toast.error(error instanceof Error ? error.message : 'Hmm, those details didn\'t work. Want to try again?')
 		} finally {
 			setIsLoading(false)
+		}
+	}
+
+	const handleRequestPasswordReset = async () => {
+		try {
+			setForgotLoading(true)
+
+			const email = (forgotEmail || form.getValues('email') || '').trim()
+			if (!email) {
+				toast.error('Enter your email first, and we’ll send you a reset link.')
+				return
+			}
+
+			const redirectTo = `${window.location.origin}/reset-password`
+			const {error} = await authClient.requestPasswordReset({
+				email,
+				redirectTo
+			} as never)
+
+			if (error) {
+				// Never enumerate accounts; just show a friendly confirmation.
+				console.error('requestPasswordReset error:', error)
+			}
+
+			toast.success('If an account exists for that email, we just sent a reset link.')
+			setLoginView('credentials')
+		} catch (error) {
+			console.error('requestPasswordReset failed:', error)
+			toast.success('If an account exists for that email, we just sent a reset link.')
+			setLoginView('credentials')
+		} finally {
+			setForgotLoading(false)
 		}
 	}
 
@@ -135,6 +169,53 @@ const LoginForm = () => {
 										setLoginView('credentials')
 									}}
 								/>
+							</motion.div>
+						)}
+						{loginView === 'forgot-password' && (
+							<motion.div
+								key="FORGOT_PASSWORD"
+								initial={{opacity: 0}}
+								animate={{opacity: 1}}
+								exit={{opacity: 0}}
+								transition={{duration: 0.2}}
+							>
+								<div className="space-y-4">
+									<div className="space-y-2 text-center">
+										<h2 className="text-xl font-semibold tracking-tight">Reset your password</h2>
+										<p className="text-sm text-muted-foreground">
+											We’ll email you a secure link to choose a new password.
+										</p>
+									</div>
+
+									<div className="space-y-3">
+										<Input
+											type="email"
+											placeholder="Your email"
+											className="h-12 bg-transparent"
+											value={forgotEmail}
+											onChange={(e) => setForgotEmail(e.target.value)}
+										/>
+
+										<Button
+											type="button"
+											className="w-full h-12"
+											disabled={forgotLoading}
+											onClick={handleRequestPasswordReset}
+										>
+											{forgotLoading ? 'Sending link...' : 'Send reset link'}
+										</Button>
+
+										<Button
+											type="button"
+											variant="ghost"
+											className="w-full"
+											onClick={() => setLoginView('credentials')}
+											disabled={forgotLoading}
+										>
+											Back to sign in
+										</Button>
+									</div>
+								</div>
 							</motion.div>
 						)}
 						{loginView === 'qr-login' && (
@@ -214,6 +295,19 @@ const LoginForm = () => {
 												</FormItem>
 											)}
 										/>
+										<div className="flex items-center justify-between">
+											<Button
+												type="button"
+												variant="link"
+												className="px-0 text-sm"
+												onClick={() => {
+													setForgotEmail(form.getValues('email') || '')
+													setLoginView('forgot-password')
+												}}
+											>
+												Forgot password?
+											</Button>
+										</div>
 										<Button type="submit" className="w-full h-12" disabled={isLoading}>
 											{isLoading ? 'Getting you in...' : 'Welcome back'}
 										</Button>

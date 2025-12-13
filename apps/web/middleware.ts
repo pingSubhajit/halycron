@@ -22,7 +22,14 @@ export const middleware = async (request: NextRequest) => {
 
 	let rateLimitResult
 
-	if (path.startsWith('/api/auth/reset-password')) {
+	// Password reset:
+	// - POST /api/auth/request-password-reset (send email)
+	// - POST /api/auth/reset-password (set new password)
+	// Do NOT rate-limit the GET token link handler at /api/auth/reset-password/:token
+	if (
+		request.method === 'POST'
+		&& (path === '/api/auth/request-password-reset' || path === '/api/auth/reset-password')
+	) {
 		rateLimitResult = await rateLimit(request, RATE_LIMIT_CONFIGS.passwordReset, 'reset')
 	} else if (path.startsWith('/api/auth/sign-in')) {
 		rateLimitResult = await rateLimit(request, RATE_LIMIT_CONFIGS.login, 'login')

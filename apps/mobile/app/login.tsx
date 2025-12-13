@@ -110,6 +110,12 @@ const Login = () => {
 					/>
 				</View>
 
+				<View className="flex-row justify-end mb-6">
+					<TouchableOpacity onPress={() => router.push('/forgot-password')}>
+						<Text className="text-primary font-medium">Forgot password?</Text>
+					</TouchableOpacity>
+				</View>
+
 				<Button
 					variant="default"
 					onPress={handleLogin}

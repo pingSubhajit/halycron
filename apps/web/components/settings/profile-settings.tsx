@@ -90,7 +90,10 @@ export const ProfileSettings = ({initialSession}: ProfileSettingsProps) => {
 			await new Promise(resolve => setTimeout(resolve, 2000))
 
 			// Sign out the user after account deletion
-			await authClient.signOut()
+			await fetch('/api/auth/logout', {
+				method: 'POST',
+				credentials: 'include'
+			})
 
 			// Show success message
 			toast.success('Account deleted successfully')
