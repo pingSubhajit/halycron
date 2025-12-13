@@ -3,6 +3,8 @@ import {verifyMobileLoginToken} from '../utils'
 import {db} from '@/db/drizzle'
 import {user as userTable, session as sessionTable} from '@/db/schema'
 import {eq} from 'drizzle-orm'
+import {getCookies} from 'better-auth/cookies'
+import {auth} from '@/lib/auth/config'
 
 /**
  * Generate a secure random token matching better-auth's format
@@ -114,14 +116,17 @@ export const POST = async (request: NextRequest) => {
 			return NextResponse.json({error: 'Server configuration error'}, {status: 500})
 		}
 
-		// This is the value that must be stored as the cookie value for `better-auth.session_token`
-		// so `auth.api.getSession()` can validate it via ctx.getSignedCookie().
+		// This is the value that must be stored as the cookie value so `auth.api.getSession()`
+		// can validate it via ctx.getSignedCookie().
 		const signedSessionCookieValue = await signCookieValue(sessionToken, secret)
+		const sessionCookieName = getCookies(auth.options).sessionToken.name
 
 		return NextResponse.json({
 			success: true,
 			cookie: {
-				name: 'better-auth.session_token',
+				// IMPORTANT: in production Better Auth prefixes cookies with "__Secure-"
+				// so the actual cookie name is usually "__Secure-better-auth.session_token".
+				name: sessionCookieName,
 				value: signedSessionCookieValue,
 				expiresAt: session.expiresAt
 			},

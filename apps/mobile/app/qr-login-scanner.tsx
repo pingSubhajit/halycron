@@ -83,6 +83,7 @@ const QrLoginScannerScreen = () => {
 						 * (it verifies via getSignedCookie()). The server now returns that signed value
 						 * in `responseData.cookie.value`.
 						 */
+						const sessionCookieName = responseData?.cookie?.name || 'better-auth.session_token'
 						const sessionCookieValue = responseData?.cookie?.value || responseData.token
 
 						if (!sessionCookieValue) {
@@ -90,7 +91,7 @@ const QrLoginScannerScreen = () => {
 						}
 
 						const cookieData = {
-							'better-auth.session_token': {
+							[sessionCookieName]: {
 								value: sessionCookieValue,
 								expires: new Date(expiresAt).toISOString()
 							}
