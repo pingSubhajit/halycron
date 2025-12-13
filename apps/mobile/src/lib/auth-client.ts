@@ -33,9 +33,7 @@ export const authClient = createAuthClient({
 		expoClient({
 			scheme: 'halycron', // Should match your app.json scheme
 			storagePrefix: 'halycron',
-			storage: SecureStore,
-			// Cookie prefix must match Better Auth's default cookie names
-			cookiePrefix: 'better-auth'
+			storage: SecureStore
 		}),
 		twoFactorClient()
 	]

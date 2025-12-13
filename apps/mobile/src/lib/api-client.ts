@@ -15,11 +15,6 @@ class ApiClient {
 		// Get the auth cookie from better-auth
 		const cookies = authClient.getCookie()
 
-		// Debug: log the cookie value in development
-		if (__DEV__) {
-			console.log('[ApiClient] cookies for', endpoint, ':', cookies ? `${cookies.substring(0, 50)}...` : '(none)')
-		}
-
 		// Merge headers with auth cookie
 		const headers = {
 			'Content-Type': 'application/json',
@@ -28,11 +23,9 @@ class ApiClient {
 		}
 
 		// Make the authenticated request
-		// credentials: 'omit' prevents interference with manually set Cookie header
 		const response = await fetch(`${API_URL}${endpoint}`, {
 			...options,
-			headers,
-			credentials: 'omit'
+			headers
 		})
 
 		// Handle common response patterns
