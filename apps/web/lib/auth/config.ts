@@ -5,7 +5,6 @@ import {db} from '@/db/drizzle'
 import * as schema from '@/db/schema'
 import {twoFactor} from 'better-auth/plugins'
 import {twoFactorClient} from 'better-auth/client/plugins'
-import {expo} from '@better-auth/expo'
 import {qrLoginPlugin} from './qr-login-plugin'
 import {sendPasswordResetEmail} from '@/lib/email/resend-client'
 
@@ -25,8 +24,7 @@ export const auth: ReturnType<typeof betterAuth> = betterAuth({
 		if (process.env.NODE_ENV === 'production') {
 			return Array.from(new Set([
 				envOrigin,
-				'https://halycron.space',
-				'halycron://' // Mobile app deep link scheme
+				'https://halycron.space'
 			].filter(Boolean) as string[]))
 		}
 
@@ -86,7 +84,6 @@ export const auth: ReturnType<typeof betterAuth> = betterAuth({
 	},
 	plugins: [
 		nextCookies(),
-		expo(),
 		twoFactor(),
 		twoFactorClient(),
 		qrLoginPlugin()
