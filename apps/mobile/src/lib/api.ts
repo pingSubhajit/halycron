@@ -14,9 +14,11 @@ export async function fetchWithAuth(endpoint: string, options: RequestInit = {})
 	}
 
 	// Make the authenticated request
+	// credentials: 'omit' prevents interference with manually set Cookie header
 	const response = await fetch(`${API_URL}${endpoint}`, {
 		...options,
-		headers
+		headers,
+		credentials: 'omit'
 	})
 
 	// Handle common response patterns
