@@ -263,3 +263,21 @@ export const verifyMobileLoginToken = (token: string): MobileLoginTokenData | nu
 
 	return data
 }
+
+// Check if mobile login token exists (without consuming it)
+export const checkMobileLoginTokenStatus = (token: string): 'pending' | 'used' | 'expired' => {
+	const data = mobileLoginTokenStore.get(token)
+
+	if (!data) {
+		// Token not found means it was already used or never existed
+		return 'used'
+	}
+
+	// Check if expired
+	if (Date.now() > data.expiresAt) {
+		mobileLoginTokenStore.delete(token)
+		return 'expired'
+	}
+
+	return 'pending'
+}

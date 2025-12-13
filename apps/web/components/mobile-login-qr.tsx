@@ -9,10 +9,10 @@ import {
 	DialogTitle
 } from '@halycron/ui/components/dialog'
 import {Button} from '@halycron/ui/components/button'
-import {Loader2, RefreshCw, Smartphone} from 'lucide-react'
+import {CheckCircle, Loader2, RefreshCw, Smartphone} from 'lucide-react'
 import QRCode from 'qrcode'
 
-type MobileLoginState = 'loading' | 'displaying' | 'expired' | 'error'
+type MobileLoginState = 'loading' | 'displaying' | 'expired' | 'success' | 'error'
 
 interface MobileLoginQrProps {
 	open: boolean
@@ -25,6 +25,11 @@ interface MobileLoginInitiateResponse {
 	qrData: string
 }
 
+interface MobileLoginStatusResponse {
+	status: 'pending' | 'used' | 'expired'
+	completed: boolean
+}
+
 export const MobileLoginQr = ({open, onOpenChange}: MobileLoginQrProps) => {
 	const [state, setState] = useState<MobileLoginState>('loading')
 	const [qrDataUrl, setQrDataUrl] = useState<string | null>(null)
@@ -32,7 +37,9 @@ export const MobileLoginQr = ({open, onOpenChange}: MobileLoginQrProps) => {
 	const [error, setError] = useState<string | null>(null)
 
 	const countdownRef = useRef<NodeJS.Timeout | null>(null)
+	const pollingRef = useRef<NodeJS.Timeout | null>(null)
 	const expiresAtRef = useRef<number>(0)
+	const tokenRef = useRef<string | null>(null)
 	const isInitializedRef = useRef(false)
 
 	// Clean up intervals
@@ -40,6 +47,10 @@ export const MobileLoginQr = ({open, onOpenChange}: MobileLoginQrProps) => {
 		if (countdownRef.current) {
 			clearInterval(countdownRef.current)
 			countdownRef.current = null
+		}
+		if (pollingRef.current) {
+			clearInterval(pollingRef.current)
+			pollingRef.current = null
 		}
 	}, [])
 
@@ -62,6 +73,38 @@ export const MobileLoginQr = ({open, onOpenChange}: MobileLoginQrProps) => {
 		}
 	}
 
+	// Poll for token status
+	const checkTokenStatus = useCallback(async () => {
+		if (!tokenRef.current) return
+
+		try {
+			const response = await fetch(`/api/auth/qr-login/mobile-login-status/${tokenRef.current}`, {
+				credentials: 'include'
+			})
+
+			if (response.ok) {
+				const data: MobileLoginStatusResponse = await response.json()
+
+				if (data.completed || data.status === 'used') {
+					// Mobile login successful!
+					cleanup()
+					setState('success')
+
+					// Auto-close dialog after showing success
+					setTimeout(() => {
+						onOpenChange(false)
+					}, 2000)
+				} else if (data.status === 'expired') {
+					cleanup()
+					setState('expired')
+				}
+			}
+		} catch (err) {
+			// Silently fail on polling errors - don't disrupt the UX
+			console.error('Error polling mobile login status:', err)
+		}
+	}, [cleanup, onOpenChange])
+
 	// Initialize mobile login QR
 	const initializeMobileLogin = useCallback(async (isManualRefresh = false) => {
 		if (!isManualRefresh && isInitializedRef.current) {
@@ -73,6 +116,7 @@ export const MobileLoginQr = ({open, onOpenChange}: MobileLoginQrProps) => {
 		setState('loading')
 		setError(null)
 		setQrDataUrl(null)
+		tokenRef.current = null
 
 		try {
 			const response = await fetch('/api/auth/qr-login/initiate-mobile', {
@@ -88,6 +132,9 @@ export const MobileLoginQr = ({open, onOpenChange}: MobileLoginQrProps) => {
 			}
 
 			const data: MobileLoginInitiateResponse = await response.json()
+
+			// Store the token for status polling
+			tokenRef.current = data.token
 
 			await generateQrImage(data.qrData)
 
@@ -109,12 +156,15 @@ export const MobileLoginQr = ({open, onOpenChange}: MobileLoginQrProps) => {
 				}
 			}, 1000)
 
+			// Start polling for token usage (every 2 seconds)
+			pollingRef.current = setInterval(checkTokenStatus, 2000)
+
 		} catch (err) {
 			console.error('Error initializing mobile login:', err)
 			setError(err instanceof Error ? err.message : 'Failed to initialize mobile login')
 			setState('error')
 		}
-	}, [cleanup])
+	}, [cleanup, checkTokenStatus])
 
 	// Initialize when dialog opens
 	useEffect(() => {
@@ -126,6 +176,7 @@ export const MobileLoginQr = ({open, onOpenChange}: MobileLoginQrProps) => {
 			setState('loading')
 			setQrDataUrl(null)
 			setError(null)
+			tokenRef.current = null
 			isInitializedRef.current = false
 		}
 
@@ -152,6 +203,7 @@ export const MobileLoginQr = ({open, onOpenChange}: MobileLoginQrProps) => {
 						{state === 'loading' && 'Generating QR code...'}
 						{state === 'displaying' && 'Scan this QR code on the mobile app login screen'}
 						{state === 'expired' && 'QR code expired'}
+						{state === 'success' && 'Mobile login successful!'}
 						{state === 'error' && 'Something went wrong'}
 					</DialogDescription>
 				</DialogHeader>
@@ -166,6 +218,7 @@ export const MobileLoginQr = ({open, onOpenChange}: MobileLoginQrProps) => {
 					{state === 'displaying' && qrDataUrl && (
 						<>
 							<div className="p-4 bg-white rounded-lg">
+								{/* eslint-disable-next-line @next/next/no-img-element */}
 								<img
 									src={qrDataUrl}
 									alt="QR Code for mobile login"
@@ -181,6 +234,18 @@ export const MobileLoginQr = ({open, onOpenChange}: MobileLoginQrProps) => {
 								</p>
 							</div>
 						</>
+					)}
+
+					{state === 'success' && (
+						<div className="w-64 h-64 flex flex-col items-center justify-center space-y-4">
+							<div className="w-16 h-16 rounded-full bg-green-500/20 flex items-center justify-center">
+								<CheckCircle className="h-10 w-10 text-green-500" />
+							</div>
+							<p className="text-foreground font-medium">Mobile device logged in!</p>
+							<p className="text-sm text-muted-foreground text-center">
+								The mobile app is now connected to your account
+							</p>
+						</div>
 					)}
 
 					{state === 'expired' && (
@@ -207,4 +272,3 @@ export const MobileLoginQr = ({open, onOpenChange}: MobileLoginQrProps) => {
 		</Dialog>
 	)
 }
-
