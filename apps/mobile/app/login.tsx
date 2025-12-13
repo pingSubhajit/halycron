@@ -46,7 +46,11 @@ const Login = () => {
 			 */
 			const resultData = result?.data as any
 			if (resultData?.twoFactorRedirect) {
-				router.push('/two-factor')
+				// Pass the twoFactorToken to the 2FA screen
+				router.push({
+					pathname: '/two-factor',
+					params: {twoFactorToken: resultData.twoFactorToken}
+				})
 				return
 			}
 

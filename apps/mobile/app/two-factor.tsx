@@ -2,15 +2,22 @@ import React, {useState} from 'react'
 import {Text, View} from 'react-native'
 import {Button} from '@/src/components/ui/button'
 import {useTheme} from '@/src/theme/ThemeProvider'
-import {useRouter} from 'expo-router'
-import {authClient} from '@/src/lib/auth-client'
+import {useRouter, useLocalSearchParams} from 'expo-router'
 import {Input} from '@/src/components/ui/input'
 import {Image} from '@/src/components/interops'
 import logo from '@halycron/ui/media/logo.svg'
+import {useSession} from '@/src/components/session-provider'
+import {Platform} from 'react-native'
+
+// Get the base URL for API calls
+const DEV_URL = Platform.OS === 'ios' ? 'http://localhost:3000' : 'http://10.0.2.2:3000'
+const BASE_URL = process.env.EXPO_PUBLIC_API_URL || DEV_URL
 
 const TwoFactorScreen = () => {
 	const {theme} = useTheme()
 	const router = useRouter()
+	const {twoFactorToken} = useLocalSearchParams<{twoFactorToken: string}>()
+	const {setSessionData} = useSession()
 	const [code, setCode] = useState('')
 	const [loading, setLoading] = useState(false)
 	const [error, setError] = useState('')
@@ -21,19 +28,38 @@ const TwoFactorScreen = () => {
 			return
 		}
 
+		if (!twoFactorToken) {
+			setError('Session expired. Please login again.')
+			router.push('/login')
+			return
+		}
+
 		try {
 			setLoading(true)
 			setError('')
 
-			// Verify 2FA code
-			await authClient.twoFactor.verifyTotp({
-				code
+			// Call our custom 2FA verification endpoint that bypasses CSRF
+			const response = await fetch(`${BASE_URL}/api/auth/two-factor/verify-totp`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({
+					code,
+					twoFactorToken
+				})
 			})
 
-			// Check session after verification
-			const session = await authClient.getSession()
+			const data = await response.json()
 
-			if (session?.data?.user) {
+			if (!response.ok) {
+				setError(data.error || 'That code doesn\'t seem right. Let\'s try again?')
+				return
+			}
+
+			// Set the session data from the response
+			if (data.session && data.user) {
+				await setSessionData(data.session, data.user)
 				router.push('/')
 			} else {
 				setError('That code doesn\'t seem right. Let\'s try again?')
