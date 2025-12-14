@@ -8,10 +8,15 @@ import {Image} from '@/src/components/interops'
 import logo from '@halycron/ui/media/logo.svg'
 import {useSession} from '@/src/components/session-provider'
 import {Platform} from 'react-native'
+import * as SecureStore from 'expo-secure-store'
 
 // Get the base URL for API calls
 const DEV_URL = Platform.OS === 'ios' ? 'http://localhost:3000' : 'http://10.0.2.2:3000'
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL || DEV_URL
+
+// SecureStore key for better-auth expo-client cookie storage
+// Format: {storagePrefix}_cookie
+const COOKIE_STORAGE_KEY = 'halycron_cookie'
 
 const TwoFactorScreen = () => {
 	const {theme} = useTheme()
@@ -59,6 +64,21 @@ const TwoFactorScreen = () => {
 
 			// Set the session data from the response
 			if (data.session && data.user) {
+				// Store signed Better Auth cookie in SecureStore so api-client can authenticate `/api/*` calls.
+				// Our server returns the signed cookie value in `data.cookie.value` (like QR login flow).
+				const expiresAt = data?.cookie?.expiresAt ?? data?.session?.expiresAt
+				const cookieName = data?.cookie?.name || 'better-auth.session_token'
+				const cookieValue = data?.cookie?.value
+				if (cookieValue) {
+					const cookieData = {
+						[cookieName]: {
+							value: cookieValue,
+							expires: new Date(expiresAt).toISOString()
+						}
+					}
+					await SecureStore.setItemAsync(COOKIE_STORAGE_KEY, JSON.stringify(cookieData))
+				}
+
 				await setSessionData(data.session, data.user)
 				router.push('/')
 			} else {

@@ -11,6 +11,7 @@ import {symmetricDecrypt} from 'better-auth/crypto'
 import {createOTP} from '@better-auth/utils/otp'
 import {auth} from '@/lib/auth/config'
 import {toNextJsHandler} from 'better-auth/next-js'
+import {getCookies} from 'better-auth/cookies'
 
 const betterAuthHandler = toNextJsHandler(auth.handler)
 
@@ -22,6 +23,25 @@ const generateSecureToken = (length: number): string => {
 	const array = new Uint8Array(length)
 	crypto.getRandomValues(array)
 	return Array.from(array, byte => chars[byte % chars.length]).join('')
+}
+
+/**
+ * Sign a cookie value the same way Better Auth expects (`better-call`):
+ * - compute HMAC-SHA256 over the raw token using BETTER_AUTH_SECRET
+ * - append as `${token}.${base64(signature)}`
+ * - encodeURIComponent() the whole value for safe cookie transport
+ */
+const signCookieValue = async (value: string, secret: string): Promise<string> => {
+	const secretKey = await crypto.subtle.importKey(
+		'raw',
+		new TextEncoder().encode(secret),
+		{name: 'HMAC', hash: 'SHA-256'},
+		false,
+		['sign']
+	)
+	const sigBuf = await crypto.subtle.sign('HMAC', secretKey, new TextEncoder().encode(value))
+	const signature = Buffer.from(sigBuf).toString('base64')
+	return encodeURIComponent(`${value}.${signature}`)
 }
 
 /**
@@ -178,7 +198,19 @@ export const POST = async (request: NextRequest) => {
 			)
 		}
 
+		// This is the value that must be stored as the cookie value so `auth.api.getSession()`
+		// can validate it via ctx.getSignedCookie().
+		const signedSessionCookieValue = await signCookieValue(sessionToken, secret)
+		const sessionCookieName = getCookies(auth.options).sessionToken.name
+
 		return NextResponse.json({
+			success: true,
+			cookie: {
+				// IMPORTANT: in production Better Auth may prefix cookies with "__Secure-"
+				name: sessionCookieName,
+				value: signedSessionCookieValue,
+				expiresAt: session.expiresAt
+			},
 			user: {
 				id: user.id,
 				email: user.email,
@@ -196,6 +228,7 @@ export const POST = async (request: NextRequest) => {
 				createdAt: session.createdAt,
 				updatedAt: session.updatedAt
 			},
+			// Backwards compat (older clients stored this directly, which no longer works)
 			token: sessionToken
 		})
 	} catch (error) {
