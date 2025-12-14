@@ -1,4 +1,4 @@
-import React, {createContext, useContext, useEffect, useState} from 'react'
+import React, {createContext, useContext, useEffect, useRef, useState} from 'react'
 import {authClient} from '@/src/lib/auth-client'
 import {Session, User} from 'better-auth'
 import AsyncStorage from '@react-native-async-storage/async-storage'
@@ -6,6 +6,7 @@ import {Route, router, SplashScreen} from 'expo-router'
 import CustomSplashScreen from '@/src/components/splash-screen'
 import * as Linking from 'expo-linking'
 import * as QuickActions from 'expo-quick-actions'
+import {vaultForgetThisDevice} from '@/src/lib/crypto/vault'
 
 interface SessionContextValue {
 	session: Session | null;
@@ -27,13 +28,32 @@ export const SessionProvider = ({children}: { children: React.ReactNode }) => {
 	const [sessionState, setSessionState] = useState<Session | null>(null)
 	const [userState, setUserState] = useState<User | null>(null)
 	const [initialRoute, setInitialRoute] = useState<string | null>(null)
+	const lastUserKeyRef = useRef<string | null>(null)
 
 	const {data: sessionData, isPending} = authClient.useSession()
+
+	const getUserKey = (user: User | null | undefined): string | null => {
+		if (!user) return null
+		// Prefer stable identifiers if available; fall back to email/name.
+		const anyUser = user as unknown as Record<string, unknown>
+		const id = typeof anyUser.id === 'string' ? anyUser.id : null
+		const email = typeof anyUser.email === 'string' ? anyUser.email : null
+		const name = typeof anyUser.name === 'string' ? anyUser.name : null
+		return id || email || name
+	}
 
 	// Effect to update and persist session when it changes from auth client
 	useEffect(() => {
 		const handleSessionUpdate = async () => {
 			if (sessionData?.session) {
+				// If the authenticated user changed (eg. QR-login or switching accounts), clear device-cached UMK.
+				const nextUserKey = getUserKey(sessionData.user)
+				const prevUserKey = lastUserKeyRef.current ?? getUserKey(userState)
+				if (prevUserKey && nextUserKey && prevUserKey !== nextUserKey) {
+					await vaultForgetThisDevice().catch(() => {})
+				}
+				lastUserKeyRef.current = nextUserKey
+
 				// Save session to storage
 				await AsyncStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(sessionData.session))
 				await AsyncStorage.setItem(USER_STORAGE_KEY, JSON.stringify(sessionData.user))
@@ -45,7 +65,7 @@ export const SessionProvider = ({children}: { children: React.ReactNode }) => {
 		}
 
 		handleSessionUpdate()
-	}, [sessionData])
+	}, [sessionData, userState])
 
 	// Effect to restore session on app launch
 	useEffect(() => {
@@ -79,7 +99,9 @@ export const SessionProvider = ({children}: { children: React.ReactNode }) => {
 						}
 					} else {
 						// Session expired, clean up storage
-						clearSessionStorage()
+						// Keep the last known user key so we can detect account switches and clear cached UMK on next login.
+						lastUserKeyRef.current = getUserKey(userObj)
+						await clearSessionStorage()
 						setStatus('unauthenticated')
 					}
 				} else {
@@ -102,19 +124,30 @@ export const SessionProvider = ({children}: { children: React.ReactNode }) => {
 	const signOut = async () => {
 		try {
 			await authClient.signOut()
-			await clearSessionStorage()
+		} catch (error) {
+			// Even if remote sign-out fails, still clear local session + cached keys.
+			console.error('Error signing out:', error)
+		} finally {
+			await clearSessionStorage().catch(() => {})
+			await vaultForgetThisDevice().catch(() => {})
+			lastUserKeyRef.current = null
 			setSessionState(null)
 			setUserState(null)
 			setStatus('unauthenticated')
 			router.push('/onboarding')
-		} catch (error) {
-			console.error('Error signing out:', error)
 		}
 	}
 
 	// Method to directly set session data (used by QR login)
 	const setSessionData = async (session: Session, user: User) => {
 		try {
+			const nextUserKey = getUserKey(user)
+			const prevUserKey = lastUserKeyRef.current ?? getUserKey(userState)
+			if (prevUserKey && nextUserKey && prevUserKey !== nextUserKey) {
+				await vaultForgetThisDevice().catch(() => {})
+			}
+			lastUserKeyRef.current = nextUserKey
+
 			// Save to AsyncStorage
 			await AsyncStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session))
 			await AsyncStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user))

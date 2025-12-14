@@ -17,7 +17,7 @@ type VaultContextValue = {
 const VaultContext = createContext<VaultContextValue | undefined>(undefined)
 
 export const VaultProvider = ({children}: {children: React.ReactNode}) => {
-	const {status: authStatus} = useSession()
+	const {status: authStatus, user} = useSession()
 	const [status, setStatus] = useState<VaultStatus>('checking')
 	const [umk, setUmk] = useState<Uint8Array | null>(null)
 	const [lastError, setLastError] = useState<string | null>(null)
@@ -39,7 +39,7 @@ export const VaultProvider = ({children}: {children: React.ReactNode}) => {
 	}, [])
 
 	const refresh = useCallback(async () => {
-		if (authStatus !== 'authenticated') {
+		if (authStatus !== 'authenticated' || !user) {
 			setUmk(null)
 			setStatus('checking')
 			return
@@ -52,7 +52,7 @@ export const VaultProvider = ({children}: {children: React.ReactNode}) => {
 			setLastError(e instanceof Error ? e.message : 'Failed to load vault')
 			setStatus('locked')
 		}
-	}, [authStatus, applyResult])
+	}, [authStatus, user, applyResult])
 
 	useEffect(() => {
 		refresh()
