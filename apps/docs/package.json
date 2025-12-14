@@ -1,0 +1,11 @@
+{
+  "name": "@halycron/docs",
+  "private": true,
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "bunx --yes mint dev --no-open",
+    "build": "bunx --yes mint broken-links"
+  }
+}
+
+
