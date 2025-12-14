@@ -7,6 +7,7 @@ import {NuqsAdapter} from 'nuqs/adapters/next/app'
 import APIProvider from '@/components/api-provider'
 import {LightboxProvider} from './lightbox-context'
 import {ActivityTracker} from '@/components/activity-tracker'
+import {VaultProvider} from '@/components/vault-provider'
 
 export const Providers = ({children}: { children: React.ReactNode }) => (
 	<NextThemesProvider
@@ -18,11 +19,13 @@ export const Providers = ({children}: { children: React.ReactNode }) => (
 	>
 		<NuqsAdapter>
 			<APIProvider>
-				<LightboxProvider>
-					<ActivityTracker/>
-					{children}
-					<Toaster/>
-				</LightboxProvider>
+				<VaultProvider>
+					<LightboxProvider>
+						<ActivityTracker/>
+						{children}
+						<Toaster/>
+					</LightboxProvider>
+				</VaultProvider>
 			</APIProvider>
 		</NuqsAdapter>
 	</NextThemesProvider>

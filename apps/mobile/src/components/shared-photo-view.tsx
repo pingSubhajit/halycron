@@ -4,14 +4,16 @@ import {ImageZoom} from '@likashefqet/react-native-image-zoom'
 import {Photo as SharedPhoto} from '@/src/lib/shared-api'
 import {darkTheme} from '@/src/theme/theme'
 import {downloadAndDecryptFile} from '@/src/lib/crypto-utils'
+import {aeadDecrypt} from '@/src/lib/crypto/e2ee'
 
 interface SharedPhotoViewProps {
 	photo: SharedPhoto
+	shareKey: Uint8Array | null
 }
 
 const {width: screenWidth, height: screenHeight} = Dimensions.get('window')
 
-export const SharedPhotoView: React.FC<SharedPhotoViewProps> = ({photo}) => {
+export const SharedPhotoView: React.FC<SharedPhotoViewProps> = ({photo, shareKey}) => {
 	const [decryptedUrl, setDecryptedUrl] = useState<string | null>(null)
 	const [isLoading, setIsLoading] = useState(true)
 	const [error, setError] = useState<string | null>(null)
@@ -23,18 +25,16 @@ export const SharedPhotoView: React.FC<SharedPhotoViewProps> = ({photo}) => {
 				setIsLoading(true)
 				setError(null)
 
-				if (photo.encryptedFileKey && photo.fileKeyIv) {
-					const url = await downloadAndDecryptFile(
-						photo.url,
-						photo.encryptedFileKey,
-						photo.fileKeyIv,
-						photo.mimeType,
-						photo.id
+				if (shareKey && photo.wrappedDekForShare && photo.wrappedDekForShareIv && photo.contentIv) {
+					const dekBytes = await aeadDecrypt(
+						{ciphertextB64: photo.wrappedDekForShare, nonceB64: photo.wrappedDekForShareIv},
+						shareKey
 					)
+
+					const url = await downloadAndDecryptFile(photo.url, dekBytes, photo.contentIv, photo.mimeType, photo.id)
 					setDecryptedUrl(url)
 				} else {
-					// For non-encrypted images
-					setDecryptedUrl(photo.url)
+					throw new Error('Missing share key or encrypted key material')
 				}
 			} catch (error) {
 				console.error('Failed to decrypt image:', error)
@@ -45,7 +45,7 @@ export const SharedPhotoView: React.FC<SharedPhotoViewProps> = ({photo}) => {
 		}
 
 		decryptImage()
-	}, [photo])
+	}, [photo, shareKey])
 
 	if (isLoading) {
 		return (

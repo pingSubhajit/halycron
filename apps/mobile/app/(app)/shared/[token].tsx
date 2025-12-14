@@ -11,6 +11,9 @@ import {Button} from '@/src/components/ui/button'
 import {SharedPhotoView} from '@/src/components/shared-photo-view'
 import {SharedPinDialog} from '@/src/components/shared-pin-dialog'
 import {formatDistanceToNow} from 'date-fns'
+import {aeadDecrypt, b64UrlDecode, deriveKekPw, type KdfParams} from '@/src/lib/crypto/e2ee'
+import {useQueryClient} from '@tanstack/react-query'
+import {sharedQueryKeys} from '@/src/lib/shared-api'
 
 type AlbumWithPhotos = {
 	id: string
@@ -23,18 +26,51 @@ type AlbumWithPhotos = {
 }
 
 const SharedPage = () => {
-	const {token} = useLocalSearchParams<{ token: string }>()
-	const [isPinVerified, setIsPinVerified] = useState(false)
+	const {token, k} = useLocalSearchParams<{ token: string; k?: string }>()
 	const [showPinDialog, setShowPinDialog] = useState(false)
+	const [pinForDecryption, setPinForDecryption] = useState<string | null>(null)
+	const [shareKey, setShareKey] = useState<Uint8Array | null>(null)
+	const queryClient = useQueryClient()
 
-	const {data, isLoading, isError, error} = useSharedItems(token || '', isPinVerified)
+	const {data, isLoading, isError, error} = useSharedItems(token || '')
 
 	useEffect(() => {
-		// If the data is fetched and it requires PIN verification, show the PIN dialog
-		if (data && data.isPinProtected && !isPinVerified) {
+		// If server requires PIN verification, show the PIN dialog
+		if (data && data.isPinProtected && data.requiresPin) {
 			setShowPinDialog(true)
 		}
-	}, [data, isPinVerified])
+	}, [data])
+
+	useEffect(() => {
+		let mounted = true
+		const compute = async () => {
+			if (!data) return
+
+			if (data.isPinProtected) {
+				if (!data.pinKeyMaterial || !pinForDecryption) return
+				const params = JSON.parse(data.pinKeyMaterial.pinKdfParams) as KdfParams
+				const pinKey = await deriveKekPw(pinForDecryption, data.pinKeyMaterial.pinKdfSalt, params)
+				const sk = await aeadDecrypt(
+					{ciphertextB64: data.pinKeyMaterial.skWrappedByPin, nonceB64: data.pinKeyMaterial.skWrapIv},
+					pinKey
+				)
+				if (mounted) setShareKey(sk)
+				return
+			}
+
+			if (!k || typeof k !== 'string') return
+			const sk = await b64UrlDecode(k)
+			if (mounted) setShareKey(sk)
+		}
+
+		compute().catch(() => {
+			if (mounted) setShareKey(null)
+		})
+
+		return () => {
+			mounted = false
+		}
+	}, [data, k, pinForDecryption])
 
 	if (isLoading) {
 		return (
@@ -127,7 +163,7 @@ const SharedPage = () => {
 	}
 
 	// Show PIN verification dialog if needed
-	if (data.isPinProtected && !isPinVerified) {
+	if (data.isPinProtected && data.requiresPin) {
 		return (
 			<>
 				<SafeAreaView style={{
@@ -167,7 +203,10 @@ const SharedPage = () => {
 					isOpen={showPinDialog}
 					onClose={() => setShowPinDialog(false)}
 					token={token || ''}
-					onPinVerified={() => setIsPinVerified(true)}
+					onPinVerified={(pin) => {
+						setPinForDecryption(pin)
+						queryClient.invalidateQueries({queryKey: sharedQueryKeys.detail(token || '')})
+					}}
 				/>
 			</>
 		)
@@ -208,7 +247,7 @@ const SharedPage = () => {
 			</View>
 
 			{data.shareType === 'photo' && data.photos && data.photos[0] && (
-				<SharedPhotoView photo={data.photos[0]}/>
+				<SharedPhotoView photo={data.photos[0]} shareKey={shareKey}/>
 			)}
 
 			{data.shareType === 'album' && data.albums && (
@@ -233,7 +272,7 @@ const SharedPage = () => {
 
 							{album.photos && album.photos.length > 0 && album.photos[0] ? (
 								// For now, show the first photo. Later we can implement a gallery view
-								<SharedPhotoView photo={album.photos[0]}/>
+								<SharedPhotoView photo={album.photos[0]} shareKey={shareKey}/>
 							) : (
 								<Text style={{
 									color: darkTheme.mutedForeground,

@@ -17,6 +17,9 @@ import {useCreateShareLink} from '@/src/lib/share-api'
 import {useDecryptedUrl} from '@/src/hooks/use-decrypted-url'
 import {showPhotoActionNotification} from '@/src/lib/notification-utils'
 import * as Clipboard from 'expo-clipboard'
+import {useVault} from '@/src/components/vault-provider'
+import {aeadDecrypt, aeadEncrypt, b64Encode, b64UrlEncode, deriveKekPw, deriveUmkFileWrapKey, deriveUmkFilenameKey, randomBytes, type KdfParams} from '@/src/lib/crypto/e2ee'
+import {base64ToUint8Array} from '@/src/lib/base64-utils'
 
 interface ShareOptionsSheetProps {
 	isOpen: boolean
@@ -120,6 +123,7 @@ const ShareOptionsSheet: React.FC<ShareOptionsSheetProps> = ({
 	photo
 }) => {
 	const bottomSheetRef = useRef<BottomSheet>(null)
+	const {umk} = useVault()
 	const pinInputRef = useRef<TextInput>(null)
 	const [step, setStep] = useState<'form' | 'link'>('form')
 	const [shareUrl, setShareUrl] = useState<string | null>(null)
@@ -173,11 +177,12 @@ const ShareOptionsSheet: React.FC<ShareOptionsSheetProps> = ({
 	// Handle native share
 	const handleNativeShare = useCallback(async () => {
 		if (!photo) return
+		if (!umk) return
 
 		handleClose()
 
 		try {
-			const result = await shareImage(photo)
+			const result = await shareImage(photo, umk)
 			if (!result.success) {
 				await showPhotoActionNotification('share', false, result.message)
 			}
@@ -188,7 +193,7 @@ const ShareOptionsSheet: React.FC<ShareOptionsSheetProps> = ({
 				'An unexpected error occurred while sharing the image.'
 			)
 		}
-	}, [photo, handleClose])
+	}, [photo, umk, handleClose])
 
 	// Validate form
 	const validateForm = (): string | null => {
@@ -209,6 +214,10 @@ const ShareOptionsSheet: React.FC<ShareOptionsSheetProps> = ({
 	// Handle create share link
 	const handleCreateShareLink = useCallback(async () => {
 		if (!photo) return
+		if (!umk) {
+			Alert.alert('Vault Locked', 'Unlock your vault to share encrypted content.')
+			return
+		}
 
 		const error = validateForm()
 		if (error) {
@@ -216,20 +225,77 @@ const ShareOptionsSheet: React.FC<ShareOptionsSheetProps> = ({
 			return
 		}
 
+		// Generate Share Key (SK) for this link
+		const skBytes = await randomBytes(32)
+		const skFragment = await b64UrlEncode(skBytes)
+
+		// Obtain plaintext per-photo DEK
+		let dekBytes: Uint8Array
+		if ((photo.encryptionVersion ?? 0) === 1) {
+			if (!photo.wrappedDek || !photo.wrappedDekIv) {
+				Alert.alert('Error', 'Missing encrypted key material for this photo.')
+				return
+			}
+			const wrapKey = await deriveUmkFileWrapKey(umk)
+			dekBytes = await aeadDecrypt({ciphertextB64: photo.wrappedDek, nonceB64: photo.wrappedDekIv}, wrapKey)
+		} else {
+			if (!photo.encryptedFileKey) {
+				Alert.alert('Error', 'Missing legacy key material for this photo.')
+				return
+			}
+			dekBytes = base64ToUint8Array(photo.encryptedFileKey)
+		}
+
+		// Obtain plaintext filename
+		let filename = photo.originalFilename || 'photo'
+		if ((photo.encryptionVersion ?? 0) === 1 && photo.encryptedFilename && photo.filenameIv) {
+			const filenameKey = await deriveUmkFilenameKey(umk)
+			const bytes = await aeadDecrypt({ciphertextB64: photo.encryptedFilename, nonceB64: photo.filenameIv}, filenameKey)
+			filename = new TextDecoder().decode(bytes)
+		}
+
+		// Wrap DEK and encrypt filename under Share Key (SK)
+		const wrappedDekForShare = await aeadEncrypt(dekBytes, skBytes)
+		const encryptedFilenameForShare = await aeadEncrypt(new TextEncoder().encode(filename), skBytes)
+
+		// PIN shares: wrap SK under PIN-derived key and store KDF params.
+		let pinWrappedShareKey: CreateShareLinkRequest['pinWrappedShareKey'] | undefined
+		if (formData.isPinProtected && formData.pin) {
+			const pinSalt = await b64Encode(await randomBytes(16))
+			const pinParams: KdfParams = {alg: 'argon2id13', opslimit: 3, memlimit: 64 * 1024 * 1024}
+			const pinKey = await deriveKekPw(formData.pin, pinSalt, pinParams)
+			const wrappedSk = await aeadEncrypt(skBytes, pinKey)
+			pinWrappedShareKey = {
+				skWrappedByPin: wrappedSk.ciphertextB64,
+				pinKdfSalt: pinSalt,
+				pinKdfParams: JSON.stringify(pinParams),
+				skWrapIv: wrappedSk.nonceB64
+			}
+		}
+
 		const shareData: CreateShareLinkRequest = {
 			photoIds: [photo.id],
 			expiryOption: formData.expiryOption,
-			...(formData.isPinProtected && formData.pin && {pin: formData.pin})
+			...(formData.isPinProtected && formData.pin && {pin: formData.pin}),
+			sharePhotos: [{
+				photoId: photo.id,
+				wrappedDekForShare: wrappedDekForShare.ciphertextB64,
+				wrappedDekForShareIv: wrappedDekForShare.nonceB64,
+				encryptedFilenameForShare: encryptedFilenameForShare.ciphertextB64,
+				filenameForShareIv: encryptedFilenameForShare.nonceB64
+			}],
+			...(pinWrappedShareKey ? {pinWrappedShareKey} : {})
 		}
 
 		createShareLinkMutation.mutate(shareData, {
 			onSuccess: async (response) => {
-				setShareUrl(response.shareUrl)
+				const finalUrl = formData.isPinProtected ? response.shareUrl : `${response.shareUrl}#k=${skFragment}`
+				setShareUrl(finalUrl)
 				setStep('link')
 
 				// Automatically copy to clipboard
 				try {
-					await Clipboard.setStringAsync(response.shareUrl)
+					await Clipboard.setStringAsync(finalUrl)
 					setCopied(true)
 					setTimeout(() => setCopied(false), 2000)
 				} catch (clipboardError) {
@@ -241,7 +307,7 @@ const ShareOptionsSheet: React.FC<ShareOptionsSheetProps> = ({
 				await showPhotoActionNotification('share', false, `Failed to create share link: ${errorMessage}`)
 			}
 		})
-	}, [photo, formData, createShareLinkMutation])
+	}, [photo, umk, formData, createShareLinkMutation])
 
 	// Handle copy link
 	const handleCopyLink = useCallback(async () => {

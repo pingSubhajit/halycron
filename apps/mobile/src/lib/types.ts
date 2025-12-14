@@ -2,10 +2,20 @@ export type Photo = {
 	id: string
 	url: string
 	s3Key: string
-	originalFilename: string
+	originalFilename: string | null
 	createdAt: Date | null
-	encryptedFileKey: string
-	fileKeyIv: string
+	encryptionVersion?: number
+
+	// v1 (E2EE)
+	contentIv?: string | null
+	wrappedDek?: string | null
+	wrappedDekIv?: string | null
+	encryptedFilename?: string | null
+	filenameIv?: string | null
+
+	// v0 (legacy)
+	encryptedFileKey?: string | null
+	fileKeyIv?: string | null
 	mimeType: string
 	imageWidth: number | null
 	imageHeight: number | null
@@ -41,6 +51,21 @@ export type CreateShareLinkRequest = {
 	albumIds?: string[]
 	expiryOption: ExpiryOption
 	pin?: string
+
+	sharePhotos?: Array<{
+		photoId: string
+		wrappedDekForShare: string
+		wrappedDekForShareIv: string
+		encryptedFilenameForShare: string
+		filenameForShareIv: string
+	}>
+
+	pinWrappedShareKey?: {
+		skWrappedByPin: string
+		pinKdfSalt: string
+		pinKdfParams: string
+		skWrapIv: string
+	}
 }
 
 export type CreateShareLinkResponse = {

@@ -6,6 +6,7 @@ import {HTMLAttributes} from 'react'
 import {cn} from '@halycron/ui/lib/utils'
 import {useLightbox} from '@/components/lightbox-context'
 import {useDecryptedUrl} from '@/hooks/use-decrypted-url'
+import {useDecryptedFilename} from '@/hooks/use-decrypted-filename'
 import {
 	ContextMenu,
 	ContextMenuContent,
@@ -39,6 +40,7 @@ const ImageSkeleton = (props: HTMLAttributes<HTMLDivElement>) => {
 
 export const EncryptedImage = ({photo, hasNext, hasPrev, onOpen, onDelete, currentAlbumId}: Props) => {
 	const decryptedUrl = useDecryptedUrl(photo)
+	const decryptedFilename = useDecryptedFilename(photo)
 	const {openLightbox} = useLightbox()
 
 	if (!decryptedUrl) {
@@ -58,7 +60,7 @@ export const EncryptedImage = ({photo, hasNext, hasPrev, onOpen, onDelete, curre
 		// Create a temporary anchor element
 		const a = document.createElement('a')
 		a.href = decryptedUrl
-		a.download = photo.originalFilename || 'encrypted-image.jpg'
+		a.download = decryptedFilename || photo.originalFilename || 'photo.jpg'
 		document.body.appendChild(a)
 		a.click()
 		document.body.removeChild(a)
@@ -69,7 +71,7 @@ export const EncryptedImage = ({photo, hasNext, hasPrev, onOpen, onDelete, curre
 			<ContextMenuTrigger>
 				<Image
 					src={decryptedUrl}
-					alt={photo.originalFilename}
+					alt={decryptedFilename || photo.originalFilename || 'Encrypted photo'}
 					width={photo.imageWidth || 800}
 					height={photo.imageHeight || 600}
 					className="w-full h-auto object-cover hover:opacity-90 transition-opacity cursor-pointer"

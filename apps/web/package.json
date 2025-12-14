@@ -48,6 +48,7 @@
     "input-otp": "^1.4.2",
     "jsonwebtoken": "^9.0.2",
     "lenis": "^1.2.3",
+    "libsodium-wrappers-sumo": "^0.7.15",
     "lucide-react": "^0.475.0",
     "masonic": "^4.0.1",
     "motion": "^12.4.7",

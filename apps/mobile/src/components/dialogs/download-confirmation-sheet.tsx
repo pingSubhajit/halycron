@@ -8,6 +8,7 @@ import {Download} from '@/lib/icons/Download'
 import {Button} from '@/src/components/ui/button'
 import {downloadImageToGallery} from '@/src/lib/download-utils'
 import {showDownloadNotification} from '@/src/lib/notification-utils'
+import {useVault} from '@/src/components/vault-provider'
 
 interface DownloadConfirmationSheetProps {
 	isOpen: boolean
@@ -21,6 +22,7 @@ const DownloadConfirmationSheet: React.FC<DownloadConfirmationSheetProps> = ({
 	photo
 }) => {
 	const bottomSheetRef = useRef<BottomSheet>(null)
+	const {umk} = useVault()
 
 	// Calculate snap points
 	const snapPoints = useMemo(() => ['50%'], [])
@@ -41,13 +43,14 @@ const DownloadConfirmationSheet: React.FC<DownloadConfirmationSheetProps> = ({
 	// Handle download confirmation
 	const handleConfirm = useCallback(async () => {
 		if (!photo) return
+		if (!umk) return
 
 		// Close the sheet immediately
 		handleClose()
 
 		// Process download in background and show notification when complete
 		try {
-			const result = await downloadImageToGallery(photo)
+			const result = await downloadImageToGallery(photo, umk)
 			await showDownloadNotification(result.success, result.message)
 		} catch (error) {
 			// Fallback error handling
@@ -56,7 +59,7 @@ const DownloadConfirmationSheet: React.FC<DownloadConfirmationSheetProps> = ({
 				'An unexpected error occurred while downloading the image.'
 			)
 		}
-	}, [photo, handleClose])
+	}, [photo, umk, handleClose])
 
 	// Backdrop component that handles backdrop touches
 	const renderBackdrop = useCallback(

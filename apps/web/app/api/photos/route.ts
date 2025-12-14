@@ -10,15 +10,34 @@ import {eq} from 'drizzle-orm'
 
 const photoMetadataSchema = z.object({
 	fileKey: z.string(),
-	encryptedFileKey: z.string(),
-	fileKeyIv: z.string(),
-	originalFilename: z.string(),
+	encryptionVersion: z.number().int().optional(),
+
+	// v1 (E2EE)
+	contentIv: z.string().optional(),
+	wrappedDek: z.string().optional(),
+	wrappedDekIv: z.string().optional(),
+	encryptedFilename: z.string().optional(),
+	filenameIv: z.string().optional(),
+
+	// v0 (legacy)
+	encryptedFileKey: z.string().optional(),
+	fileKeyIv: z.string().optional(),
+	originalFilename: z.string().optional(),
+
 	mimeType: z.string().regex(
 		/^(image\/(jpeg|png|jpg|heic|heif|avif|avis|webp|raw|arw|cr2|nef|orf|rw2)|application\/octet-stream)$/,
 		'Unsupported image format'
 	),
 	imageWidth: z.number().optional(),
 	imageHeight: z.number().optional()
+}).refine((data) => {
+	const v = data.encryptionVersion ?? 0
+	if (v === 1) {
+		return Boolean(data.contentIv && data.wrappedDek && data.wrappedDekIv && data.encryptedFilename && data.filenameIv)
+	}
+	return Boolean(data.encryptedFileKey && data.fileKeyIv && data.originalFilename)
+}, {
+	message: 'Invalid encryption payload'
 })
 
 export const POST = async (req: NextRequest) => {
@@ -42,6 +61,12 @@ export const POST = async (req: NextRequest) => {
 
 		const {
 			fileKey,
+			encryptionVersion,
+			contentIv,
+			wrappedDek,
+			wrappedDekIv,
+			encryptedFilename,
+			filenameIv,
 			encryptedFileKey,
 			fileKeyIv,
 			originalFilename,
@@ -51,12 +76,21 @@ export const POST = async (req: NextRequest) => {
 		} = result.data
 
 		// Save photo metadata to database
+		const v = encryptionVersion ?? 0
 		const savedPhoto = await db.insert(photo).values({
 			userId: session.user.id,
-			encryptedFileKey: encryptedFileKey,
-			fileKeyIv: fileKeyIv,
+			encryptionVersion: v,
+			// v1 fields
+			contentIv: v === 1 ? contentIv : null,
+			wrappedDek: v === 1 ? wrappedDek : null,
+			wrappedDekIv: v === 1 ? wrappedDekIv : null,
+			encryptedFilename: v === 1 ? encryptedFilename : null,
+			filenameIv: v === 1 ? filenameIv : null,
+			// legacy fields (should be NULL for v1)
+			encryptedFileKey: v === 0 ? encryptedFileKey : null,
+			fileKeyIv: v === 0 ? fileKeyIv : null,
 			s3Key: fileKey,
-			originalFilename,
+			originalFilename: v === 0 ? originalFilename : null,
 			mimeType,
 			imageWidth,
 			imageHeight
@@ -123,6 +157,14 @@ export const GET = async () => {
 				url,
 				originalFilename: photo.originalFilename,
 				createdAt: photo.createdAt,
+				encryptionVersion: photo.encryptionVersion,
+				// v1
+				contentIv: photo.contentIv,
+				wrappedDek: photo.wrappedDek,
+				wrappedDekIv: photo.wrappedDekIv,
+				encryptedFilename: photo.encryptedFilename,
+				filenameIv: photo.filenameIv,
+				// v0
 				encryptedFileKey: photo.encryptedFileKey,
 				fileKeyIv: photo.fileKeyIv,
 				mimeType: photo.mimeType,
@@ -181,6 +223,12 @@ export const DELETE = async (req: NextRequest) => {
 			s3Key: photoToDelete.s3Key,
 			originalFilename: photoToDelete.originalFilename,
 			createdAt: photoToDelete.createdAt,
+			encryptionVersion: photoToDelete.encryptionVersion,
+			contentIv: photoToDelete.contentIv,
+			wrappedDek: photoToDelete.wrappedDek,
+			wrappedDekIv: photoToDelete.wrappedDekIv,
+			encryptedFilename: photoToDelete.encryptedFilename,
+			filenameIv: photoToDelete.filenameIv,
 			encryptedFileKey: photoToDelete.encryptedFileKey,
 			fileKeyIv: photoToDelete.fileKeyIv,
 			mimeType: photoToDelete.mimeType,
@@ -224,8 +272,14 @@ export const PATCH = async (req: NextRequest) => {
 		const restoredPhoto = await db.insert(photo).values({
 			id: photoData.id,
 			userId: session.user.id,
-			encryptedFileKey: photoData.encryptedFileKey,
-			fileKeyIv: photoData.fileKeyIv,
+			encryptionVersion: photoData.encryptionVersion ?? 0,
+			contentIv: photoData.contentIv ?? null,
+			wrappedDek: photoData.wrappedDek ?? null,
+			wrappedDekIv: photoData.wrappedDekIv ?? null,
+			encryptedFilename: photoData.encryptedFilename ?? null,
+			filenameIv: photoData.filenameIv ?? null,
+			encryptedFileKey: photoData.encryptedFileKey ?? null,
+			fileKeyIv: photoData.fileKeyIv ?? null,
 			s3Key: photoData.s3Key,
 			originalFilename: photoData.originalFilename,
 			mimeType: photoData.mimeType,

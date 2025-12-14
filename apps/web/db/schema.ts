@@ -46,6 +46,33 @@ export const user = pgTable('user', {
 	updatedAt: timestamp('updated_at', {withTimezone: true}).default(sql`CURRENT_TIMESTAMP`)
 })
 
+/**
+ * User key material for E2EE / zero-knowledge.
+ *
+ * IMPORTANT:
+ * - Server stores only wrapped UMK blobs and KDF params.
+ * - Recovery Key (RK) is never stored plaintext; it is only used client-side to unwrap UMK.
+ */
+export const userKeys = pgTable('user_keys', {
+	userId: uuid('user_id').primaryKey().references(() => user.id, {onDelete: 'cascade'}),
+	cryptoVersion: integer('crypto_version').notNull().default(1),
+
+	// Password KDF (Argon2id) parameters and salt used to derive KEK_pw client-side.
+	kdfSalt: text('kdf_salt').notNull(),
+	kdfParams: text('kdf_params').notNull(), // JSON string
+
+	// UMK wrapped with KEK_pw (XChaCha20-Poly1305 or AES-GCM; versioned in cryptoVersion/params)
+	wrappedUmkPw: text('wrapped_umk_pw').notNull(),
+	wrappedUmkPwIv: text('wrapped_umk_pw_iv').notNull(),
+
+	// UMK wrapped with Recovery Key (RK) for password reset recovery
+	wrappedUmkRk: text('wrapped_umk_rk').notNull(),
+	wrappedUmkRkIv: text('wrapped_umk_rk_iv').notNull(),
+
+	createdAt: timestamp('created_at', {withTimezone: true}).default(sql`CURRENT_TIMESTAMP`),
+	updatedAt: timestamp('updated_at', {withTimezone: true}).default(sql`CURRENT_TIMESTAMP`)
+})
+
 export const session = pgTable('session', {
 	id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
 	userId: uuid('user_id').notNull().references(() => user.id, {onDelete: 'cascade'}),
@@ -94,13 +121,36 @@ export const twoFactor = pgTable('two_factor', {
 export const photo = pgTable('photos', {
 	id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
 	userId: uuid('user_id').notNull().references(() => user.id, {onDelete: 'cascade'}),
-	encryptedFileKey: text('encrypted_file_key').notNull(),
-	fileKeyIv: text('file_key_iv').notNull(),
+	/**
+	 * Legacy (v0): plaintext per-photo key stored as base64 (NOT zero-knowledge).
+	 * Kept temporarily for migration; should be NULL for v1+.
+	 */
+	encryptedFileKey: text('encrypted_file_key'),
+	/**
+	 * Legacy (v0): IV for photo byte encryption (hex).
+	 * For v1+, use contentIv.
+	 */
+	fileKeyIv: text('file_key_iv'),
 	s3Key: text('s3_key').notNull(),
-	originalFilename: text('original_filename').notNull(),
+	/**
+	 * Legacy (v0): plaintext filename.
+	 * For v1+, use encryptedFilename/filenameIv.
+	 */
+	originalFilename: text('original_filename'),
 	mimeType: text('mime_type').notNull(),
 	imageWidth: integer('image_width'),
 	imageHeight: integer('image_height'),
+
+	/**
+	 * E2EE (v1) fields
+	 */
+	encryptionVersion: integer('encryption_version').notNull().default(0), // 0 = legacy, 1 = E2EE
+	contentIv: text('content_iv'), // hex (12B for GCM)
+	wrappedDek: text('wrapped_dek'), // base64
+	wrappedDekIv: text('wrapped_dek_iv'), // base64/hex depending on encoding (versioned)
+	encryptedFilename: text('encrypted_filename'), // base64
+	filenameIv: text('filename_iv'), // base64/hex depending on encoding (versioned)
+
 	encryptedMetadata: text('encrypted_metadata'),
 	metadataIv: text('metadata_iv'),
 	createdAt: timestamp('created_at', {withTimezone: true}).default(sql`CURRENT_TIMESTAMP`),
@@ -150,10 +200,33 @@ export const sharedLink = pgTable('shared_links', {
 	updatedAt: timestamp('updated_at', {withTimezone: true}).default(sql`CURRENT_TIMESTAMP`)
 })
 
+/**
+ * Share-link key material for PIN-protected shares.
+ * For non-PIN shares, the Share Key (SK) lives only in the URL fragment (#k=...),
+ * so the server never receives it and this table will not have a row.
+ */
+export const sharedLinkKeys = pgTable('shared_link_keys', {
+	sharedLinkId: uuid('shared_link_id').primaryKey().references(() => sharedLink.id, {onDelete: 'cascade'}),
+
+	// SK encrypted (wrapped) under a PIN-derived key (Argon2id). Stored only for PIN shares.
+	skWrappedByPin: text('sk_wrapped_by_pin').notNull(),
+	pinKdfSalt: text('pin_kdf_salt').notNull(),
+	pinKdfParams: text('pin_kdf_params').notNull(), // JSON string
+	skWrapIv: text('sk_wrap_iv').notNull(),
+
+	createdAt: timestamp('created_at', {withTimezone: true}).default(sql`CURRENT_TIMESTAMP`),
+	updatedAt: timestamp('updated_at', {withTimezone: true}).default(sql`CURRENT_TIMESTAMP`)
+})
+
 // Junction table for shared photos
 export const sharedPhotos = pgTable('shared_photos', {
 	sharedLinkId: uuid('shared_link_id').notNull().references(() => sharedLink.id, {onDelete: 'cascade'}),
 	photoId: uuid('photo_id').notNull().references(() => photo.id, {onDelete: 'cascade'}),
+	// Share-specific wrapped DEK + encrypted filename (recipient uses Share Key (SK))
+	wrappedDekForShare: text('wrapped_dek_for_share'),
+	wrappedDekForShareIv: text('wrapped_dek_for_share_iv'),
+	encryptedFilenameForShare: text('encrypted_filename_for_share'),
+	filenameForShareIv: text('filename_for_share_iv'),
 	createdAt: timestamp('created_at', {withTimezone: true}).default(sql`CURRENT_TIMESTAMP`)
 }, (t) => ({
 	pk: primaryKey(t.sharedLinkId, t.photoId)

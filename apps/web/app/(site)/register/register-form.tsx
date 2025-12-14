@@ -18,6 +18,8 @@ import Link from 'next/link'
 import Image from 'next/image'
 import logo from '@halycron/ui/media/logo.svg'
 import {useSendVerificationEmail} from '@/app/api/auth/mutations'
+import {Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle} from '@halycron/ui/components/dialog'
+import {vaultBootstrap} from '@/lib/crypto/vault'
 
 const formSchema = z.object({
 	email: z.string().email('Hmm, that doesn\'t look like a valid email. Mind trying again?'),
@@ -34,6 +36,8 @@ const formSchema = z.object({
 const RegisterForm = () => {
 	const [showPassword, setShowPassword] = useState(false)
 	const [isLoading, setIsLoading] = useState(false)
+	const [recoveryKeyToShow, setRecoveryKeyToShow] = useState<string | null>(null)
+	const [pendingVaultPassword, setPendingVaultPassword] = useState<string | null>(null)
 	const {logout} = useLogout()
 	const sendVerificationEmail = useSendVerificationEmail()
 	const [twofa, setTwofa] = useQueryState<'form' | '2fa'>('twoFa', {
@@ -77,6 +81,10 @@ const RegisterForm = () => {
 				throw loginError || new Error('We got your account set up, but had trouble signing you in. Try logging in again.')
 			}
 
+			// With 2FA, the session cookie is finalized after TOTP verification.
+			// Defer vault bootstrap until after TwoFactorSetup completes.
+			setPendingVaultPassword(values.password)
+
 			// Send verification email after successful registration
 			try {
 				await sendVerificationEmail.mutateAsync()
@@ -94,8 +102,23 @@ const RegisterForm = () => {
 		}
 	}
 
-	const onTwoFactorComplete = () => {
+	const onTwoFactorComplete = async () => {
 		toast.success('Perfect! Your account is now extra secure with 2FA.')
+
+		// Now that the session exists, bootstrap zero-knowledge keys and show Recovery Key once.
+		if (pendingVaultPassword) {
+			try {
+				const {recoveryKey} = await vaultBootstrap(pendingVaultPassword)
+				setRecoveryKeyToShow(recoveryKey)
+				return
+			} catch (vaultErr) {
+				console.error('Vault bootstrap failed:', vaultErr)
+				toast.error(vaultErr instanceof Error ? vaultErr.message : 'Vault bootstrap failed')
+			} finally {
+				setPendingVaultPassword(null)
+			}
+		}
+
 		logout()
 	}
 
@@ -110,6 +133,42 @@ const RegisterForm = () => {
 	return (
 		<LayoutGroup id="register-form-layout">
 			<div className="mx-auto w-full max-w-md space-y-6">
+				<Dialog
+					open={Boolean(recoveryKeyToShow)}
+					// Do not allow closing without explicit confirmation.
+					onOpenChange={() => {}}
+				>
+					<DialogContent className="sm:max-w-lg">
+						<DialogHeader>
+							<DialogTitle>Save your Recovery Key</DialogTitle>
+							<DialogDescription>
+								This key restores access to your encrypted photos if you reset your password. We cannot recover it for you.
+							</DialogDescription>
+						</DialogHeader>
+						<div className="rounded-md border p-3 font-mono text-sm break-all select-all">
+							{recoveryKeyToShow}
+						</div>
+						<DialogFooter>
+							<Button
+								type="button"
+								className="w-full"
+								onClick={() => {
+									setRecoveryKeyToShow(null)
+									setPendingVaultPassword(null)
+									// If we’re already in the 2FA step, finish by logging out.
+									if (twofa === '2fa') {
+										logout()
+									} else {
+										setTwofa('2fa')
+									}
+								}}
+							>
+								I saved it, continue
+							</Button>
+						</DialogFooter>
+					</DialogContent>
+				</Dialog>
+
 				{twofa !== '2fa' && <motion.div
 					className="flex flex-col text-center items-center"
 					layout="position"
