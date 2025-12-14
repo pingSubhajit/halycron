@@ -1,7 +1,9 @@
 'use client'
 
-import React, {createContext, useCallback, useContext, useEffect, useMemo, useState} from 'react'
-import {vaultBootstrap, vaultRecoverWithRecoveryKey, vaultUnlock, vaultUnlockWithPassword, type VaultUnlockResult} from '@/lib/crypto/vault'
+import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react'
+import {vaultBootstrap, vaultForgetThisBrowser, vaultRecoverWithRecoveryKey, vaultUnlock, vaultUnlockWithPassword, type VaultUnlockResult} from '@/lib/crypto/vault'
+import {authClient} from '@/lib/auth/auth-client'
+import {useDecryptionCache} from '@/stores/decryption-cache'
 
 type VaultStatus = 'checking' | 'unlocked' | 'locked' | 'not_initialized'
 
@@ -18,9 +20,12 @@ type VaultContextValue = {
 const VaultContext = createContext<VaultContextValue | null>(null)
 
 export function VaultProvider({children}: {children: React.ReactNode}) {
+	const {data: session} = authClient.useSession()
+	const userKey = session?.user?.id || session?.user?.email || null
 	const [status, setStatus] = useState<VaultStatus>('checking')
 	const [umk, setUmk] = useState<Uint8Array | null>(null)
 	const [lastError, setLastError] = useState<string | null>(null)
+	const lastUserKeyRef = useRef<string | null>(null)
 
 	const applyResult = useCallback((result: VaultUnlockResult) => {
 		if (result.status === 'unlocked') {
@@ -40,6 +45,13 @@ export function VaultProvider({children}: {children: React.ReactNode}) {
 	}, [])
 
 	const refresh = useCallback(async () => {
+		// Only attempt to unlock when authenticated; otherwise we'd reuse a stale UMK across accounts.
+		if (!userKey) {
+			setUmk(null)
+			setStatus('checking')
+			setLastError(null)
+			return
+		}
 		try {
 			setStatus('checking')
 			const result = await vaultUnlock()
@@ -48,12 +60,32 @@ export function VaultProvider({children}: {children: React.ReactNode}) {
 			setLastError(e instanceof Error ? e.message : 'Failed to load vault')
 			setStatus('locked')
 		}
-	}, [applyResult])
+	}, [applyResult, userKey])
 
 	useEffect(() => {
-		// Best-effort: attempt auto-unlock via device cache.
-		refresh()
-	}, [refresh])
+		const run = async () => {
+			const prevUserKey = lastUserKeyRef.current
+
+			// On logout, clear in-memory UMK. Keep lastUserKeyRef so we can detect user switches on next login.
+			if (!userKey) {
+				setUmk(null)
+				setStatus('checking')
+				setLastError(null)
+				return
+			}
+
+			// If the user changed (sign out + sign in, or switching accounts), clear cached UMK and decrypted URLs.
+			if (prevUserKey && prevUserKey !== userKey) {
+				await vaultForgetThisBrowser().catch(() => {})
+				useDecryptionCache.getState().clearCache()
+			}
+
+			lastUserKeyRef.current = userKey
+			await refresh()
+		}
+
+		run()
+	}, [userKey, refresh])
 
 	const unlockWithPassword = useCallback(async (password: string) => {
 		try {

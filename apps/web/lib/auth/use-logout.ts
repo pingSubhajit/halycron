@@ -1,6 +1,8 @@
 import {useState} from 'react'
 import {useRouter} from 'next/navigation'
 import {toast} from 'sonner'
+import {vaultForgetThisBrowser} from '@/lib/crypto/vault'
+import {useDecryptionCache} from '@/stores/decryption-cache'
 
 export const useLogout = () => {
 	const router = useRouter()
@@ -17,6 +19,10 @@ export const useLogout = () => {
 			if (!res.ok) {
 				throw new Error('Failed to sign out')
 			}
+
+			// Clear local cached secrets (UMK is cached in IndexedDB) and decrypted object URLs.
+			await vaultForgetThisBrowser().catch(() => {})
+			useDecryptionCache.getState().clearCache()
 
 			toast.success('See you soon! You\'ve been signed out safely')
 			// Force a hard navigation so middleware re-evaluates auth state.
