@@ -3,11 +3,16 @@
   "theme": "maple",
   "name": "Halycron",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#07b595",
+    "light": "#06FFD1",
+    "dark": "#07b595"
   },
-  "favicon": "/favicon.svg",
+  "background": {
+    "color": {
+      "dark": "#0A0A0A"
+    }
+  },
+  "favicon": "../../packages/ui/src/media/icon.svg",
   "navigation": {
     "tabs": [
       {

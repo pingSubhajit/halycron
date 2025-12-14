@@ -3,8 +3,9 @@
   "private": true,
   "version": "0.0.1",
   "scripts": {
-    "dev": "bunx --yes mint dev --no-open",
-    "build": "bunx --yes mint broken-links"
+    "sync-assets": "node scripts/sync-ui-media.mjs",
+    "dev": "node scripts/sync-ui-media.mjs && bunx --yes mint dev --no-open",
+    "build": "node scripts/sync-ui-media.mjs && bunx --yes mint broken-links"
   }
 }
 
