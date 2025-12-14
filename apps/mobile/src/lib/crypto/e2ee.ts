@@ -13,13 +13,30 @@ export type WrappedBlob = {
 
 export const DEFAULT_KDF_PARAMS: KdfParams = {
 	alg: 'argon2id13',
-	opslimit: 3,
-	memlimit: 64 * 1024 * 1024
+	// Mobile-friendly default (can still be overridden by server-stored params).
+	opslimit: 2,
+	memlimit: 32 * 1024 * 1024
 }
 
 const CTX_FILE_WRAP = 'HCRNFILE'
 const CTX_FILENAME = 'HCRNFNME'
 const CTX_DEVICE = 'HCRNDEVC'
+
+function fromBase64Any(sodium: any, input: string): Uint8Array {
+	const raw = (input || '').trim()
+	// Try ORIGINAL first (most of our stored fields)
+	try {
+		return sodium.from_base64(raw, sodium.base64_variants.ORIGINAL)
+	} catch {}
+	// Try URLSAFE_NO_PADDING (some early deployments / fragments)
+	try {
+		return sodium.from_base64(raw, sodium.base64_variants.URLSAFE_NO_PADDING)
+	} catch {}
+	// Normalize base64url -> base64 with padding
+	let normalized = raw.replace(/-/g, '+').replace(/_/g, '/')
+	while (normalized.length % 4 !== 0) normalized += '='
+	return sodium.from_base64(normalized, sodium.base64_variants.ORIGINAL)
+}
 
 export async function randomBytes(length: number): Promise<Uint8Array> {
 	const sodium = await getSodium()
@@ -33,7 +50,7 @@ export async function b64Encode(bytes: Uint8Array): Promise<string> {
 
 export async function b64Decode(b64: string): Promise<Uint8Array> {
 	const sodium = await getSodium()
-	return sodium.from_base64(b64, sodium.base64_variants.ORIGINAL)
+	return fromBase64Any(sodium, b64)
 }
 
 export async function b64UrlEncode(bytes: Uint8Array): Promise<string> {
@@ -50,7 +67,7 @@ export async function deriveKekPw(password: string, saltB64: string, params: Kdf
 	const sodium = await getSodium()
 	if (params.alg !== 'argon2id13') throw new Error(`Unsupported KDF alg: ${params.alg}`)
 
-	const salt = sodium.from_base64(saltB64, sodium.base64_variants.ORIGINAL)
+	const salt = fromBase64Any(sodium, saltB64)
 	const keyLen = 32
 	return sodium.crypto_pwhash(
 		keyLen,
@@ -86,8 +103,8 @@ export async function aeadEncrypt(plaintext: Uint8Array, key32: Uint8Array, aad?
 
 export async function aeadDecrypt(blob: WrappedBlob, key32: Uint8Array, aad?: Uint8Array): Promise<Uint8Array> {
 	const sodium = await getSodium()
-	const ciphertext = sodium.from_base64(blob.ciphertextB64, sodium.base64_variants.ORIGINAL)
-	const nonce = sodium.from_base64(blob.nonceB64, sodium.base64_variants.ORIGINAL)
+	const ciphertext = fromBase64Any(sodium, blob.ciphertextB64)
+	const nonce = fromBase64Any(sodium, blob.nonceB64)
 	return sodium.crypto_aead_xchacha20poly1305_ietf_decrypt(
 		null,
 		ciphertext,

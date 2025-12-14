@@ -15,7 +15,7 @@ export const DEFAULT_KDF_PARAMS: KdfParams = {
 	alg: 'argon2id13',
 	// libsodium “moderate” defaults (tunable later via stored params)
 	opslimit: 3,
-	memlimit: 64 * 1024 * 1024
+	memlimit: 32 * 1024 * 1024
 }
 
 const CTX_FILE_WRAP = 'HCRNFILE' // 8 bytes, required by libsodium KDF

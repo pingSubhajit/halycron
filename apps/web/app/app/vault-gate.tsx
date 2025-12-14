@@ -114,53 +114,54 @@ export const VaultGate = ({children}: {children: React.ReactNode}) => {
 					)}
 
 					<>
-							<div className="space-y-2">
-								<label className="text-sm font-medium">Password</label>
-								<Input
-									type="password"
-									value={password}
-									onChange={(e) => setPassword(e.target.value)}
-									placeholder="Enter your password"
-									autoComplete="current-password"
-								/>
+						<div className="space-y-2">
+							<label className="text-sm font-medium">Password</label>
+							<Input
+								type="password"
+								value={password}
+								onChange={(e) => setPassword(e.target.value)}
+								placeholder="Enter your password"
+								autoComplete="current-password"
+								className="h-12"
+							/>
+						</div>
+
+						{status === 'not_initialized' ? (
+							<Button className="w-full" onClick={handleBootstrap} disabled={isBusy || !password}>
+								{isBusy ? 'Setting up...' : 'Set up encryption'}
+							</Button>
+						) : (
+							<Button className="w-full" onClick={handleUnlock} disabled={isBusy || !password}>
+								{isBusy ? 'Unlocking...' : 'Unlock vault'}
+							</Button>
+						)}
+
+						{(status !== 'not_initialized') && (
+							<div className="space-y-3">
+								<Button
+									variant="outline"
+									className="w-full"
+									onClick={() => setShowRecovery(v => !v)}
+								>
+									Use Recovery Key
+								</Button>
+
+								{showRecovery && (
+									<div className="space-y-2">
+										<label className="text-sm font-medium">Recovery Key</label>
+										<Input
+											value={recoveryKey}
+											onChange={(e) => setRecoveryKey(e.target.value)}
+											placeholder="Paste your Recovery Key"
+											autoComplete="off"
+										/>
+										<Button className="w-full" onClick={handleRecover} disabled={isBusy || !password || !recoveryKey}>
+											{isBusy ? 'Recovering...' : 'Recover and unlock'}
+										</Button>
+									</div>
+								)}
 							</div>
-
-							{status === 'not_initialized' ? (
-								<Button className="w-full" onClick={handleBootstrap} disabled={isBusy || !password}>
-									{isBusy ? 'Setting up...' : 'Set up encryption'}
-								</Button>
-							) : (
-								<Button className="w-full" onClick={handleUnlock} disabled={isBusy || !password}>
-									{isBusy ? 'Unlocking...' : 'Unlock vault'}
-								</Button>
-							)}
-
-							{(status !== 'not_initialized') && (
-								<div className="space-y-3">
-									<Button
-										variant="outline"
-										className="w-full"
-										onClick={() => setShowRecovery(v => !v)}
-									>
-										Use Recovery Key
-									</Button>
-
-									{showRecovery && (
-										<div className="space-y-2">
-											<label className="text-sm font-medium">Recovery Key</label>
-											<Input
-												value={recoveryKey}
-												onChange={(e) => setRecoveryKey(e.target.value)}
-												placeholder="Paste your Recovery Key"
-												autoComplete="off"
-											/>
-											<Button className="w-full" onClick={handleRecover} disabled={isBusy || !password || !recoveryKey}>
-												{isBusy ? 'Recovering...' : 'Recover and unlock'}
-											</Button>
-										</div>
-									)}
-								</div>
-							)}
+						)}
 					</>
 				</CardContent>
 			</Card>

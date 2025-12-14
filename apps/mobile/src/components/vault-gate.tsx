@@ -88,6 +88,7 @@ export const VaultGate = ({children}: {children: React.ReactNode}) => {
 							secureTextEntry
 							value={password}
 							onChangeText={setPassword}
+							className="h-12"
 						/>
 
 						{status === 'not_initialized' ? (

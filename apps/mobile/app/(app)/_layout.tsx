@@ -60,11 +60,20 @@ const AuthenticatedAppLayout = () => {
 		initNotifications()
 	}, [])
 
-	ScreenCapture.preventScreenCaptureAsync()
-
-	if (process.env.EAS_BUILD_PROFILE === 'preview' || process.env.EAS_BUILD_PROFILE === 'development') {
-		ScreenCapture.allowScreenCaptureAsync()
-	}
+	useEffect(() => {
+		// Avoid calling these on every render (can flood native bridge and freeze the app).
+		const configureScreenCapture = async () => {
+			try {
+				await ScreenCapture.preventScreenCaptureAsync()
+				if (process.env.EAS_BUILD_PROFILE === 'preview' || process.env.EAS_BUILD_PROFILE === 'development') {
+					await ScreenCapture.allowScreenCaptureAsync()
+				}
+			} catch {
+				// Best-effort only
+			}
+		}
+		configureScreenCapture()
+	}, [])
 
 	return (
 		<BiometricGuard>

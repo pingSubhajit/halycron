@@ -242,6 +242,34 @@ export async function vaultRecoverWithRecoveryKey(recoveryKey: string, password:
 	return {status: 'unlocked', umk}
 }
 
+/**
+ * Rewrap UMK with a new password-derived KEK (same password) using new KDF params.
+ * Useful to migrate to mobile-friendly KDF settings.
+ */
+export async function vaultRewrapWithPassword(password: string, newParams: KdfParams): Promise<void> {
+	const keys = await fetchUserKeys()
+	if (!keys) throw new Error('Keys not initialized')
+
+	// 1) Unwrap UMK using current server-stored params
+	const oldParams = parseKdfParams(keys.kdfParams)
+	const oldKek = await deriveKekPw(password, keys.kdfSalt, oldParams)
+	const umk = await aeadDecrypt(blobFromServer(keys.wrappedUmkPw, keys.wrappedUmkPwIv), oldKek)
+
+	// 2) Wrap UMK using new params + new salt
+	const saltBytes = await randomBytes(16)
+	const kdfSalt = await b64Encode(saltBytes)
+	const newKek = await deriveKekPw(password, kdfSalt, newParams)
+	const wrappedPw = await aeadEncrypt(umk, newKek)
+
+	await postRewrap({
+		cryptoVersion: 1,
+		kdfSalt,
+		kdfParams: JSON.stringify(newParams),
+		wrappedUmkPw: wrappedPw.ciphertextB64,
+		wrappedUmkPwIv: wrappedPw.nonceB64
+	})
+}
+
 export async function vaultForgetThisBrowser(): Promise<void> {
 	await idbDel(STORAGE_DEVICE_KEY)
 	await idbDel(STORAGE_DEVICE_WRAPPED_UMK)

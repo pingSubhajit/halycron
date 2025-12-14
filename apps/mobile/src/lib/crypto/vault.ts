@@ -139,6 +139,11 @@ export async function vaultUnlockWithPassword(password: string): Promise<VaultUn
 	if (!keys) return {status: 'not_initialized'}
 
 	const params = parseKdfParams(keys.kdfParams)
+	// Safety: large Argon2 memory settings can freeze or crash the JS thread on some Android devices.
+	// If a user has stronger params stored from web, they can rewrap from web to mobile-friendly params.
+	if (params.memlimit > 48 * 1024 * 1024) {
+		throw new Error('This account uses high encryption settings that may not work on this device. Rewrap keys for mobile from the web app, or use your Recovery Key to rewrap.')
+	}
 	const kekPw = await deriveKekPw(password, keys.kdfSalt, params)
 
 	try {
@@ -159,6 +164,7 @@ export async function vaultRecoverWithRecoveryKey(recoveryKey: string, password:
 
 	const saltBytes = await randomBytes(16)
 	const kdfSalt = await b64Encode(saltBytes)
+	// Use mobile-friendly defaults when rewrapping from mobile.
 	const kdfParams: KdfParams = DEFAULT_KDF_PARAMS
 	const kekPw = await deriveKekPw(password, kdfSalt, kdfParams)
 	const wrappedPw = await aeadEncrypt(umk, kekPw)
