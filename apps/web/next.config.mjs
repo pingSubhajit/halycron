@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
 	transpilePackages: ['@halycron/ui'],
+	reactCompiler: true,
 	images: {
 		remotePatterns: [
 			{
@@ -21,7 +22,6 @@ const nextConfig = {
 		]
 	},
 	experimental: {
-		reactCompiler: true,
 		ppr: true
 	}
 }
