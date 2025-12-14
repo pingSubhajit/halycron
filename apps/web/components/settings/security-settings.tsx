@@ -4,6 +4,7 @@ import React, {useCallback, useState} from 'react'
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@halycron/ui/components/card'
 import {Button} from '@halycron/ui/components/button'
 import {Badge} from '@halycron/ui/components/badge'
+import {Switch} from '@halycron/ui/components/switch'
 import {Separator} from '@halycron/ui/components/separator'
 import {CheckCircle, Clock, Eye, EyeOff, Key, Loader2, Shield} from 'lucide-react'
 import {Skeleton} from '@halycron/ui/components/skeleton'
@@ -15,6 +16,8 @@ import {toast} from 'sonner'
 import {useForm} from 'react-hook-form'
 import {zodResolver} from '@hookform/resolvers/zod'
 import * as z from 'zod'
+import {useUserPreferences} from '@/app/api/preferences/query'
+import {useUpdateUserPreference} from '@/app/api/preferences/mutations'
 
 const {useSession, listSessions, revokeSession, revokeOtherSessions, changePassword} = createAuthClient({
 	baseURL: process.env.NEXT_PUBLIC_BETTER_AUTH_URL || 'http://localhost:3000'
@@ -48,6 +51,8 @@ const changePasswordSchema = z.object({
 
 export const SecuritySettings = () => {
 	const {data: session} = useSession()
+	const {data: preferences, isLoading: isLoadingPreferences} = useUserPreferences()
+	const updatePreference = useUpdateUserPreference()
 	const [sessions, setSessions] = useState<SessionData[]>([])
 	const [loadingSessions, setLoadingSessions] = useState(false)
 	const [revoking, setRevoking] = useState<string | null>(null)
@@ -346,6 +351,26 @@ export const SecuritySettings = () => {
 		return sessionTime.toLocaleDateString()
 	}
 
+	const inactivityAutoLogoutEnabled = preferences?.inactivityAutoLogoutEnabled ?? true
+
+	const handleToggleInactivityLogout = (nextEnabled: boolean) => {
+		updatePreference.mutate(
+			{preferenceId: 'inactivity-auto-logout', enabled: nextEnabled},
+			{
+				onSuccess: () => {
+					toast.success(
+						nextEnabled
+							? 'Automatic inactivity sign-out enabled'
+							: 'Automatic inactivity sign-out disabled'
+					)
+				},
+				onError: () => {
+					toast.error('Failed to update preference')
+				}
+			}
+		)
+	}
+
 	return (
 		<div className="space-y-6">
 			{/* Security Overview */}
@@ -416,6 +441,43 @@ export const SecuritySettings = () => {
 							<li>• Include at least one number</li>
 							<li>• Include at least one special character</li>
 						</ul>
+					</div>
+				</CardContent>
+			</Card>
+
+			{/* Session Security */}
+			<Card>
+				<CardHeader>
+					<CardTitle className="flex items-center gap-2">
+						<Clock className="h-5 w-5"/>
+						Session Security
+					</CardTitle>
+					<CardDescription>
+						Control session behaviors to balance security and convenience.
+					</CardDescription>
+				</CardHeader>
+				<CardContent className="space-y-4">
+					<div className="flex items-center justify-between p-4 border">
+						<div className="pr-6">
+							<div className="font-medium">Automatic sign-out after inactivity</div>
+							<div className="text-sm text-muted-foreground">
+								When enabled, you’ll be signed out after 5 minutes of inactivity.
+							</div>
+							{!inactivityAutoLogoutEnabled && (
+								<div className="text-sm text-muted-foreground mt-2">
+									Disabling this reduces protection on shared or public devices.
+								</div>
+							)}
+						</div>
+						{isLoadingPreferences ? (
+							<Skeleton className="h-6 w-10"/>
+						) : (
+							<Switch
+								checked={inactivityAutoLogoutEnabled}
+								onCheckedChange={handleToggleInactivityLogout}
+								disabled={updatePreference.isPending}
+							/>
+						)}
 					</div>
 				</CardContent>
 			</Card>

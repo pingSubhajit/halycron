@@ -85,6 +85,13 @@
       "when": 1765643483198,
       "tag": "0011_curious_meltdown",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1765744581977,
+      "tag": "0012_user_preferences",
+      "breakpoints": true
     }
   ]
 }

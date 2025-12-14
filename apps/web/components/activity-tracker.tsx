@@ -4,6 +4,7 @@ import {useEffect, useRef} from 'react'
 import {useLogout} from '@/lib/auth/use-logout'
 import {createAuthClient} from 'better-auth/react'
 import {toast} from 'sonner'
+import {useUserPreferences} from '@/app/api/preferences/query'
 
 const {useSession} = createAuthClient()
 
@@ -12,12 +13,17 @@ const isLocalEnvironment = process.env.NEXT_PUBLIC_BETTER_AUTH_URL?.includes('lo
 
 export const ActivityTracker = () => {
 	const {data: session} = useSession()
+	const {data: preferences} = useUserPreferences({
+		enabled: Boolean(session) && !isLocalEnvironment
+	})
 	const {logout} = useLogout()
 	const timeoutRef = useRef<NodeJS.Timeout>(null)
 
+	const inactivityAutoLogoutEnabled = preferences?.inactivityAutoLogoutEnabled ?? true
+
 	useEffect(() => {
 		// Don't track inactivity if not logged in or in local environment
-		if (!session || isLocalEnvironment) return
+		if (!session || isLocalEnvironment || !inactivityAutoLogoutEnabled) return
 
 		const resetTimer = () => {
 			if (timeoutRef.current) {
@@ -55,7 +61,7 @@ export const ActivityTracker = () => {
 				document.removeEventListener(event, handleActivity)
 			})
 		}
-	}, [logout, session])
+	}, [inactivityAutoLogoutEnabled, logout, session])
 
 	return null
 }

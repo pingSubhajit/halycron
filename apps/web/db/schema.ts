@@ -47,6 +47,21 @@ export const user = pgTable('user', {
 })
 
 /**
+ * User preferences (feature flags / user-configurable behavior).
+ * One row per user (user_id is the PK) to keep it simple and future-proof.
+ */
+export const userPreferences = pgTable('user_preferences', {
+	userId: uuid('user_id').primaryKey().references(() => user.id, {onDelete: 'cascade'}),
+	/**
+	 * If enabled, web app will sign the user out after a period of inactivity.
+	 * Default is true to preserve current security behavior.
+	 */
+	inactivityAutoLogoutEnabled: boolean('inactivity_auto_logout_enabled').default(true).notNull(),
+	createdAt: timestamp('created_at', {withTimezone: true}).default(sql`CURRENT_TIMESTAMP`),
+	updatedAt: timestamp('updated_at', {withTimezone: true}).default(sql`CURRENT_TIMESTAMP`)
+})
+
+/**
  * User key material for E2EE / zero-knowledge.
  *
  * IMPORTANT:
