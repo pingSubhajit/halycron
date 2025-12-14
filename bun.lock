@@ -13,9 +13,13 @@
         "typescript": "5.5.4",
       },
     },
+    "apps/docs": {
+      "name": "@halycron/docs",
+      "version": "0.0.1",
+    },
     "apps/mobile": {
       "name": "@halycron/mobile",
-      "version": "0.0.15",
+      "version": "0.0.16",
       "dependencies": {
         "@better-auth/expo": "^1.2.8",
         "@gorhom/bottom-sheet": "^5.1.4",
@@ -668,6 +672,8 @@
     "@gorhom/bottom-sheet": ["@gorhom/bottom-sheet@5.1.6", "", { "dependencies": { "@gorhom/portal": "1.0.14", "invariant": "^2.2.4" }, "peerDependencies": { "@types/react": "*", "@types/react-native": "*", "react": "*", "react-native": "*", "react-native-gesture-handler": ">=2.16.1", "react-native-reanimated": ">=3.16.0" }, "optionalPeers": ["@types/react", "@types/react-native"] }, "sha512-0b5tQj4fTaZAjST1PnkCp0p7d8iRqMezibTcqc8Kkn3N23Vn6upORNTD1fH0bLfwRt6e0WnZ7DjAmq315lrcKQ=="],
 
     "@gorhom/portal": ["@gorhom/portal@1.0.14", "", { "dependencies": { "nanoid": "^3.3.1" }, "peerDependencies": { "react": "*", "react-native": "*" } }, "sha512-MXyL4xvCjmgaORr/rtryDNFy3kU4qUbKlwtQqqsygd0xX3mhKjOLn6mQK8wfu0RkoE0pBE0nAasRoHua+/QZ7A=="],
+
+    "@halycron/docs": ["@halycron/docs@workspace:apps/docs"],
 
     "@halycron/email": ["@halycron/email@workspace:packages/email"],
 
