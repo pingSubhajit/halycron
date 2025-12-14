@@ -191,3 +191,20 @@ Key residual risks we accept:
 This threat model assumes v1 encryption primitives are implemented correctly (AEAD, nonces, key lengths) and that crypto versioning is explicit to support future migrations.
 </Note>
 
+## Recommended reading order
+
+<Steps>
+  <Step title="1) Zero-knowledge E2EE (overview)">
+    The product promise and the scope of what “zero-knowledge” means here.
+  </Step>
+  <Step title="2) Architecture overview">
+    A map of the system components and where encryption/decryption happens.
+  </Step>
+  <Step title="3) Key management">
+    Vault unlock, recovery key, password reset, and sharing keys.
+  </Step>
+  <Step title="4) Key security considerations">
+    The real-world risks (XSS, device compromise) and practical controls.
+  </Step>
+</Steps>
+

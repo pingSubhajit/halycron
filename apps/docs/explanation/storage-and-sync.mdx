@@ -6,7 +6,7 @@ icon: "database"
 
 ## Overview
 
-Halycron uses a split-storage model:
+Halycron uses a split-storage model so uploads are fast and the server stays blind:
 
 - **Object storage** stores encrypted photo bytes.
 - **Database** stores encrypted metadata and wrapped keys needed for client decryption.
@@ -91,5 +91,22 @@ Caching improves UX but increases the impact of a compromised device. Users shou
 Sharing uses a separate share-key model so recipients can decrypt without the owner UMK.
 
 See: [Key management](/explanation/key-management).
+
+## Recommended reading order
+
+<Steps>
+  <Step title="1) Zero-knowledge E2EE (overview)">
+    The big picture and what “zero-knowledge” means in Halycron.
+  </Step>
+  <Step title="2) Key management">
+    UMK/DEK/RK/SK and how the vault unlocks on a device.
+  </Step>
+  <Step title="3) Threat model">
+    What we assume, what we protect, and what we don’t.
+  </Step>
+  <Step title="4) Key security considerations">
+    Practical controls around XSS, devices, caching, and sharing.
+  </Step>
+</Steps>
 
 

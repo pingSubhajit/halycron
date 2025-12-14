@@ -14,13 +14,13 @@ If you want the conceptual model first, read:
 - [Threat model](/explanation/threat-model)
 - [Key management](/explanation/key-management)
 
-## The biggest risks to zero-knowledge
+## What can still go wrong (and why it matters)
 
 <CardGroup cols={2}>
   <Card title="Web XSS and extensions" icon="code">
     If malicious code runs in the browser, it can steal keys after vault unlock.
   </Card>
-  <Card title="Compromised device" icon="smartphone">
+  <Card title="Compromised device" icon="mobile">
     Malware or a rooted device can exfiltrate cached keys or decrypted files.
   </Card>
 </CardGroup>
@@ -105,6 +105,23 @@ Even though the server can’t decrypt, it can still enforce protections:
   </Step>
   <Step title="Prefer PIN shares for sensitive albums">
     Add friction for accidental exposure and casual misuse.
+  </Step>
+</Steps>
+
+## Recommended reading order
+
+<Steps>
+  <Step title="1) Threat model">
+    Clear boundaries: what zero-knowledge protects and what it doesn’t.
+  </Step>
+  <Step title="2) Key management">
+    How keys are generated, wrapped, and recovered (without server-held decryption keys).
+  </Step>
+  <Step title="3) Storage and sync">
+    Where encrypted bytes/metadata live and how caching affects risk.
+  </Step>
+  <Step title="4) Album sensitivity protection">
+    Product-level privacy controls layered on top of encryption.
   </Step>
 </Steps>
 

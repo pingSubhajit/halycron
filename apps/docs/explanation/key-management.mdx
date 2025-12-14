@@ -6,11 +6,13 @@ icon: "key"
 
 ## Overview
 
-Halycron’s key management is designed to achieve **zero-knowledge at rest** while preserving:
+Halycron’s key management exists to make three product promises true at the same time:
 
-- password reset without data loss
-- a familiar sharing UX (open link → optional PIN → view)
-- session creation without requiring a password (e.g., QR login), with vault unlock handled separately
+- **If we get breached, your photos + filenames stay private** (zero-knowledge at rest).
+- **You can reset your password without losing access**.
+- **Sharing stays simple** (open link → optional PIN → view) without handing the server decryption keys.
+
+It also supports **passwordless session creation** (e.g., QR login): the server can log you in, but your device still needs to unlock the vault to decrypt.
 
 If you haven’t read it yet, start with: [Zero-knowledge E2EE (overview)](/explanation/zero-knowledge-e2ee) and [Threat model](/explanation/threat-model).
 
@@ -143,5 +145,22 @@ UMK rotation would require rewrapping all photo keys and re-encrypting filenames
 - Rate-limit PIN verification and share accesses.
 
 For practical defenses: [Key security considerations](/explanation/key-security-considerations).
+
+## Recommended reading order
+
+<Steps>
+  <Step title="1) Zero-knowledge E2EE (overview)">
+    The product promise and scope of “zero-knowledge”.
+  </Step>
+  <Step title="2) Storage and sync">
+    Where encrypted bytes and encrypted metadata live, and what gets uploaded when.
+  </Step>
+  <Step title="3) Authentication and sessions">
+    Why login (session) is separate from unlock (keys), including QR login.
+  </Step>
+  <Step title="4) Threat model">
+    What we defend against and what remains out of scope.
+  </Step>
+</Steps>
 
 

@@ -6,12 +6,12 @@ icon: "shield-check"
 
 ## TL;DR
 
-Halycron is designed so the server **cannot decrypt**:
+Halycron is built so **only your devices** can decrypt your library. If someone steals **our database + object storage**, they still can’t read:
 
 - photo bytes
 - user-visible filenames
 
-Even if an attacker gets **full database + object storage** access, they still cannot recover content for encrypted items.
+That’s the core “zero-knowledge at rest” promise for encrypted items.
 
 <Note>
 Zero-knowledge is a property of how we store and manage keys. It does not prevent compromise of a client device or browser.
@@ -72,18 +72,21 @@ See: [Key management](/explanation/key-management).
 If an attacker controls your device or your browser environment (malware, XSS, malicious extensions), they can steal keys after you unlock the vault and decrypt content. Zero-knowledge does not prevent this.
 </Warning>
 
-## Where to go next
+## Recommended reading order
 
-<CardGroup cols={2}>
-  <Card title="Threat model" icon="radar" href="/explanation/threat-model">
-    Threat actors, trust boundaries, and residual risks.
-  </Card>
-  <Card title="Key management" icon="key" href="/explanation/key-management">
-    Key hierarchy (UMK/DEK/RK/SK), what is stored where, and unlock flows.
-  </Card>
-  <Card title="Key security considerations" icon="shield" href="/explanation/key-security-considerations">
-    Practical security guidance and operational controls.
-  </Card>
-</CardGroup>
+<Steps>
+  <Step title="1) Architecture overview">
+    A high-level map of the web app, mobile app, API, database, and object storage.
+  </Step>
+  <Step title="2) Key management">
+    How the vault works, how password reset keeps access, and how sharing stays familiar.
+  </Step>
+  <Step title="3) Storage and sync">
+    What lives in object storage vs the database, and what gets encrypted where.
+  </Step>
+  <Step title="4) Threat model + key security considerations">
+    What we protect against, what we don’t, and the practical controls that matter most.
+  </Step>
+</Steps>
 
 

@@ -4,12 +4,12 @@ description: "How identity sessions work, why sessions are not encryption keys, 
 icon: "fingerprint"
 ---
 
-## The key idea: Session ≠ Vault
+## The key idea: logging in is not the same as unlocking
 
 Halycron intentionally separates two concepts:
 
 - **Session (authentication)**: proves who you are to the server and authorizes API actions.
-- **Vault unlock (encryption keys)**: gives the client access to the UMK needed to decrypt photos and filenames.
+- **Vault unlock (encryption keys)**: lets your device decrypt photos and filenames by accessing the UMK locally.
 
 <Note>
 It’s possible to be logged in but vault-locked. This is expected and is part of the security model.
@@ -73,5 +73,22 @@ We do not support “server-assisted” vault unlock, because that would undermi
 - Use QR login for convenience on trusted devices.
 - Treat vault unlock prompts as normal; they are how your device gains access to decrypt locally.
 - Save the Recovery Key offline to preserve access after password reset.
+
+## Recommended reading order
+
+<Steps>
+  <Step title="1) Zero-knowledge E2EE (overview)">
+    The promise: what stays private even in a server-side breach.
+  </Step>
+  <Step title="2) Key management">
+    Vault unlock, recovery key, password reset, and sharing keys.
+  </Step>
+  <Step title="3) Storage and sync">
+    How encrypted bytes and encrypted metadata move through the system.
+  </Step>
+  <Step title="4) Key security considerations">
+    What can still go wrong (XSS, compromised devices) and what we do about it.
+  </Step>
+</Steps>
 
 

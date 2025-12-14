@@ -4,23 +4,28 @@ description: "A high-level view of Halycron’s components and how web, mobile, 
 icon: "sitemap"
 ---
 
-## Components
+Halycron is designed around a simple split:
+
+- **The server coordinates** (auth, authorization, metadata, presigned URLs).
+- **Your devices decrypt** (photos + filenames) after you unlock your vault.
+
+## What runs where
 
 <CardGroup cols={2}>
   <Card title="Web app" icon="globe">
-    UI + client-side encryption/decryption, vault unlock, sharing.
+    The main UI plus client-side encryption/decryption, vault unlock, and sharing.
   </Card>
   <Card title="Mobile app" icon="mobile">
-    UI + encryption/decryption, secure key storage, local caching.
+    The on-device experience: encryption/decryption, secure key storage, and local caching.
   </Card>
   <Card title="API" icon="server">
-    Authentication, authorization, metadata storage, and presigned URLs.
+    Sessions, authorization, metadata APIs, and presigned upload/download URLs.
   </Card>
   <Card title="Database" icon="database">
-    Stores wrapped keys and encrypted metadata; never stores plaintext UMK/DEKs/filenames for encrypted items.
+    Stores wrapped keys + encrypted metadata (never plaintext UMK/DEKs/filenames for encrypted items).
   </Card>
   <Card title="Object storage" icon="hard-drive">
-    Stores encrypted photo bytes under opaque object keys.
+    Stores encrypted photo bytes under opaque object keys (no filenames).
   </Card>
   <Card title="Docs" icon="book-open">
     Product and security documentation (this site).
@@ -43,7 +48,7 @@ flowchart TD
 ## Security posture summary
 
 - The server is an **orchestrator**: it authenticates, authorizes, and routes encrypted data.
-- The client is the **decryptor**: it holds secrets and performs crypto once the vault is unlocked.
+- Your device is the **decryptor**: it holds secrets and performs crypto once the vault is unlocked.
 
 For the security model, see:
 - [Zero-knowledge E2EE (overview)](/explanation/zero-knowledge-e2ee)
@@ -71,5 +76,22 @@ Authentication and encryption are intentionally decoupled. You can be logged in 
 </Note>
 
 See: [Authentication and sessions](/explanation/auth-and-sessions).
+
+## Recommended reading order
+
+<Steps>
+  <Step title="1) Zero-knowledge E2EE (overview)">
+    The product promise and what is (and isn’t) protected.
+  </Step>
+  <Step title="2) Key management">
+    The vault, recovery key, password reset, and sharing keys.
+  </Step>
+  <Step title="3) Storage and sync">
+    Where encrypted bytes and encrypted metadata live, and how uploads/downloads work.
+  </Step>
+  <Step title="4) Threat model">
+    Trust boundaries, threat actors, and residual risks.
+  </Step>
+</Steps>
 
 
