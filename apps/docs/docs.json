@@ -12,7 +12,7 @@
       "dark": "#0A0A0A"
     }
   },
-  "favicon": "../../packages/ui/src/media/icon.svg",
+  "favicon": "/favicon.svg",
   "navigation": {
     "tabs": [
       {

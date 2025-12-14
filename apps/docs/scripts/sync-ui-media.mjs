@@ -4,10 +4,12 @@ import {mkdirSync, readFileSync, writeFileSync} from 'node:fs'
 const repoRoot = path.resolve(new URL('../../..', import.meta.url).pathname)
 const uiMediaDir = path.join(repoRoot, 'packages/ui/src/media')
 const docsLogoDir = path.join(repoRoot, 'apps/docs/logo')
+const docsFaviconFile = path.join(repoRoot, 'apps/docs/favicon.svg')
 
 mkdirSync(docsLogoDir, {recursive: true})
 
 const logoSvg = readFileSync(path.join(uiMediaDir, 'logo.svg'), 'utf8')
+const iconSvg = readFileSync(path.join(uiMediaDir, 'icon.svg'), 'utf8')
 
 // Dark logo: use the UI logo as-is (white text).
 writeFileSync(path.join(docsLogoDir, 'dark.svg'), logoSvg)
@@ -15,5 +17,8 @@ writeFileSync(path.join(docsLogoDir, 'dark.svg'), logoSvg)
 // Light logo: make the "white" fills dark so it remains visible on light backgrounds.
 const lightLogoSvg = logoSvg.replaceAll('fill="white"', 'fill="#09090B"')
 writeFileSync(path.join(docsLogoDir, 'light.svg'), lightLogoSvg)
+
+// Favicon: keep it local to the Mintlify docs directory (Mintlify can't follow monorepo-relative paths).
+writeFileSync(docsFaviconFile, iconSvg)
 
 
