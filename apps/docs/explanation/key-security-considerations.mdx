@@ -1,0 +1,111 @@
+---
+title: "Key security considerations"
+description: "Practical guidance for protecting keys on web and mobile, sharing safely, and understanding residual risks."
+icon: "shield"
+---
+
+## Why this page exists
+
+The cryptography is only as strong as the environment that holds the keys.
+
+This page focuses on **operational and client-side** considerations that affect the real-world security of Halycron’s zero-knowledge model.
+
+If you want the conceptual model first, read:
+- [Threat model](/explanation/threat-model)
+- [Key management](/explanation/key-management)
+
+## The biggest risks to zero-knowledge
+
+<CardGroup cols={2}>
+  <Card title="Web XSS and extensions" icon="code">
+    If malicious code runs in the browser, it can steal keys after vault unlock.
+  </Card>
+  <Card title="Compromised device" icon="smartphone">
+    Malware or a rooted device can exfiltrate cached keys or decrypted files.
+  </Card>
+</CardGroup>
+
+<Warning>
+Zero-knowledge at rest does not protect against client compromise. Treat web hardening and device security as first-class requirements.
+</Warning>
+
+## Web client considerations
+
+<AccordionGroup>
+  <Accordion title="XSS prevention">
+    Use strict CSP, sanitize user-controlled content, and keep dependencies updated.
+
+    Avoid rendering untrusted HTML and be careful with MDX or rich text sources.
+  </Accordion>
+  <Accordion title="Key persistence tradeoffs">
+    Persisting keys makes UX faster but increases exposure.
+
+    Prefer keeping UMK in memory where possible, and make long-lived storage an explicit user choice.
+  </Accordion>
+  <Accordion title="Clipboard and downloads">
+    Filenames and share links may hit the clipboard.
+
+    Consider warning users about clipboard managers and shared machines.
+  </Accordion>
+</AccordionGroup>
+
+## Mobile client considerations
+
+<AccordionGroup>
+  <Accordion title="Secure storage and biometrics">
+    Use platform secure storage for caching and gate the app behind biometrics where appropriate.
+
+    Biometrics improves casual security but does not protect against a fully compromised device.
+  </Accordion>
+  <Accordion title="Decrypted file caching">
+    Decrypted files may be cached on disk for performance.
+
+    Prefer app-private storage, keep cache bounded, and provide a “clear cache” control.
+  </Accordion>
+</AccordionGroup>
+
+## Sharing safety
+
+### Non‑PIN shares
+Non-PIN links are bearer links: anyone with the full link can view the content.
+
+Recommendations:
+- keep expiry short
+- share over trusted channels
+- avoid reposting into searchable/public places
+
+### PIN shares
+PIN shares add friction, not high-entropy cryptographic authentication.
+
+Recommendations:
+- rate limit PIN attempts
+- alert on repeated failures
+- consider longer PINs in the future for high-risk use cases
+
+## Operational controls (server-side)
+
+Even though the server can’t decrypt, it can still enforce protections:
+
+- rate-limit sensitive endpoints (PIN verify, share fetch)
+- detect abuse patterns
+- revoke sessions and links
+- maintain audit trails for security events
+
+## Checklist (quick)
+
+<Steps>
+  <Step title="Use 2FA and save your Recovery Key">
+    2FA protects account access; the Recovery Key protects data access after password reset.
+  </Step>
+  <Step title="Keep devices updated">
+    OS and browser updates reduce exploit surface for key theft.
+  </Step>
+  <Step title="Treat share links as secrets">
+    Non‑PIN links are as sensitive as the content itself.
+  </Step>
+  <Step title="Prefer PIN shares for sensitive albums">
+    Add friction for accidental exposure and casual misuse.
+  </Step>
+</Steps>
+
+

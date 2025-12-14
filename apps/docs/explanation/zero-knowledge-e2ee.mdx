@@ -1,0 +1,89 @@
+---
+title: "Zero-knowledge E2EE (overview)"
+description: "What Halycron means by zero-knowledge, what is protected, and how end-to-end encryption fits into the product."
+icon: "shield-check"
+---
+
+## TL;DR
+
+Halycron is designed so the server **cannot decrypt**:
+
+- photo bytes
+- user-visible filenames
+
+Even if an attacker gets **full database + object storage** access, they still cannot recover content for encrypted items.
+
+<Note>
+Zero-knowledge is a property of how we store and manage keys. It does not prevent compromise of a client device or browser.
+</Note>
+
+## What “zero-knowledge” means here
+
+In Halycron, “zero-knowledge” is primarily about **at-rest confidentiality** against server-side breaches:
+
+- The server stores **wrapped keys** and **encrypted metadata**.
+- The client performs encryption/decryption after the vault is unlocked.
+
+<CardGroup cols={2}>
+  <Card title="Protected" icon="lock">
+    Photo bytes and user-visible filenames (for encrypted items).
+  </Card>
+  <Card title="Not hidden" icon="eye">
+    Metadata like access patterns, file sizes, timestamps, and IP addresses.
+  </Card>
+</CardGroup>
+
+## System sketch
+
+```mermaid
+flowchart TD
+  Client[ClientDevice] -->|UploadEncryptedBytes| Obj[(ObjectStorage)]
+  Client -->|WriteEncryptedMetadata| DB[(Database)]
+  Client -->|AuthSession| API[HalycronAPI]
+  API --> DB
+  API --> Obj
+  Client -->|DecryptLocally| View[ViewerAndDownloads]
+```
+
+## How E2EE shows up in the product
+
+### Vault
+The **Vault** is the client-side component responsible for holding the User Master Key (UMK) in memory when unlocked.
+
+- Web: vault unlock is separate from login (sessions vs keys).
+- Mobile: the vault can be gated behind biometrics and device secure storage.
+
+See: [Key management](/explanation/key-management) and [Authentication and sessions](/explanation/auth-and-sessions).
+
+### Photos and filenames
+- Photo bytes are encrypted under a per-photo key (DEK).
+- Filenames are encrypted so they are not visible in DB or object keys.
+
+See: [Storage and sync](/explanation/storage-and-sync).
+
+### Sharing links
+Sharing is designed to preserve a familiar UX (“open link → optional PIN → view”), without giving the server decryption keys.
+
+See: [Key management](/explanation/key-management).
+
+## What this does not protect against
+
+<Warning>
+If an attacker controls your device or your browser environment (malware, XSS, malicious extensions), they can steal keys after you unlock the vault and decrypt content. Zero-knowledge does not prevent this.
+</Warning>
+
+## Where to go next
+
+<CardGroup cols={2}>
+  <Card title="Threat model" icon="radar" href="/explanation/threat-model">
+    Threat actors, trust boundaries, and residual risks.
+  </Card>
+  <Card title="Key management" icon="key" href="/explanation/key-management">
+    Key hierarchy (UMK/DEK/RK/SK), what is stored where, and unlock flows.
+  </Card>
+  <Card title="Key security considerations" icon="shield" href="/explanation/key-security-considerations">
+    Practical security guidance and operational controls.
+  </Card>
+</CardGroup>
+
+

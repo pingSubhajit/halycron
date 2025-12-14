@@ -16,58 +16,128 @@
   "navigation": {
     "tabs": [
       {
-        "tab": "Guides",
+        "tab": "Tutorials",
         "groups": [
           {
             "group": "Getting started",
             "pages": [
               "index",
-              "quickstart",
-              "development"
+              "tutorials/getting-started",
+              "tutorials/first-login",
+              "tutorials/first-upload",
+              "tutorials/first-share"
             ]
           },
           {
-            "group": "Customization",
+            "group": "Using the app (guided)",
             "pages": [
-              "essentials/settings",
-              "essentials/navigation"
+              "tutorials/organize-albums",
+              "tutorials/manage-devices"
             ]
           },
           {
-            "group": "Writing content",
+            "group": "Security onboarding (guided)",
             "pages": [
-              "essentials/markdown",
-              "essentials/code",
-              "essentials/images",
-              "essentials/reusable-snippets"
+              "tutorials/two-factor-setup",
+              "tutorials/recovery-basics"
             ]
           },
           {
-            "group": "AI tools",
+            "group": "For contributors",
             "pages": [
-              "ai-tools/cursor",
-              "ai-tools/claude-code",
-              "ai-tools/windsurf"
+              "tutorials/dev-setup"
             ]
           }
         ]
       },
       {
-        "tab": "API reference",
+        "tab": "How-to",
         "groups": [
           {
-            "group": "API documentation",
+            "group": "Account & security",
             "pages": [
-              "api-reference/introduction"
+              "how-to/change-password",
+              "how-to/enable-two-factor",
+              "how-to/reset-password",
+              "how-to/account-recovery"
             ]
           },
           {
-            "group": "Endpoint examples",
+            "group": "Photos, albums & vault",
             "pages": [
-              "api-reference/endpoint/get",
-              "api-reference/endpoint/create",
-              "api-reference/endpoint/delete",
-              "api-reference/endpoint/webhook"
+              "how-to/upload-photos",
+              "how-to/organize-albums",
+              "how-to/export-your-data"
+            ]
+          },
+          {
+            "group": "Sharing",
+            "pages": [
+              "how-to/share-an-album",
+              "how-to/revoke-shared-link"
+            ]
+          },
+          {
+            "group": "Troubleshooting",
+            "pages": [
+              "how-to/login-issues",
+              "how-to/decryption-issues"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Reference",
+        "groups": [
+          {
+            "group": "Product reference",
+            "pages": [
+              "reference/glossary",
+              "reference/limits",
+              "reference/keyboard-shortcuts"
+            ]
+          },
+          {
+            "group": "Technical reference",
+            "pages": [
+              "reference/tech-stack",
+              "reference/database-schema",
+              "reference/api-endpoints"
+            ]
+          },
+          {
+            "group": "Security reference",
+            "pages": [
+              "reference/security-requirements",
+              "reference/security-hardening-checklist"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Explanation",
+        "groups": [
+          {
+            "group": "Security model",
+            "pages": [
+              "explanation/threat-model",
+              "explanation/key-security-considerations"
+            ]
+          },
+          {
+            "group": "Cryptography & E2EE",
+            "pages": [
+              "explanation/zero-knowledge-e2ee",
+              "explanation/key-management",
+              "explanation/album-sensitivity-protection"
+            ]
+          },
+          {
+            "group": "System architecture",
+            "pages": [
+              "explanation/architecture-overview",
+              "explanation/storage-and-sync",
+              "explanation/auth-and-sessions"
             ]
           }
         ]

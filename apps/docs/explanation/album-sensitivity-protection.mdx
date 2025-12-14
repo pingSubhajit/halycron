@@ -1,0 +1,69 @@
+---
+title: "Album sensitivity protection"
+description: "How sensitive/protected albums work, what they protect, and how they interact with sharing and device access."
+icon: "lock"
+---
+
+## Overview
+
+Halycron supports albums with stricter handling to reduce accidental exposure and improve privacy.
+
+At a high level:
+- **Sensitive albums** are treated as high-privacy collections.
+- **Protected albums** add an extra access step (e.g., PIN) in the product UX.
+
+This is separate from encryption: encryption protects bytes/filenames at rest; album sensitivity adds **product-level controls**.
+
+<Note>
+Album sensitivity controls are defense-in-depth. They do not replace encryption, device security, or safe sharing practices.
+</Note>
+
+## What sensitivity protection is for
+
+<CardGroup cols={2}>
+  <Card title="Reduce accidental exposure" icon="eye-off">
+    Minimize inadvertent display (e.g., in general galleries, quick previews, or notifications).
+  </Card>
+  <Card title="Add friction for high-risk content" icon="shield">
+    Require an explicit step before viewing or sharing.
+  </Card>
+</CardGroup>
+
+## Common behaviors (intended UX)
+
+<AccordionGroup>
+  <Accordion title="Library views">
+    Sensitive content may be hidden from default feeds and only shown inside the album after explicit access.
+  </Accordion>
+  <Accordion title="Sharing">
+    For sensitive/protected albums, sharing may require a PIN and should prefer PIN-protected share links.
+  </Accordion>
+  <Accordion title="Notifications and previews">
+    Avoid showing filenames or thumbnails in notifications for sensitive content.
+  </Accordion>
+</AccordionGroup>
+
+## Interaction with E2EE
+
+- Encryption ensures the server can’t read photo bytes or filenames.
+- Album sensitivity determines **when the client shows decrypted content** and what UI affordances are required.
+
+See:
+- [Key management](/explanation/key-management)
+- [Key security considerations](/explanation/key-security-considerations)
+
+## Recommendations
+
+<Steps>
+  <Step title="Use PIN-protected shares for sensitive albums">
+    Non-PIN links are bearer links. For sensitive content, prefer PIN shares and treat the PIN as an additional barrier.
+  </Step>
+  <Step title="Use device security as part of your protection model">
+    Enable device lock screen, biometrics, and OS updates, especially for sensitive albums.
+  </Step>
+  <Step title="Review share links periodically">
+    Revoke links when no longer needed, and avoid long expiry windows for sensitive content.
+  </Step>
+</Steps>
+
+

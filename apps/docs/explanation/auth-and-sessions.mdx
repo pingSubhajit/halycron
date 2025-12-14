@@ -1,0 +1,77 @@
+---
+title: "Authentication and sessions"
+description: "How identity sessions work, why sessions are not encryption keys, and how passwordless (QR) login fits into the vault model."
+icon: "fingerprint"
+---
+
+## The key idea: Session ≠ Vault
+
+Halycron intentionally separates two concepts:
+
+- **Session (authentication)**: proves who you are to the server and authorizes API actions.
+- **Vault unlock (encryption keys)**: gives the client access to the UMK needed to decrypt photos and filenames.
+
+<Note>
+It’s possible to be logged in but vault-locked. This is expected and is part of the security model.
+</Note>
+
+## What a session allows
+
+With a valid session, the server may allow:
+
+- listing your albums/photos metadata (encrypted fields included)
+- requesting presigned upload/download URLs
+- creating share links and retrieving share payloads (still encrypted)
+
+But a session does **not** grant the server the ability to decrypt.
+
+## Session creation paths
+
+<CardGroup cols={2}>
+  <Card title="Email + password" icon="mail">
+    Standard login that creates a session and can be used to unlock the vault on the device.
+  </Card>
+  <Card title="QR login (passwordless session)" icon="qr-code">
+    Creates a server session without requiring the password on that device.
+  </Card>
+</CardGroup>
+
+### Two-factor authentication (2FA)
+2FA strengthens session security by requiring a second factor during authentication.
+
+<Tip>
+2FA protects account access. It does not replace the Recovery Key for encrypted data recovery.
+</Tip>
+
+## Vault unlock paths (after session exists)
+
+See [Key management](/explanation/key-management) for the detailed flows. At a high level:
+
+<Steps>
+  <Step title="Unlock from device cache (fast path)">
+    If the device has a cached UMK (stored encrypted in platform storage), unlock can be immediate.
+  </Step>
+  <Step title="Unlock with password">
+    The device derives a password key (Argon2id) and unwraps UMK locally.
+  </Step>
+  <Step title="Unlock with Recovery Key (RK)">
+    Used after password reset or if the password-based unwrap fails; RK unwraps UMK and then the device rewraps UMK under the new password-derived key.
+  </Step>
+</Steps>
+
+## QR login: why you may still be vault-locked
+
+QR login creates a session, but the scanning device never sees your password.
+
+Therefore, unless the device already has a cached UMK, it cannot decrypt your library until you unlock the vault (password or Recovery Key).
+
+<Warning>
+We do not support “server-assisted” vault unlock, because that would undermine the zero-knowledge goal.
+</Warning>
+
+## Recommended user guidance
+- Use QR login for convenience on trusted devices.
+- Treat vault unlock prompts as normal; they are how your device gains access to decrypt locally.
+- Save the Recovery Key offline to preserve access after password reset.
+
+
