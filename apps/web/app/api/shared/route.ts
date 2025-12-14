@@ -9,6 +9,7 @@ import {CreateShareLinkRequest, CreateShareLinkResponse} from './types'
 import {getBaseUrl} from '@/lib/utils'
 import {addDays, addHours, addMinutes} from 'date-fns'
 import {headers} from 'next/headers'
+import {sharedLinkKeys} from '@/db/schema'
 
 // Helper function to calculate expiry date based on option
 function calculateExpiryDate(expiryOption: string): Date {
@@ -57,8 +58,23 @@ export const POST = async (req: NextRequest) => {
 			return NextResponse.json({error: 'Unauthorized'}, {status: 401})
 		}
 
-		const body: CreateShareLinkRequest = await req.json()
-		const {photoIds, albumIds, expiryOption, pin} = body
+		const body = await req.json() as (CreateShareLinkRequest & {
+			sharePhotos?: Array<{
+				photoId: string
+				wrappedDekForShare: string
+				wrappedDekForShareIv: string
+				encryptedFilenameForShare: string
+				filenameForShareIv: string
+			}>
+			pinWrappedShareKey?: {
+				skWrappedByPin: string
+				pinKdfSalt: string
+				pinKdfParams: string
+				skWrapIv: string
+			}
+		})
+
+		const {photoIds, albumIds, expiryOption, pin, sharePhotos, pinWrappedShareKey} = body
 
 		// Validate request - must have either photoIds or albumIds
 		if ((!photoIds || photoIds.length === 0) && (!albumIds || albumIds.length === 0)) {
@@ -123,8 +139,20 @@ export const POST = async (req: NextRequest) => {
 			return NextResponse.json({error: 'Failed to create share link'}, {status: 500})
 		}
 
-		// Create shared photos records if any
-		if (photoIds && photoIds.length > 0) {
+		// New E2EE share model: client provides per-photo share-wrapped DEK + encrypted filename.
+		if (sharePhotos && sharePhotos.length > 0) {
+			await db.insert(sharedPhotos).values(
+				sharePhotos.map(p => ({
+					sharedLinkId: newSharedLink.id,
+					photoId: p.photoId,
+					wrappedDekForShare: p.wrappedDekForShare,
+					wrappedDekForShareIv: p.wrappedDekForShareIv,
+					encryptedFilenameForShare: p.encryptedFilenameForShare,
+					filenameForShareIv: p.filenameForShareIv
+				}))
+			)
+		} else if (photoIds && photoIds.length > 0) {
+			// Legacy fallback (non-zero-knowledge). Kept for backward compatibility.
 			await db.insert(sharedPhotos)
 				.values(photoIds.map(photoId => ({
 					sharedLinkId: newSharedLink.id,
@@ -139,6 +167,19 @@ export const POST = async (req: NextRequest) => {
 					sharedLinkId: newSharedLink.id,
 					albumId
 				})))
+		}
+
+		// Store PIN-wrapped Share Key material (only for PIN-protected shares)
+		if (pin && pinWrappedShareKey) {
+			await db.insert(sharedLinkKeys).values({
+				sharedLinkId: newSharedLink.id,
+				skWrappedByPin: pinWrappedShareKey.skWrappedByPin,
+				pinKdfSalt: pinWrappedShareKey.pinKdfSalt,
+				pinKdfParams: pinWrappedShareKey.pinKdfParams,
+				skWrapIv: pinWrappedShareKey.skWrapIv,
+				createdAt: new Date(),
+				updatedAt: new Date()
+			})
 		}
 
 		// Generate share URL

@@ -1,49 +1,72 @@
 'use client'
 
 import React, {useEffect, useRef, useState} from 'react'
-import {Photo} from '@/app/api/photos/types'
 import {Button} from '@halycron/ui/components/button'
 import {ZoomIn, ZoomOut} from 'lucide-react'
 import {AnimatePresence, motion} from 'motion/react'
 import {downloadAndDecryptFile} from '@/app/api/photos/utils'
+import {SharedPhoto} from '@/app/api/shared/types'
+import {aeadDecrypt} from '@/lib/crypto/e2ee'
 
-export const PhotoView = ({photo}: { photo: Photo }) => {
+export const PhotoView = ({photo, shareKey}: { photo: SharedPhoto; shareKey: Uint8Array | null }) => {
 	const [scale, setScale] = useState(1)
 	const [position, setPosition] = useState({x: 0, y: 0})
 	const [isDragging, setIsDragging] = useState(false)
 	const [dragStart, setDragStart] = useState({x: 0, y: 0})
 	const [pinchStart, setPinchStart] = useState<{ distance: number; scale: number } | null>(null)
 	const [decryptedUrl, setDecryptedUrl] = useState<string | null>(null)
+	const [decryptedFilename, setDecryptedFilename] = useState<string | null>(null)
 	const [isLoading, setIsLoading] = useState(true)
 	const imageRef = useRef<HTMLDivElement>(null)
 	const containerRef = useRef<HTMLDivElement>(null)
 
 	// Decrypt the image
 	useEffect(() => {
+		let cancelled = false
 		const decryptImage = async () => {
+			// If the share key isn't available yet (URL fragment parsing or PIN entry),
+			// keep the loader up and avoid throwing (prevents "Unable to display" flash).
+			if (!shareKey) {
+				if (!cancelled) setIsLoading(true)
+				return
+			}
+
 			try {
-				setIsLoading(true)
-				if (photo.encryptedFileKey && photo.fileKeyIv) {
-					const url = await downloadAndDecryptFile(
-						photo.url,
-						photo.encryptedFileKey,
-						photo.fileKeyIv,
-						photo.mimeType
+				if (!cancelled) setIsLoading(true)
+
+				if (!photo.wrappedDekForShare || !photo.wrappedDekForShareIv || !photo.contentIv) {
+					throw new Error('Missing shared key material')
+				}
+
+				const dekBytes = await aeadDecrypt(
+					{ciphertextB64: photo.wrappedDekForShare, nonceB64: photo.wrappedDekForShareIv},
+					shareKey
+				)
+
+				const url = await downloadAndDecryptFile(photo.url, dekBytes, photo.contentIv, photo.mimeType)
+				if (!cancelled) setDecryptedUrl(url)
+
+				if (photo.encryptedFilenameForShare && photo.filenameForShareIv) {
+					const nameBytes = await aeadDecrypt(
+						{ciphertextB64: photo.encryptedFilenameForShare, nonceB64: photo.filenameForShareIv},
+						shareKey
 					)
-					setDecryptedUrl(url)
+					if (!cancelled) setDecryptedFilename(new TextDecoder().decode(nameBytes))
 				} else {
-					// For non-encrypted images
-					setDecryptedUrl(photo.url)
+					if (!cancelled) setDecryptedFilename(null)
 				}
 			} catch (error) {
 				console.error('Failed to decrypt image:', error)
 			} finally {
-				setIsLoading(false)
+				if (!cancelled) setIsLoading(false)
 			}
 		}
 
 		decryptImage()
-	}, [photo])
+		return () => {
+			cancelled = true
+		}
+	}, [photo, shareKey])
 
 	const handleZoom = (zoomIn: boolean) => {
 		const zoomFactor = 0.25
@@ -331,7 +354,7 @@ export const PhotoView = ({photo}: { photo: Photo }) => {
 							>
 								<img
 									src={decryptedUrl}
-									alt={photo.originalFilename || 'Shared photo'}
+									alt={decryptedFilename || 'Shared photo'}
 									className="max-h-[90vh] max-w-full h-auto w-auto object-contain select-none"
 									draggable={false}
 								/>

@@ -12,7 +12,7 @@ interface SharedPinDialogProps {
 	isOpen: boolean
 	onClose: () => void
 	token: string
-	onPinVerified: () => void
+	onPinVerified: (pin: string) => void
 }
 
 export const SharedPinDialog: React.FC<SharedPinDialogProps> = ({
@@ -66,7 +66,7 @@ export const SharedPinDialog: React.FC<SharedPinDialogProps> = ({
 				onSuccess: (response) => {
 					if (response.isValid) {
 						handleClose()
-						onPinVerified()
+						onPinVerified(pin)
 					} else {
 						Alert.alert('Error', 'Incorrect PIN. Please try again.')
 						setPin('')

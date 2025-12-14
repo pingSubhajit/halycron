@@ -88,9 +88,9 @@ const calculateMasonryLayout = (photos: Photo[]): PhotoWithLayout[] => {
 	return photosWithLayout
 }
 
-const MasonryPhotoItem = React.memo(({photo, memoryPhotos, photoIndex}: {
+const MasonryPhotoItem = React.memo(({photo, shouldLoad, photoIndex}: {
 	photo: PhotoWithLayout;
-	memoryPhotos: any[];
+	shouldLoad: boolean;
 	photoIndex: number
 }) => {
 	return (
@@ -103,15 +103,26 @@ const MasonryPhotoItem = React.memo(({photo, memoryPhotos, photoIndex}: {
 				height: photo.calculatedHeight
 			}}
 		>
-			<EncryptedImage
-				photo={photo}
-				style={{
-					width: COLUMN_WIDTH,
-					height: photo.calculatedHeight
-				}}
-				shouldUseThumbnail={true}
-				loadDelay={photoIndex * 100} // Stagger loading by 100ms per photo
-			/>
+			{shouldLoad ? (
+				<EncryptedImage
+					photo={photo}
+					style={{
+						width: COLUMN_WIDTH,
+						height: photo.calculatedHeight
+					}}
+					shouldUseThumbnail={true}
+					loadDelay={photoIndex * 150} // Stagger to reduce CPU/memory spikes
+				/>
+			) : (
+				<View
+					style={{
+						width: COLUMN_WIDTH,
+						height: photo.calculatedHeight,
+						backgroundColor: '#171717',
+						borderRadius: 8
+					}}
+				/>
+			)}
 		</View>
 	)
 })
@@ -135,10 +146,13 @@ export const PhotoGallery = ({photos, isLoading, error, headerComponent, onRefre
 	// Use memory-limited photos hook - always call hooks at top level
 	const {memoryPhotos, renderablePhotos, getStats} = useMemoryLimitedPhotos({
 		photos: photos || [],
-		maxInMemory: 50,
+		// Keep this conservative on device; decrypting generates heavy CPU/memory load.
+		maxInMemory: 12,
 		visibleRange,
 		preloadBuffer: 5
 	})
+
+	const loadableIds = useMemo(() => new Set(renderablePhotos.map(p => p.id)), [renderablePhotos])
 
 	const masonryPhotos = useMemo(() => {
 		if (!photos || photos.length === 0) return []
@@ -305,7 +319,7 @@ export const PhotoGallery = ({photos, isLoading, error, headerComponent, onRefre
 							<MasonryPhotoItem
 								key={photo.id}
 								photo={photo}
-								memoryPhotos={renderablePhotos}
+								shouldLoad={loadableIds.has(photo.id)}
 								photoIndex={index}
 							/>
 						))}

@@ -5,6 +5,7 @@ import Image from 'next/image'
 import logo from '@halycron/ui/media/logo.svg'
 import Link from 'next/link'
 import {NavLinks} from '@/components/nav-links'
+import {VaultGate} from '@/app/app/vault-gate'
 
 const DashboardLayout = ({children}: {children: ReactNode}) => {
 	return (
@@ -22,7 +23,9 @@ const DashboardLayout = ({children}: {children: ReactNode}) => {
 			</header>
 
 			<main className="p-4">
-				{children}
+				<VaultGate>
+					{children}
+				</VaultGate>
 			</main>
 		</div>
 	)

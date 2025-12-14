@@ -12,20 +12,20 @@ export const s3Client = new S3Client({
 })
 
 // Generate a unique file key
-export const generateUniqueFileKey = (userId: string, fileName: string) => {
+export const generateUniqueFileKey = (userId: string, _fileName?: string) => {
 	const timestamp = Date.now()
 	const randomString = crypto.randomBytes(8).toString('hex')
-	const sanitizedFileName = fileName.replace(/[^a-zA-Z0-9.-]/g, '_')
-	return `${userId}/${timestamp}-${randomString}-${sanitizedFileName}`
+	// IMPORTANT: do not include user filenames in object keys (zero-knowledge filenames).
+	return `${userId}/${timestamp}-${randomString}`
 }
 
 // Generate presigned URL for upload
 export const generatePresignedUploadUrl = async (
 	userId: string,
-	fileName: string,
+	fileNameOrUndefined: string | undefined,
 	contentType: string
 ) => {
-	const fileKey = generateUniqueFileKey(userId, fileName)
+	const fileKey = generateUniqueFileKey(userId, fileNameOrUndefined)
 
 	const command = new PutObjectCommand({
 		Bucket: process.env.AWS_BUCKET_NAME,
@@ -48,8 +48,7 @@ export const generatePresignedUploadUrl = async (
 export const generatePresignedDownloadUrl = async (fileKey: string) => {
 	const command = new GetObjectCommand({
 		Bucket: process.env.AWS_BUCKET_NAME,
-		Key: fileKey,
-		ResponseContentDisposition: `attachment; filename="${encodeURIComponent(fileKey)}"`
+		Key: fileKey
 	})
 
 	return await getSignedUrl(s3Client, command, {

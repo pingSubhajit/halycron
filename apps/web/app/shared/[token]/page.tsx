@@ -4,12 +4,15 @@ import {useEffect, useState} from 'react'
 import {useParams} from 'next/navigation'
 import {useSharedItems} from '@/app/api/shared/query'
 import {SharePinDialog} from '@/components/share/share-pin-dialog'
-import {Gallery} from '@/components/gallery'
 import {formatDistanceToNow} from 'date-fns'
 import {Album as AlbumIcon, ClockIcon, Loader2, LockIcon} from 'lucide-react'
 import {Button} from '@halycron/ui/components/button'
 import {PhotoView} from '@/app/shared/[token]/photo-view'
-import {Photo} from '@/app/api/photos/types'
+import {SharedPhoto} from '@/app/api/shared/types'
+import {useQueryClient} from '@tanstack/react-query'
+import {sharedQueryKeys} from '@/app/api/shared/keys'
+import {SharedGallery} from '@/components/shared-gallery'
+import {aeadDecrypt, b64UrlDecode, deriveKekPw, type KdfParams} from '@/lib/crypto/e2ee'
 
 // Define the extended Album type that includes photos
 type AlbumWithPhotos = {
@@ -19,22 +22,68 @@ type AlbumWithPhotos = {
 	isProtected: boolean
 	createdAt: Date
 	updatedAt: Date
-	photos?: Photo[]
+	photos?: SharedPhoto[]
 }
 
 const SharedPage = () => {
 	const {token} = useParams<{ token: string }>()
-	const [isPinVerified, setIsPinVerified] = useState(false)
 	const [showPinDialog, setShowPinDialog] = useState(false)
+	const [pinForDecryption, setPinForDecryption] = useState<string | null>(null)
+	const [shareKey, setShareKey] = useState<Uint8Array | null>(null)
+	const [missingNonPinKey, setMissingNonPinKey] = useState(false)
+	const [hasAutoPromptedPin, setHasAutoPromptedPin] = useState(false)
+	const queryClient = useQueryClient()
 
-	const {data, isLoading, isError, error} = useSharedItems(token, isPinVerified)
+	const {data, isLoading, isError, error} = useSharedItems(token)
 
 	useEffect(() => {
-		// If the data is fetched and it requires PIN verification, show the PIN dialog
-		if (data && data.isPinProtected && !isPinVerified) {
-			setShowPinDialog(true)
+		let mounted = true
+		const compute = async () => {
+			if (!data) return
+			// PIN shares: share key comes from server (wrapped under PIN-derived key)
+			if (data.isPinProtected) {
+				setMissingNonPinKey(false)
+				const pk = (data as any).pinKeyMaterial as (null | {skWrappedByPin: string; pinKdfSalt: string; pinKdfParams: string; skWrapIv: string})
+				if (!pk || !pinForDecryption) return
+				const params = JSON.parse(pk.pinKdfParams) as KdfParams
+				const pinKey = await deriveKekPw(pinForDecryption, pk.pinKdfSalt, params)
+				const sk = await aeadDecrypt({ciphertextB64: pk.skWrappedByPin, nonceB64: pk.skWrapIv}, pinKey)
+				if (mounted) setShareKey(sk)
+				return
+			}
+
+			// Non-PIN shares: share key is in URL fragment (#k=...)
+			const hash = typeof window !== 'undefined' ? window.location.hash : ''
+			const qs = new URLSearchParams(hash.startsWith('#') ? hash.slice(1) : hash)
+			const k = qs.get('k')
+			if (!k) {
+				if (mounted) {
+					setShareKey(null)
+					setMissingNonPinKey(true)
+				}
+				return
+			}
+			const sk = await b64UrlDecode(k)
+			if (mounted) {
+				setMissingNonPinKey(false)
+				setShareKey(sk)
+			}
 		}
-	}, [data, isPinVerified])
+		compute().catch(() => {
+			if (mounted) setShareKey(null)
+		})
+		return () => {
+			mounted = false
+		}
+	}, [data, pinForDecryption])
+
+	useEffect(() => {
+		// PIN shares need a PIN to decrypt the Share Key (SK), even if server access cookie exists.
+		if (data && data.isPinProtected && !shareKey && !hasAutoPromptedPin) {
+			setShowPinDialog(true)
+			setHasAutoPromptedPin(true)
+		}
+	}, [data, shareKey, hasAutoPromptedPin])
 
 	if (isLoading) {
 		return (
@@ -63,14 +112,14 @@ const SharedPage = () => {
 		)
 	}
 
-	// Show PIN verification dialog if needed
-	if (data.isPinProtected && !isPinVerified) {
+	// PIN-protected share: always prompt for PIN if we don’t yet have the Share Key (SK) to decrypt.
+	if (data.isPinProtected && !shareKey) {
 		return (
 			<>
 				<div className="flex h-screen w-full flex-col items-center justify-center gap-4">
 					<LockIcon className="h-12 w-12 text-muted-foreground" />
 					<h1 className="text-2xl font-bold">PIN Protected Content</h1>
-					<p className="text-muted-foreground">This content is protected with a PIN.</p>
+					<p className="text-muted-foreground">Enter the PIN to decrypt this content.</p>
 					<Button onClick={() => setShowPinDialog(true)}>Enter PIN</Button>
 				</div>
 
@@ -78,9 +127,25 @@ const SharedPage = () => {
 					open={showPinDialog}
 					onOpenChange={setShowPinDialog}
 					token={token}
-					onPinVerified={() => setIsPinVerified(true)}
+					onPinVerified={(pin) => {
+						setPinForDecryption(pin)
+						// Server sets an access cookie; refetch shared items.
+						queryClient.invalidateQueries({queryKey: sharedQueryKeys.detail(token)})
+					}}
 				/>
 			</>
+		)
+	}
+
+	// Non-PIN share but missing URL fragment key.
+	if (!data.isPinProtected && missingNonPinKey) {
+		return (
+			<div className="flex h-screen w-full flex-col items-center justify-center gap-2 px-4">
+				<h1 className="text-2xl font-bold">Missing decryption key</h1>
+				<p className="text-muted-foreground text-center">
+					This link is missing its decryption key fragment. Ask the sender to re-copy the full link (including the part after <span className="font-mono">#k=</span>).
+				</p>
+			</div>
 		)
 	}
 
@@ -96,7 +161,7 @@ const SharedPage = () => {
 			</div>
 
 			{data.shareType === 'photo' && data.photos && data.photos[0] && (
-				<PhotoView photo={data.photos[0]} />
+				<PhotoView photo={data.photos[0]} shareKey={shareKey} />
 			)}
 
 			{data.shareType === 'album' && data.albums && (
@@ -109,7 +174,7 @@ const SharedPage = () => {
 							</div>
 
 							{album.photos && album.photos.length > 0 ? (
-								<Gallery photos={album.photos} />
+								<SharedGallery photos={album.photos} shareKey={shareKey}/>
 							) : (
 								<p className="text-muted-foreground">This album is empty.</p>
 							)}

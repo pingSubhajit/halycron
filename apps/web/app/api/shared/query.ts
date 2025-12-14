@@ -3,7 +3,7 @@ import {sharedQueryKeys} from './keys'
 import {GetSharedItemsResponse} from './types'
 
 // Hook to get shared items by token
-export function useSharedItems(token: string, isPinVerified: boolean = false) {
+export function useSharedItems(token: string) {
 	return useQuery({
 		queryKey: sharedQueryKeys.detail(token),
 		queryFn: async (): Promise<GetSharedItemsResponse> => {
@@ -14,7 +14,7 @@ export function useSharedItems(token: string, isPinVerified: boolean = false) {
 			}
 			return response.json()
 		},
-		enabled: Boolean(token) && (isPinVerified || true), // Enable if token exists and pin is verified (or no pin required)
+		enabled: Boolean(token),
 		staleTime: 1000 * 60 * 5 // 5 minutes
 	})
 }

@@ -7,12 +7,14 @@ import {photoQueryKeys} from '../lib/photo-keys'
 import {uploadNotificationManager} from '../lib/notification-utils'
 import {
 	encryptFile,
-	generateEncryptionKey,
+	generatePhotoDek,
 	getImageDimensions,
 	getPreSignedUploadUrl,
 	savePhotoToDB,
 	uploadEncryptedPhoto
 } from '../lib/upload-utils'
+import {useVault} from '@/src/components/vault-provider'
+import {aeadEncrypt, deriveUmkFileWrapKey, deriveUmkFilenameKey} from '@/src/lib/crypto/e2ee'
 
 interface UsePhotoUploadOptions {
 	onPhotoUploaded?: (photo: Photo) => void
@@ -43,6 +45,7 @@ export const usePhotoUpload = ({
 	const queryClient = useQueryClient()
 	const hasSuccessfulUploads = useRef(false)
 	const [notificationsInitialized, setNotificationsInitialized] = useState(false)
+	const {umk} = useVault()
 
 	// Initialize notifications on first use
 	useEffect(() => {
@@ -56,6 +59,10 @@ export const usePhotoUpload = ({
 	const {mutate: uploadFile} = useMutation({
 		mutationFn: async (asset: ImagePicker.ImagePickerAsset) => {
 			try {
+				if (!umk) {
+					throw new Error('Vault is locked. Unlock your vault to upload photos.')
+				}
+
 				const fileName = asset.fileName || `photo_${Date.now()}.jpg`
 
 				// Get image dimensions - use asset dimensions if available, otherwise fetch them
@@ -66,8 +73,8 @@ export const usePhotoUpload = ({
 					dimensions = await getImageDimensions(asset.uri)
 				}
 
-				// Generate a secure random encryption key
-				const encryptionKey = generateEncryptionKey()
+				// Generate a secure random per-photo DEK
+				const dek = generatePhotoDek()
 
 				// Update state to encrypting
 				setUploadStates(prev => ({
@@ -81,9 +88,17 @@ export const usePhotoUpload = ({
 				}
 
 				// Encrypt the file
-				const {encryptedData, iv, key} = await encryptFile(asset.uri, encryptionKey)
+				const {encryptedData, iv} = await encryptFile(asset.uri, dek)
 
-				// Get pre-signed URL
+				// Wrap DEK with UMK-derived key
+				const wrapKey = await deriveUmkFileWrapKey(umk)
+				const wrappedDek = await aeadEncrypt(dek, wrapKey)
+
+				// Encrypt filename with UMK-derived filename key
+				const filenameKey = await deriveUmkFilenameKey(umk)
+				const encName = await aeadEncrypt(new TextEncoder().encode(fileName), filenameKey)
+
+				// Get pre-signed URL (do not send filename)
 				const {uploadUrl, fileKey} = await getPreSignedUploadUrl(fileName, asset.mimeType || 'image/jpeg')
 
 				// Update state to uploading
@@ -110,12 +125,17 @@ export const usePhotoUpload = ({
 					await uploadNotificationManager.updateFileProgress(fileName, 90, 'uploading')
 				}
 
-				// Save encryption details to database
+				// Save encryption details to database (v1 E2EE)
 				const response = await savePhotoToDB(
 					fileKey,
-					key,
-					iv,
-					fileName,
+					{
+						encryptionVersion: 1,
+						contentIv: iv,
+						wrappedDek: wrappedDek.ciphertextB64,
+						wrappedDekIv: wrappedDek.nonceB64,
+						encryptedFilename: encName.ciphertextB64,
+						filenameIv: encName.nonceB64
+					},
 					asset.mimeType || 'image/jpeg',
 					dimensions.width,
 					dimensions.height

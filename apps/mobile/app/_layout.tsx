@@ -9,6 +9,7 @@ import {DialogProvider} from '@/src/components/dialog-provider'
 import {DialogRenderer} from '@/src/components/dialog-renderer'
 import {QueryProvider} from '@/src/components/query-provider'
 import {UploadProvider, useUploadContext} from '@/src/components/upload-provider'
+import {VaultProvider} from '@/src/components/vault-provider'
 import {SystemBars} from 'react-native-edge-to-edge'
 import {SafeAreaProvider} from 'react-native-safe-area-context'
 import {GestureHandlerRootView} from 'react-native-gesture-handler'
@@ -118,27 +119,29 @@ const AppContent = () => {
 
 	return (
 		<SessionProvider>
-			<BiometricProvider>
-				<DialogProvider>
-					<UploadProvider
-						onPhotoUploaded={(photo) => {
-							// Invalidate queries to refresh the gallery
-							queryClient.invalidateQueries({queryKey: photoQueryKeys.allPhotos()})
-						}}
-					>
-						<ShareIntentHandler/>
-						<QuickActionsHandler/>
-						<NotificationHandler/>
-						<UploadCompletionHandler/>
-						<SystemBars style="light"/>
+			<VaultProvider>
+				<BiometricProvider>
+					<DialogProvider>
+						<UploadProvider
+							onPhotoUploaded={(photo) => {
+								// Invalidate queries to refresh the gallery
+								queryClient.invalidateQueries({queryKey: photoQueryKeys.allPhotos()})
+							}}
+						>
+							<ShareIntentHandler/>
+							<QuickActionsHandler/>
+							<NotificationHandler/>
+							<UploadCompletionHandler/>
+							<SystemBars style="light"/>
 
-						<RootNavigator/>
-					</UploadProvider>
+							<RootNavigator/>
+						</UploadProvider>
 
-					{/* Render dialogs outside the main content but inside the provider */}
-					<DialogRenderer/>
-				</DialogProvider>
-			</BiometricProvider>
+						{/* Render dialogs outside the main content but inside the provider */}
+						<DialogRenderer/>
+					</DialogProvider>
+				</BiometricProvider>
+			</VaultProvider>
 		</SessionProvider>
 	)
 }
