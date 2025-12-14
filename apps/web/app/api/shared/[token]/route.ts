@@ -47,7 +47,7 @@ export const GET = async (
 		}
 
 		// Get shared photos if any (E2EE share-wrapped DEK + encrypted filename)
-		const sharedPhotoItems = await Promise.all((await db
+		const sharedRows = await db
 			.select({
 				id: photo.id,
 				s3Key: photo.s3Key,
@@ -67,13 +67,20 @@ export const GET = async (
 			})
 			.from(sharedPhotos)
 			.innerJoin(photo, eq(sharedPhotos.photoId, photo.id))
-			.where(eq(sharedPhotos.sharedLinkId, link.id)))
-			.map(async (row) => ({
+			.where(eq(sharedPhotos.sharedLinkId, link.id))
+
+		const sharedPhotoItems = await Promise.all(sharedRows.map(async (row) => {
+			// Normalize to a single IV field for clients (must be present for decryption)
+			const iv = row.contentIv ?? row.fileKeyIv
+			if (!iv) {
+				throw new Error(`Corrupt photo metadata: missing IV for photoId=${row.id}`)
+			}
+			return {
 				...row,
 				url: await generatePresignedDownloadUrl(row.s3Key),
-				// Normalize to a single IV field for clients
-				contentIv: row.contentIv || row.fileKeyIv
-			})))
+				contentIv: iv
+			}
+		}))
 
 		// Get shared albums if any
 		const sharedAlbumItems = await db
@@ -91,7 +98,7 @@ export const GET = async (
 
 		// For each album, get the photos in the album (restricted to photos included in this share)
 		const albumPhotos = await Promise.all(sharedAlbumItems.map(async (albumItem) => {
-			const photos = await Promise.all((await db
+			const albumRows = await db
 				.select({
 					id: photo.id,
 					s3Key: photo.s3Key,
@@ -113,12 +120,19 @@ export const GET = async (
 					eq(sharedPhotos.photoId, photo.id),
 					eq(sharedPhotos.sharedLinkId, link.id)
 				))
-				.where(eq(photosToAlbums.albumId, albumItem.id)))
-				.map(async (row) => ({
+				.where(eq(photosToAlbums.albumId, albumItem.id))
+
+			const photos = await Promise.all(albumRows.map(async (row) => {
+				const iv = row.contentIv ?? row.fileKeyIv
+				if (!iv) {
+					throw new Error(`Corrupt photo metadata: missing IV for photoId=${row.id}`)
+				}
+				return {
 					...row,
 					url: await generatePresignedDownloadUrl(row.s3Key),
-					contentIv: row.contentIv || row.fileKeyIv
-				})))
+					contentIv: iv
+				}
+			}))
 
 			return {
 				...albumItem,
