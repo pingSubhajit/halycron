@@ -61,8 +61,14 @@ export const SharedGallery = ({photos, shareKey}: {photos: SharedPhoto[]; shareK
 
 	if (!shareKey) {
 		return (
-			<div className="flex flex-col items-center justify-center h-64">
-				<p className="text-sm text-muted-foreground">Missing share key</p>
+			<div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
+				{Array.from({length: Math.min(photos.length, 8)}).map((_, i) => (
+					<div
+						key={i}
+						className="relative overflow-hidden bg-accent animate-pulse w-full"
+						style={{paddingBottom: '75%'}}
+					/>
+				))}
 			</div>
 		)
 	}

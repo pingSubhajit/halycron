@@ -22,12 +22,17 @@ export const PhotoView = ({photo, shareKey}: { photo: SharedPhoto; shareKey: Uin
 
 	// Decrypt the image
 	useEffect(() => {
+		let cancelled = false
 		const decryptImage = async () => {
+			// If the share key isn't available yet (URL fragment parsing or PIN entry),
+			// keep the loader up and avoid throwing (prevents "Unable to display" flash).
+			if (!shareKey) {
+				if (!cancelled) setIsLoading(true)
+				return
+			}
+
 			try {
-				setIsLoading(true)
-				if (!shareKey) {
-					throw new Error('Missing share key')
-				}
+				if (!cancelled) setIsLoading(true)
 
 				if (!photo.wrappedDekForShare || !photo.wrappedDekForShareIv || !photo.contentIv) {
 					throw new Error('Missing shared key material')
@@ -39,25 +44,28 @@ export const PhotoView = ({photo, shareKey}: { photo: SharedPhoto; shareKey: Uin
 				)
 
 				const url = await downloadAndDecryptFile(photo.url, dekBytes, photo.contentIv, photo.mimeType)
-				setDecryptedUrl(url)
+				if (!cancelled) setDecryptedUrl(url)
 
 				if (photo.encryptedFilenameForShare && photo.filenameForShareIv) {
 					const nameBytes = await aeadDecrypt(
 						{ciphertextB64: photo.encryptedFilenameForShare, nonceB64: photo.filenameForShareIv},
 						shareKey
 					)
-					setDecryptedFilename(new TextDecoder().decode(nameBytes))
+					if (!cancelled) setDecryptedFilename(new TextDecoder().decode(nameBytes))
 				} else {
-					setDecryptedFilename(null)
+					if (!cancelled) setDecryptedFilename(null)
 				}
 			} catch (error) {
 				console.error('Failed to decrypt image:', error)
 			} finally {
-				setIsLoading(false)
+				if (!cancelled) setIsLoading(false)
 			}
 		}
 
 		decryptImage()
+		return () => {
+			cancelled = true
+		}
 	}, [photo, shareKey])
 
 	const handleZoom = (zoomIn: boolean) => {

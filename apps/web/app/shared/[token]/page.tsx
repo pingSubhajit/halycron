@@ -30,6 +30,8 @@ const SharedPage = () => {
 	const [showPinDialog, setShowPinDialog] = useState(false)
 	const [pinForDecryption, setPinForDecryption] = useState<string | null>(null)
 	const [shareKey, setShareKey] = useState<Uint8Array | null>(null)
+	const [missingNonPinKey, setMissingNonPinKey] = useState(false)
+	const [hasAutoPromptedPin, setHasAutoPromptedPin] = useState(false)
 	const queryClient = useQueryClient()
 
 	const {data, isLoading, isError, error} = useSharedItems(token)
@@ -40,6 +42,7 @@ const SharedPage = () => {
 			if (!data) return
 			// PIN shares: share key comes from server (wrapped under PIN-derived key)
 			if (data.isPinProtected) {
+				setMissingNonPinKey(false)
 				const pk = (data as any).pinKeyMaterial as (null | {skWrappedByPin: string; pinKdfSalt: string; pinKdfParams: string; skWrapIv: string})
 				if (!pk || !pinForDecryption) return
 				const params = JSON.parse(pk.pinKdfParams) as KdfParams
@@ -53,9 +56,18 @@ const SharedPage = () => {
 			const hash = typeof window !== 'undefined' ? window.location.hash : ''
 			const qs = new URLSearchParams(hash.startsWith('#') ? hash.slice(1) : hash)
 			const k = qs.get('k')
-			if (!k) return
+			if (!k) {
+				if (mounted) {
+					setShareKey(null)
+					setMissingNonPinKey(true)
+				}
+				return
+			}
 			const sk = await b64UrlDecode(k)
-			if (mounted) setShareKey(sk)
+			if (mounted) {
+				setMissingNonPinKey(false)
+				setShareKey(sk)
+			}
 		}
 		compute().catch(() => {
 			if (mounted) setShareKey(null)
@@ -66,11 +78,12 @@ const SharedPage = () => {
 	}, [data, pinForDecryption])
 
 	useEffect(() => {
-		// If server requires PIN verification, show the PIN dialog
-		if (data && data.isPinProtected && (data as any).requiresPin) {
+		// PIN shares need a PIN to decrypt the Share Key (SK), even if server access cookie exists.
+		if (data && data.isPinProtected && !shareKey && !hasAutoPromptedPin) {
 			setShowPinDialog(true)
+			setHasAutoPromptedPin(true)
 		}
-	}, [data])
+	}, [data, shareKey, hasAutoPromptedPin])
 
 	if (isLoading) {
 		return (
@@ -99,14 +112,14 @@ const SharedPage = () => {
 		)
 	}
 
-	// Show PIN verification dialog if needed
-	if (data.isPinProtected && (data as any).requiresPin) {
+	// PIN-protected share: always prompt for PIN if we don’t yet have the Share Key (SK) to decrypt.
+	if (data.isPinProtected && !shareKey) {
 		return (
 			<>
 				<div className="flex h-screen w-full flex-col items-center justify-center gap-4">
 					<LockIcon className="h-12 w-12 text-muted-foreground" />
 					<h1 className="text-2xl font-bold">PIN Protected Content</h1>
-					<p className="text-muted-foreground">This content is protected with a PIN.</p>
+					<p className="text-muted-foreground">Enter the PIN to decrypt this content.</p>
 					<Button onClick={() => setShowPinDialog(true)}>Enter PIN</Button>
 				</div>
 
@@ -121,6 +134,18 @@ const SharedPage = () => {
 					}}
 				/>
 			</>
+		)
+	}
+
+	// Non-PIN share but missing URL fragment key.
+	if (!data.isPinProtected && missingNonPinKey) {
+		return (
+			<div className="flex h-screen w-full flex-col items-center justify-center gap-2 px-4">
+				<h1 className="text-2xl font-bold">Missing decryption key</h1>
+				<p className="text-muted-foreground text-center">
+					This link is missing its decryption key fragment. Ask the sender to re-copy the full link (including the part after <span className="font-mono">#k=</span>).
+				</p>
+			</div>
 		)
 	}
 
