@@ -4,7 +4,7 @@ import {useState} from 'react'
 import {zodResolver} from '@hookform/resolvers/zod'
 import {useForm} from 'react-hook-form'
 import * as z from 'zod'
-import {Eye, EyeOff} from 'lucide-react'
+import {Eye, EyeOff, KeyRound, Copy, Check} from 'lucide-react'
 import {Button} from '@halycron/ui/components/button'
 import {Form, FormControl, FormField, FormItem, FormMessage} from '@halycron/ui/components/form'
 import {Input} from '@halycron/ui/components/input'
@@ -81,8 +81,10 @@ const RegisterForm = () => {
 				throw loginError || new Error('We got your account set up, but had trouble signing you in. Try logging in again.')
 			}
 
-			// With 2FA, the session cookie is finalized after TOTP verification.
-			// Defer vault bootstrap until after TwoFactorSetup completes.
+			/*
+			 * With 2FA, the session cookie is finalized after TOTP verification.
+			 * Defer vault bootstrap until after TwoFactorSetup completes.
+			 */
 			setPendingVaultPassword(values.password)
 
 			// Send verification email after successful registration
@@ -101,6 +103,8 @@ const RegisterForm = () => {
 			setIsLoading(false)
 		}
 	}
+
+	const [copied, setCopied] = useState(false)
 
 	const onTwoFactorComplete = async () => {
 		toast.success('Perfect! Your account is now extra secure with 2FA.')
@@ -122,6 +126,16 @@ const RegisterForm = () => {
 		logout()
 	}
 
+	const handleCopyKey = () => {
+		if (recoveryKeyToShow) {
+			navigator.clipboard.writeText(recoveryKeyToShow)
+			setCopied(true)
+			setTimeout(() => setCopied(false), 2000)
+			toast.success('Recovery key copied to clipboard')
+		}
+	}
+
+
 	// Shared spring transition for all layout animations
 	const springTransition = {
 		type: 'spring',
@@ -138,20 +152,43 @@ const RegisterForm = () => {
 					// Do not allow closing without explicit confirmation.
 					onOpenChange={() => {}}
 				>
-					<DialogContent className="sm:max-w-lg">
+					<DialogContent className="sm:max-w-lg shadow-2xl">
 						<DialogHeader>
-							<DialogTitle>Save your Recovery Key</DialogTitle>
-							<DialogDescription>
-								This key restores access to your encrypted photos if you reset your password. We cannot recover it for you.
-							</DialogDescription>
+							<div className="flex flex-col items-center gap-4 pb-2">
+								<div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+									<KeyRound className="h-6 w-6 text-primary" />
+								</div>
+								<div className="space-y-1 text-center">
+									<DialogTitle className="text-xl">Save your Recovery Key</DialogTitle>
+									<DialogDescription className="text-center">
+										This key is the <span className="text-foreground font-medium">only way</span> to recover your encrypted photos if you forget your password.
+									</DialogDescription>
+								</div>
+							</div>
 						</DialogHeader>
-						<div className="rounded-md border p-3 font-mono text-sm break-all select-all">
-							{recoveryKeyToShow}
+
+						<div className="space-y-4 pt-2">
+							<div className="relative">
+								<div className="rounded-lg border border-border bg-muted/50 p-4 pr-12 font-mono text-sm break-all text-muted-foreground select-all text-center">
+									{recoveryKeyToShow}
+								</div>
+								<Button
+									size="icon"
+									variant="ghost"
+									className="absolute right-1 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+									onClick={handleCopyKey}
+									title="Copy to clipboard"
+								>
+									{copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+								</Button>
+							</div>
 						</div>
-						<DialogFooter>
+
+						<DialogFooter className="sm:justify-center pt-2">
 							<Button
 								type="button"
-								className="w-full"
+								className="w-full font-bold"
+								size="lg"
 								onClick={() => {
 									setRecoveryKeyToShow(null)
 									setPendingVaultPassword(null)
@@ -163,7 +200,7 @@ const RegisterForm = () => {
 									}
 								}}
 							>
-								I saved it, continue
+								I have saved this key
 							</Button>
 						</DialogFooter>
 					</DialogContent>

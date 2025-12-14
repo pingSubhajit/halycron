@@ -4,6 +4,8 @@ import {useEffect, useState} from 'react'
 import {SharedPhoto} from '@/app/api/shared/types'
 import {downloadAndDecryptFile} from '@/app/api/photos/utils'
 import {aeadDecrypt} from '@/lib/crypto/e2ee'
+import {Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle} from '@halycron/ui/components/empty'
+import {Images} from 'lucide-react'
 
 const SharedEncryptedThumb = ({photo, shareKey}: {photo: SharedPhoto; shareKey: Uint8Array}) => {
 	const [url, setUrl] = useState<string | null>(null)
@@ -53,9 +55,15 @@ const SharedEncryptedThumb = ({photo, shareKey}: {photo: SharedPhoto; shareKey: 
 export const SharedGallery = ({photos, shareKey}: {photos: SharedPhoto[]; shareKey: Uint8Array | null}) => {
 	if (!photos.length) {
 		return (
-			<div className="flex flex-col items-center justify-center h-64">
-				<p className="text-sm text-muted-foreground">No photos</p>
-			</div>
+			<Empty className="h-64">
+				<EmptyHeader>
+					<EmptyMedia variant="icon">
+						<Images className="h-5 w-5" />
+					</EmptyMedia>
+					<EmptyTitle>No photos</EmptyTitle>
+					<EmptyDescription>This shared album is empty.</EmptyDescription>
+				</EmptyHeader>
+			</Empty>
 		)
 	}
 

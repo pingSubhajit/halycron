@@ -13,7 +13,7 @@ import {Button} from '@halycron/ui/components/button'
 import {Input} from '@halycron/ui/components/input'
 import {useCallback, useEffect, useState} from 'react'
 import {useRouter} from 'next/navigation'
-import {EyeOff, Lock, Trash2} from 'lucide-react'
+import {EyeOff, Image as ImageIcon, Lock, Trash2} from 'lucide-react'
 import {useForm} from 'react-hook-form'
 import {zodResolver} from '@hookform/resolvers/zod'
 import * as z from 'zod'
@@ -28,6 +28,15 @@ import {useQueryClient} from '@tanstack/react-query'
 import {albumQueryKeys} from '@/app/api/albums/keys'
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from '@halycron/ui/components/tooltip'
 import {useHotkeys} from 'react-hotkeys-hook'
+import {Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle} from '@halycron/ui/components/empty'
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle
+} from '@halycron/ui/components/dialog'
 
 const Gallery = dynamic(() => import('@/components/gallery').then(mod => mod.Gallery), {ssr: false})
 
@@ -47,7 +56,7 @@ interface Props {
 interface AlbumManagerProps {album: Album, onDelete: () => void, isAccessDenied: boolean, handleLockAlbum: () => void}
 
 const AlbumManager = ({album, onDelete, isAccessDenied, handleLockAlbum}: AlbumManagerProps) => {
-	const [isEditing, setIsEditing] = useState(false)
+	const [isEditOpen, setIsEditOpen] = useState(false)
 	const [pin, setPin] = useState('')
 	const updateAlbum = useUpdateAlbum()
 
@@ -62,18 +71,18 @@ const AlbumManager = ({album, onDelete, isAccessDenied, handleLockAlbum}: AlbumM
 
 	// Handle keyboard shortcuts with useHotkeys
 	useHotkeys('escape', () => {
-		if (isEditing) {
+		if (isEditOpen) {
 			form.reset()
 			setPin('')
-			setIsEditing(false)
+			setIsEditOpen(false)
 		}
-	}, [isEditing, form])
+	}, [isEditOpen, form])
 
 	useHotkeys('shift+e', () => {
-		if (!isEditing) {
-			setIsEditing(true)
+		if (!isEditOpen) {
+			setIsEditOpen(true)
 		}
-	}, [isEditing])
+	}, [isEditOpen])
 
 	const isProtected = form.watch('isProtected')
 
@@ -110,7 +119,7 @@ const AlbumManager = ({album, onDelete, isAccessDenied, handleLockAlbum}: AlbumM
 			}
 
 			await updateAlbum.mutateAsync(updateData as Album)
-			setIsEditing(false)
+			setIsEditOpen(false)
 			toast.success('Album updated successfully')
 		} catch (error) {
 			toast.error('Failed to update album')
@@ -119,10 +128,86 @@ const AlbumManager = ({album, onDelete, isAccessDenied, handleLockAlbum}: AlbumM
 
 	return (
 		<div className="flex flex-col gap-4">
-			{isEditing ? (
-				<Form {...form}>
-					<form onSubmit={form.handleSubmit(handleUpdate)} className="space-y-4">
-						<div className="flex flex-col gap-4">
+			<div className="flex items-center gap-2 w-full justify-between">
+				<div className="flex items-center gap-4">
+					<button
+						type="button"
+						className="text-left"
+						onClick={() => setIsEditOpen(true)}
+					>
+						<h1 className="text-xl font-semibold">{album.name}</h1>
+					</button>
+
+					<div className="flex items-center gap-2">
+						{album.isSensitive && (
+							<div className="flex items-center text-sm text-amber-500">
+								<TooltipProvider>
+									<Tooltip>
+										<TooltipTrigger>
+											<EyeOff className="h-4 w-4" />
+										</TooltipTrigger>
+										<TooltipContent>
+											<p>This album contains sensitive content</p>
+										</TooltipContent>
+									</Tooltip>
+								</TooltipProvider>
+							</div>
+						)}
+						{album && album.isProtected && !isAccessDenied && (
+							<div className="flex items-center gap-1 text-sm text-amber-500">
+								<TooltipProvider>
+									<Tooltip>
+										<TooltipTrigger>
+											<Lock className="h-4 w-4" />
+										</TooltipTrigger>
+										<TooltipContent>
+											<p>This album is protected with a PIN.</p>
+										</TooltipContent>
+									</Tooltip>
+								</TooltipProvider>
+								<Button
+									variant="outline"
+									size="sm"
+									onClick={handleLockAlbum}
+									className="ml-2 h-7 px-2 text-xs"
+								>
+									Lock Album
+								</Button>
+							</div>
+						)}
+					</div>
+				</div>
+
+				<div className="flex items-center gap-2">
+					<Button variant="ghost" size="icon" className="opacity-80" onClick={onDelete}>
+						<Trash2 className="h-4 w-4" />
+					</Button>
+					<Button variant="outline" size="sm" onClick={() => setIsEditOpen(true)}>
+						Edit
+					</Button>
+				</div>
+			</div>
+
+			<Dialog
+				open={isEditOpen}
+				onOpenChange={(open) => {
+					setIsEditOpen(open)
+					if (!open) {
+						form.reset()
+						setPin('')
+					}
+				}}
+			>
+				<DialogContent className="sm:max-w-lg">
+					<DialogHeader>
+						<DialogTitle>Edit album</DialogTitle>
+						<DialogDescription>
+							Update album settings. Press <span className="font-medium">Shift+E</span> to open, <span className="font-medium">Esc</span> to close.
+						</DialogDescription>
+					</DialogHeader>
+
+					<Form {...form}>
+						<form onSubmit={form.handleSubmit(handleUpdate)} className="space-y-6">
 							<FormField
 								control={form.control}
 								name="name"
@@ -131,7 +216,7 @@ const AlbumManager = ({album, onDelete, isAccessDenied, handleLockAlbum}: AlbumM
 										<FormControl>
 											<Input
 												{...field}
-												className="w-full h-9"
+												className="w-full h-10"
 												placeholder="Album name"
 											/>
 										</FormControl>
@@ -140,15 +225,20 @@ const AlbumManager = ({album, onDelete, isAccessDenied, handleLockAlbum}: AlbumM
 								)}
 							/>
 
-							<div className="flex flex-col gap-2 border rounded-md p-3">
-								<p className="text-sm font-medium mb-2">Album Security</p>
-
-								<div className="flex items-center justify-between">
-									<div className="flex items-center gap-2">
-										<EyeOff className="h-4 w-4 text-muted-foreground" />
-										<Label htmlFor="sensitive-toggle" className="text-sm">
-											Sensitive Content
-										</Label>
+							<div className="rounded-lg border p-4 space-y-4">
+								<div className="flex items-start justify-between gap-6">
+									<div className="flex items-start gap-3">
+										<div className="mt-0.5">
+											<EyeOff className="h-4 w-4 text-muted-foreground" />
+										</div>
+										<div className="space-y-1">
+											<Label htmlFor="album-sensitive" className="text-sm font-medium">
+												Sensitive content
+											</Label>
+											<p className="text-xs text-muted-foreground">
+												Hides photos from the main gallery view.
+											</p>
+										</div>
 									</div>
 									<FormField
 										control={form.control}
@@ -157,7 +247,7 @@ const AlbumManager = ({album, onDelete, isAccessDenied, handleLockAlbum}: AlbumM
 											<FormItem>
 												<FormControl>
 													<Switch
-														id="sensitive-toggle"
+														id="album-sensitive"
 														checked={field.value}
 														onCheckedChange={field.onChange}
 													/>
@@ -167,18 +257,18 @@ const AlbumManager = ({album, onDelete, isAccessDenied, handleLockAlbum}: AlbumM
 									/>
 								</div>
 
-								<div className="flex items-center justify-between">
-									<div className="flex items-center gap-2">
-										<Lock className="h-4 w-4 text-muted-foreground" />
-										<div>
-											<Label htmlFor="protected-toggle" className="text-sm">
-												PIN Protection
+								<div className="flex items-start justify-between gap-6">
+									<div className="flex items-start gap-3">
+										<div className="mt-0.5">
+											<Lock className="h-4 w-4 text-muted-foreground" />
+										</div>
+										<div className="space-y-1">
+											<Label htmlFor="album-protected" className="text-sm font-medium">
+												PIN protection
 											</Label>
-											{album.isProtected && (
-												<p className="text-xs text-muted-foreground mt-1">
-													PIN cannot be changed once set
-												</p>
-											)}
+											<p className="text-xs text-muted-foreground">
+												Require a 4-digit PIN to open this album.
+											</p>
 										</div>
 									</div>
 									<FormField
@@ -188,7 +278,7 @@ const AlbumManager = ({album, onDelete, isAccessDenied, handleLockAlbum}: AlbumM
 											<FormItem>
 												<FormControl>
 													<Switch
-														id="protected-toggle"
+														id="album-protected"
 														checked={field.value}
 														onCheckedChange={field.onChange}
 													/>
@@ -199,14 +289,16 @@ const AlbumManager = ({album, onDelete, isAccessDenied, handleLockAlbum}: AlbumM
 								</div>
 
 								{isProtected && (
-									<div className="mt-2 p-3 border rounded-md">
-										<Label htmlFor="pin-input" className="text-sm block">
-											{album.isProtected
-												? 'PIN is already set and cannot be changed'
-												: 'Set 4-digit PIN'}
-										</Label>
-										{!album.isProtected && (
-											<div className="mt-2">
+									<div className="pt-2">
+										{album.isProtected ? (
+											<div className="rounded-md bg-muted/40 p-3 text-xs text-muted-foreground">
+												PIN is already set and cannot be changed.
+											</div>
+										) : (
+											<div className="space-y-2">
+												<Label htmlFor="pin-input" className="text-sm">
+													Set 4-digit PIN
+												</Label>
 												<InputOTP maxLength={4} value={pin} onChange={setPin}>
 													<InputOTPGroup className="justify-center">
 														<InputOTPSlot index={0} />
@@ -216,95 +308,38 @@ const AlbumManager = ({album, onDelete, isAccessDenied, handleLockAlbum}: AlbumM
 													</InputOTPGroup>
 												</InputOTP>
 												{form.formState.errors.pin && (
-													<p className="text-xs text-destructive mt-1">{form.formState.errors.pin.message}</p>
+													<p className="text-xs text-destructive">{form.formState.errors.pin.message}</p>
 												)}
 											</div>
 										)}
 									</div>
 								)}
 							</div>
-						</div>
 
-						<div className="flex gap-2">
-							<Button
-								type="submit"
-								disabled={!form.formState.isDirty || form.formState.isSubmitting}
-							>
-								{form.formState.isSubmitting ? (
-									<p>Saving</p>
-								) : (
-									<p>Save</p>
-								)}
-							</Button>
-							<Button
-								variant="outline"
-								onClick={() => {
-									form.reset()
-									setPin('')
-									setIsEditing(false)
-								}}
-								disabled={form.formState.isSubmitting}
-							>
-								Cancel
-							</Button>
-						</div>
-					</form>
-				</Form>
-			) : (
-				<div className="flex items-center gap-2 w-full justify-between">
-					<div className="flex items-center gap-4">
-						<h1 className="text-xl font-semibold" onClick={() => setIsEditing(true)}>{album.name}</h1>
-
-						<div className="flex items-center gap-2">
-							{album.isSensitive && (
-								<div className="flex items-center text-sm text-amber-500">
-									<TooltipProvider>
-										<Tooltip>
-											<TooltipTrigger>
-												<EyeOff className="h-4 w-4" />
-											</TooltipTrigger>
-											<TooltipContent>
-												<p>This album contains sensitive content</p>
-											</TooltipContent>
-										</Tooltip>
-									</TooltipProvider>
-								</div>
-							)}
-							{album && album.isProtected && !isAccessDenied && (
-								<div className="flex items-center gap-1 text-sm text-amber-500">
-									<TooltipProvider>
-										<Tooltip>
-											<TooltipTrigger>
-												<Lock className="h-4 w-4" />
-											</TooltipTrigger>
-											<TooltipContent>
-												<p>This album is protected with a PIN.</p>
-											</TooltipContent>
-										</Tooltip>
-									</TooltipProvider>
-									<Button
-										variant="outline"
-										size="sm"
-										onClick={handleLockAlbum}
-										className="ml-2 h-7 px-2 text-xs"
-									>
-										Lock Album
-									</Button>
-								</div>
-							)}
-						</div>
-					</div>
-
-					<div className="flex items-center gap-2">
-						<Button variant="ghost" size="icon" className="opacity-80" onClick={onDelete}>
-							<Trash2 className="h-4 w-4" />
-						</Button>
-						<Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
-							Edit
-						</Button>
-					</div>
-				</div>
-			)}
+							<DialogFooter>
+								<Button
+									type="button"
+									variant="outline"
+									onClick={() => {
+										form.reset()
+										setPin('')
+										setIsEditOpen(false)
+									}}
+									disabled={form.formState.isSubmitting}
+								>
+									Cancel
+								</Button>
+								<Button
+									type="submit"
+									disabled={!form.formState.isDirty || form.formState.isSubmitting}
+								>
+									{form.formState.isSubmitting ? 'Saving…' : 'Save changes'}
+								</Button>
+							</DialogFooter>
+						</form>
+					</Form>
+				</DialogContent>
+			</Dialog>
 		</div>
 	)
 }
@@ -514,9 +549,17 @@ export const SingleAlbumView = ({albumId}: Props) => {
 				) : Array.isArray(photos) && photos.length > 0 ? (
 					<Gallery photos={photos} onDelete={onDelete} currentAlbumId={albumId}/>
 				) : (
-					<div className="w-full h-[50vh] flex items-center justify-center rounded-lg border border-dashed p-12">
-						<p className="text-muted-foreground">No photos in this album yet</p>
-					</div>
+					<Empty className="h-[50vh] w-full">
+						<EmptyHeader>
+							<EmptyMedia variant="icon">
+								<ImageIcon className="h-5 w-5" />
+							</EmptyMedia>
+							<EmptyTitle>No photos in this album</EmptyTitle>
+							<EmptyDescription>
+								Drop photos here to upload, or add existing ones from your gallery.
+							</EmptyDescription>
+						</EmptyHeader>
+					</Empty>
 				)}
 			</div>
 

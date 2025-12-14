@@ -5,6 +5,8 @@ import useResponsive, {breakpoints} from '@/hooks/use-responsive'
 import usePrevious from '@/hooks/use-previous'
 import EncryptedImage from '@/components/encrypted-image'
 import {useLightbox} from './lightbox-context'
+import {Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle} from '@halycron/ui/components/empty'
+import {Images} from 'lucide-react'
 
 type Props = {
 	photos: Photo[]
@@ -65,10 +67,15 @@ export const Gallery = ({photos, onDelete, currentAlbumId}: Props) => {
 
 	if (!photos.length) {
 		return (
-			<div className="flex flex-col items-center justify-center h-96">
-				<p className="text-lg text-neutral-300">No photos here</p>
-				<p className="text-sm text-neutral-500">Drag your photos here to upload</p>
-			</div>
+			<Empty className="h-96">
+				<EmptyHeader>
+					<EmptyMedia variant="icon">
+						<Images className="h-5 w-5" />
+					</EmptyMedia>
+					<EmptyTitle>No photos yet</EmptyTitle>
+					<EmptyDescription>Drag and drop photos to upload.</EmptyDescription>
+				</EmptyHeader>
+			</Empty>
 		)
 	}
 

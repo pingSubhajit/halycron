@@ -147,94 +147,91 @@ const CreateAlbumForm = ({photoId, variant, currentAlbumId}: {
 	}
 
 	return (
-		<form onSubmit={handleSubmit(onSubmit)} className="p-2 flex flex-col gap-3">
-			<div className="flex gap-1">
-				<Input
-					{...register('name')}
-					placeholder="Album name"
-					className={cn('h-7 text-xs', errors.name && 'border-destructive')}
-				/>
+		<form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-3 p-1">
+			<div className="space-y-2">
+				<h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Create New Album</h4>
+				<div className="flex gap-2">
+					<Input
+						{...register('name')}
+						placeholder="Name"
+						className={cn('h-8 text-xs', errors.name && 'border-destructive')}
+					/>
 
-				<Button type="submit" variant="secondary" size="sm" disabled={isSubmitting} className="h-7 text-xs">
-					Create
-				</Button>
+					<Button type="submit" size="sm" disabled={isSubmitting} className="h-8 px-3 text-xs font-semibold">
+						Create
+					</Button>
+				</div>
 			</div>
 
 			{errors.name && (
-				<p className="text-xs text-destructive">{errors.name.message}</p>
+				<p className="text-xs text-destructive font-medium -mt-1">{errors.name.message}</p>
 			)}
 
-			<div className="flex flex-col gap-2">
+			<div className="space-y-2 rounded-md border p-2 bg-muted/20">
 				<div className="flex items-center justify-between">
 					<div className="flex items-center gap-2">
-						<EyeOff className="h-3 w-3 text-muted-foreground" />
-						<Label htmlFor="sensitive-toggle" className="text-xs">
-							Sensitive Content
+						<EyeOff className="h-3.5 w-3.5 text-muted-foreground" />
+						<Label htmlFor="sensitive-toggle" className="text-xs font-medium cursor-pointer">
+							Sensitive
 						</Label>
-					</div>
-
-					<div className="flex items-center gap-2">
-						<Switch
-							id="sensitive-toggle"
-							{...register('isSensitive')}
-							onCheckedChange={(checked) => setValue('isSensitive', checked)}
-						/>
-
 						<TooltipProvider>
 							<Tooltip>
-								<TooltipTrigger>
-									<CircleHelp className="w-4 h-4 opacity-80" />
+								<TooltipTrigger asChild>
+									<CircleHelp className="w-3 h-3 text-muted-foreground/50 hover:text-muted-foreground transition-colors cursor-help" />
 								</TooltipTrigger>
-								<TooltipContent>
-									<p>
-										Photos that are in sensitive albums won't show up in gallery.
-									</p>
+								<TooltipContent side="right" className="max-w-[200px] text-xs">
+									<p>Photos in sensitive albums are hidden from the main gallery view.</p>
 								</TooltipContent>
 							</Tooltip>
 						</TooltipProvider>
 					</div>
+
+					<Switch
+						id="sensitive-toggle"
+						className="scale-75 origin-right"
+						{...register('isSensitive')}
+						onCheckedChange={(checked) => setValue('isSensitive', checked)}
+					/>
 				</div>
 
 				<div className="flex items-center justify-between">
 					<div className="flex items-center gap-2">
-						<Lock className="h-3 w-3 text-muted-foreground" />
-						<Label htmlFor="protected-toggle" className="text-xs">
-							PIN Protection
+						<Lock className="h-3.5 w-3.5 text-muted-foreground" />
+						<Label htmlFor="protected-toggle" className="text-xs font-medium cursor-pointer">
+							Protected
 						</Label>
-					</div>
-
-					<div className="flex items-center gap-2">
-						<Switch
-							id="protected-toggle"
-							{...register('isProtected')}
-							onCheckedChange={(checked) => setValue('isProtected', checked)}
-						/>
-
 						<TooltipProvider>
 							<Tooltip>
-								<TooltipTrigger>
-									<CircleHelp className="w-4 h-4 opacity-80" />
+								<TooltipTrigger asChild>
+									<CircleHelp className="w-3 h-3 text-muted-foreground/50 hover:text-muted-foreground transition-colors cursor-help" />
 								</TooltipTrigger>
-								<TooltipContent>
-									<p>You'll have to set a 4-digit PIN and enter it to access this album</p>
+								<TooltipContent side="right" className="max-w-[200px] text-xs">
+									<p>Require a 4-digit PIN to access this album.</p>
 								</TooltipContent>
 							</Tooltip>
 						</TooltipProvider>
 					</div>
+
+					<Switch
+						id="protected-toggle"
+						className="scale-75 origin-right"
+						{...register('isProtected')}
+						onCheckedChange={(checked) => setValue('isProtected', checked)}
+					/>
 				</div>
 			</div>
 
 			{isProtected && (
-				<div className="mt-1">
-					<Label htmlFor="pin-input" className="text-xs mb-1 block">
-						Enter 4-digit PIN
+				<div className="animate-in slide-in-from-top-2 fade-in duration-200">
+					<Label htmlFor="pin-input" className="text-xs font-medium mb-1.5 block text-center text-muted-foreground">
+						Set 4-digit PIN
 					</Label>
-					<InputOTP maxLength={4} value={pin} onChange={setPin} className="mt-2">
-						<InputOTPGroup className="justify-center w-full">
-							<InputOTPSlot index={0} className="w-full" />
-							<InputOTPSlot index={1} className="w-full" />
-							<InputOTPSlot index={2} className="w-full" />
-							<InputOTPSlot index={3} className="w-full" />
+					<InputOTP maxLength={4} value={pin} onChange={setPin}>
+						<InputOTPGroup className="justify-center w-full gap-2">
+							<InputOTPSlot index={0} className="w-9 h-9 text-sm" />
+							<InputOTPSlot index={1} className="w-9 h-9 text-sm" />
+							<InputOTPSlot index={2} className="w-9 h-9 text-sm" />
+							<InputOTPSlot index={3} className="w-9 h-9 text-sm" />
 						</InputOTPGroup>
 					</InputOTP>
 				</div>
@@ -322,21 +319,40 @@ export const AlbumSelector = ({photo, variant = 'context-menu', className, curre
 			<>
 				<ContextMenuSub>
 					<ContextMenuSubTrigger>Add to album</ContextMenuSubTrigger>
-					<ContextMenuSubContent className="w-64">
-						<CreateAlbumForm photoId={photo.id} variant="context-menu" currentAlbumId={currentAlbumId}/>
-						<ContextMenuSeparator />
-						{albums?.map(album => (
-							<ContextMenuCheckboxItem
-								key={album.id}
-								checked={photo.albums?.some(a => a.id === album.id)}
-								onCheckedChange={(checked) => handleAlbumToggle(album.id, !checked)}
-							>
-								{album.name}
-							</ContextMenuCheckboxItem>
-						))}
-						{!albums?.length && (
-							<div className="px-2 py-1.5 text-sm opacity-50">No albums created yet</div>
-						)}
+					<ContextMenuSubContent className="w-72 p-0">
+						<div className="p-3 border-b bg-muted/30">
+							<CreateAlbumForm photoId={photo.id} variant="context-menu" currentAlbumId={currentAlbumId}/>
+						</div>
+						
+						<div className="py-1">
+							<div className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+								Existing Albums
+							</div>
+							
+							<div className="max-h-[200px] overflow-y-auto custom-scrollbar">
+								{albums?.map(album => (
+									<ContextMenuCheckboxItem
+										key={album.id}
+										checked={photo.albums?.some(a => a.id === album.id)}
+										onCheckedChange={(checked) => handleAlbumToggle(album.id, !checked)}
+										className="pl-8"
+									>
+										<div className="flex items-center justify-between w-full">
+											<span className="truncate max-w-[160px]">{album.name}</span>
+											<div className="flex gap-1.5 ml-2">
+												{album.isSensitive && <EyeOff className="w-3 h-3 text-amber-500/70" />}
+												{album.isProtected && <Lock className="w-3 h-3 text-primary/70" />}
+											</div>
+										</div>
+									</ContextMenuCheckboxItem>
+								))}
+								{!albums?.length && (
+									<div className="px-8 py-4 text-xs text-center text-muted-foreground italic">
+										No albums yet. Create one above!
+									</div>
+								)}
+							</div>
+						</div>
 					</ContextMenuSubContent>
 				</ContextMenuSub>
 			</>
@@ -350,27 +366,46 @@ export const AlbumSelector = ({photo, variant = 'context-menu', className, curre
 					<Button
 						variant="ghost"
 						size="icon"
-						className="hover:border-none"
+						className="hover:bg-accent/50 data-[state=open]:bg-accent"
 					>
 						<ImageIcon className="h-4 w-4" />
 						<span className="sr-only">Manage albums</span>
 					</Button>
 				</DropdownMenuTrigger>
-				<DropdownMenuContent className="w-64" align="center">
-					<CreateAlbumForm photoId={photo.id} variant="dropdown" currentAlbumId={currentAlbumId}/>
-					<DropdownMenuSeparator />
-					{albums?.map(album => (
-						<DropdownMenuCheckboxItem
-							key={album.id}
-							checked={photo.albums?.some(a => a.id === album.id)}
-							onCheckedChange={(checked) => handleAlbumToggle(album.id, !checked)}
-						>
-							{album.name}
-						</DropdownMenuCheckboxItem>
-					))}
-					{!albums?.length && (
-						<div className="px-2 py-1.5 text-sm opacity-50">No albums created yet</div>
-					)}
+				<DropdownMenuContent className="w-72 p-0" align="end">
+					<div className="p-3 border-b bg-muted/30">
+						<CreateAlbumForm photoId={photo.id} variant="dropdown" currentAlbumId={currentAlbumId}/>
+					</div>
+					
+					<div className="py-1">
+						<div className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+							Existing Albums
+						</div>
+						
+						<div className="max-h-[200px] overflow-y-auto custom-scrollbar">
+							{albums?.map(album => (
+								<DropdownMenuCheckboxItem
+									key={album.id}
+									checked={photo.albums?.some(a => a.id === album.id)}
+									onCheckedChange={(checked) => handleAlbumToggle(album.id, !checked)}
+									className="pl-8 cursor-pointer"
+								>
+									<div className="flex items-center justify-between w-full">
+										<span className="truncate max-w-[160px]">{album.name}</span>
+										<div className="flex gap-1.5 ml-2">
+											{album.isSensitive && <EyeOff className="w-3 h-3 text-amber-500/70" />}
+											{album.isProtected && <Lock className="w-3 h-3 text-primary/70" />}
+										</div>
+									</div>
+								</DropdownMenuCheckboxItem>
+							))}
+							{!albums?.length && (
+								<div className="px-8 py-4 text-xs text-center text-muted-foreground italic">
+									No albums yet. Create one above!
+								</div>
+							)}
+						</div>
+					</div>
 				</DropdownMenuContent>
 			</DropdownMenu>
 		</div>

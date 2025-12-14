@@ -8,6 +8,8 @@ import {toast} from 'sonner'
 import {useQueryClient} from '@tanstack/react-query'
 import {albumQueryKeys} from '@/app/api/albums/keys'
 import {Album} from '@/app/api/albums/types'
+import {Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle} from '@halycron/ui/components/empty'
+import {FolderOpen} from 'lucide-react'
 
 type DeleteAlbumContext = {
 	previousAlbums: Album[] | undefined
@@ -68,11 +70,19 @@ export const AlbumView = () => {
 	}
 
 	if (albums && albums.length === 0) {
-		return <div className="flex flex-col items-center justify-center h-96">
-			<p className="text-lg text-neutral-300">Your album collection is empty</p>
-			<p className="text-sm text-neutral-500">Right-click on any photo and select "Add to album" to get
-				started</p>
-		</div>
+		return (
+			<Empty className="h-96">
+				<EmptyHeader>
+					<EmptyMedia variant="icon">
+						<FolderOpen className="h-5 w-5" />
+					</EmptyMedia>
+					<EmptyTitle>Your albums are empty</EmptyTitle>
+					<EmptyDescription>
+						Right-click any photo and choose “Add to album” to get started.
+					</EmptyDescription>
+				</EmptyHeader>
+			</Empty>
+		)
 	}
 
 	return (
