@@ -14,132 +14,66 @@
   },
   "favicon": "/favicon.svg",
   "navigation": {
-    "tabs": [
+    "dropdowns": [
       {
-        "tab": "Tutorials",
-        "groups": [
-          {
-            "group": "Getting started",
-            "pages": [
-              "index",
-              "tutorials/getting-started",
-              "tutorials/first-login",
-              "tutorials/first-upload",
-              "tutorials/first-share"
-            ]
-          },
-          {
-            "group": "Using the app (guided)",
-            "pages": [
-              "tutorials/organize-albums",
-              "tutorials/manage-devices"
-            ]
-          },
-          {
-            "group": "Security onboarding (guided)",
-            "pages": [
-              "tutorials/two-factor-setup",
-              "tutorials/recovery-basics"
-            ]
-          },
-          {
-            "group": "For contributors",
-            "pages": [
-              "tutorials/dev-setup"
-            ]
-          }
+        "dropdown": "Tutorials",
+        "icon": "book-open",
+        "pages": [
+          "index",
+          "tutorials/getting-started",
+          "tutorials/first-login",
+          "tutorials/first-upload",
+          "tutorials/first-share",
+          "tutorials/organize-albums",
+          "tutorials/manage-devices",
+          "tutorials/two-factor-setup",
+          "tutorials/recovery-basics",
+          "tutorials/dev-setup"
         ]
       },
       {
-        "tab": "How-to",
-        "groups": [
-          {
-            "group": "Account & security",
-            "pages": [
-              "how-to/change-password",
-              "how-to/enable-two-factor",
-              "how-to/reset-password",
-              "how-to/account-recovery"
-            ]
-          },
-          {
-            "group": "Photos, albums & vault",
-            "pages": [
-              "how-to/upload-photos",
-              "how-to/organize-albums",
-              "how-to/export-your-data"
-            ]
-          },
-          {
-            "group": "Sharing",
-            "pages": [
-              "how-to/share-an-album",
-              "how-to/revoke-shared-link"
-            ]
-          },
-          {
-            "group": "Troubleshooting",
-            "pages": [
-              "how-to/login-issues",
-              "how-to/decryption-issues"
-            ]
-          }
+        "dropdown": "How-to",
+        "icon": "check-square",
+        "pages": [
+          "how-to/change-password",
+          "how-to/enable-two-factor",
+          "how-to/reset-password",
+          "how-to/account-recovery",
+          "how-to/upload-photos",
+          "how-to/organize-albums",
+          "how-to/export-your-data",
+          "how-to/share-an-album",
+          "how-to/revoke-shared-link",
+          "how-to/login-issues",
+          "how-to/decryption-issues"
         ]
       },
       {
-        "tab": "Reference",
-        "groups": [
-          {
-            "group": "Product reference",
-            "pages": [
-              "reference/glossary",
-              "reference/limits",
-              "reference/keyboard-shortcuts"
-            ]
-          },
-          {
-            "group": "Technical reference",
-            "pages": [
-              "reference/tech-stack",
-              "reference/database-schema",
-              "reference/api-endpoints"
-            ]
-          },
-          {
-            "group": "Security reference",
-            "pages": [
-              "reference/security-requirements",
-              "reference/security-hardening-checklist"
-            ]
-          }
+        "dropdown": "Reference",
+        "icon": "book",
+        "pages": [
+          "reference/glossary",
+          "reference/limits",
+          "reference/keyboard-shortcuts",
+          "reference/tech-stack",
+          "reference/database-schema",
+          "reference/api-endpoints",
+          "reference/security-requirements",
+          "reference/security-hardening-checklist"
         ]
       },
       {
-        "tab": "Explanation",
-        "groups": [
-          {
-            "group": "Security model",
-            "pages": [
-              "explanation/threat-model",
-              "explanation/key-security-considerations"
-            ]
-          },
-          {
-            "group": "Cryptography & E2EE",
-            "pages": [
-              "explanation/zero-knowledge-e2ee",
-              "explanation/key-management",
-              "explanation/album-sensitivity-protection"
-            ]
-          },
-          {
-            "group": "System architecture",
-            "pages": [
-              "explanation/architecture-overview",
-              "explanation/storage-and-sync",
-              "explanation/auth-and-sessions"
-            ]
-          }
+        "dropdown": "Explanation",
+        "icon": "lightbulb",
+        "pages": [
+          "explanation/threat-model",
+          "explanation/key-security-considerations",
+          "explanation/zero-knowledge-e2ee",
+          "explanation/key-management",
+          "explanation/album-sensitivity-protection",
+          "explanation/architecture-overview",
+          "explanation/storage-and-sync",
+          "explanation/auth-and-sessions"
         ]
       }
     ],

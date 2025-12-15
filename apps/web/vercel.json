@@ -1,38 +1,6 @@
 {
   "rewrites": [
     {
-      "source": "/tutorials",
-      "destination": "https://halycron.mintlify.dev/docs/tutorials"
-    },
-    {
-      "source": "/tutorials/:match*",
-      "destination": "https://halycron.mintlify.dev/docs/tutorials/:match*"
-    },
-    {
-      "source": "/how-to",
-      "destination": "https://halycron.mintlify.dev/docs/how-to"
-    },
-    {
-      "source": "/how-to/:match*",
-      "destination": "https://halycron.mintlify.dev/docs/how-to/:match*"
-    },
-    {
-      "source": "/reference",
-      "destination": "https://halycron.mintlify.dev/docs/reference"
-    },
-    {
-      "source": "/reference/:match*",
-      "destination": "https://halycron.mintlify.dev/docs/reference/:match*"
-    },
-    {
-      "source": "/explanation",
-      "destination": "https://halycron.mintlify.dev/docs/explanation"
-    },
-    {
-      "source": "/explanation/:match*",
-      "destination": "https://halycron.mintlify.dev/docs/explanation/:match*"
-    },
-    {
       "source": "/docs",
       "destination": "https://halycron.mintlify.dev/docs"
     },
