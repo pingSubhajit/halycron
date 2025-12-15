@@ -1,47 +1,37 @@
 {
-  "redirects": [
+  "rewrites": [
     {
       "source": "/tutorials",
-      "destination": "/docs/tutorials",
-      "permanent": true
+      "destination": "https://halycron.mintlify.dev/docs/tutorials"
     },
     {
       "source": "/tutorials/:match*",
-      "destination": "/docs/tutorials/:match*",
-      "permanent": true
+      "destination": "https://halycron.mintlify.dev/docs/tutorials/:match*"
     },
     {
       "source": "/how-to",
-      "destination": "/docs/how-to",
-      "permanent": true
+      "destination": "https://halycron.mintlify.dev/docs/how-to"
     },
     {
       "source": "/how-to/:match*",
-      "destination": "/docs/how-to/:match*",
-      "permanent": true
+      "destination": "https://halycron.mintlify.dev/docs/how-to/:match*"
     },
     {
       "source": "/reference",
-      "destination": "/docs/reference",
-      "permanent": true
+      "destination": "https://halycron.mintlify.dev/docs/reference"
     },
     {
       "source": "/reference/:match*",
-      "destination": "/docs/reference/:match*",
-      "permanent": true
+      "destination": "https://halycron.mintlify.dev/docs/reference/:match*"
     },
     {
       "source": "/explanation",
-      "destination": "/docs/explanation",
-      "permanent": true
+      "destination": "https://halycron.mintlify.dev/docs/explanation"
     },
     {
       "source": "/explanation/:match*",
-      "destination": "/docs/explanation/:match*",
-      "permanent": true
-    }
-  ],
-  "rewrites": [
+      "destination": "https://halycron.mintlify.dev/docs/explanation/:match*"
+    },
     {
       "source": "/docs",
       "destination": "https://halycron.mintlify.dev/docs"
