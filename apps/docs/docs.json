@@ -14,10 +14,9 @@
   },
   "favicon": "/favicon.svg",
   "navigation": {
-    "dropdowns": [
+    "groups": [
       {
-        "dropdown": "Tutorials",
-        "icon": "book-open",
+        "group": "Tutorials",
         "pages": [
           "index",
           "tutorials/getting-started",
@@ -32,8 +31,7 @@
         ]
       },
       {
-        "dropdown": "How-to",
-        "icon": "check-square",
+        "group": "How-to",
         "pages": [
           "how-to/change-password",
           "how-to/enable-two-factor",
@@ -49,8 +47,7 @@
         ]
       },
       {
-        "dropdown": "Reference",
-        "icon": "book",
+        "group": "Reference",
         "pages": [
           "reference/glossary",
           "reference/limits",
@@ -63,8 +60,7 @@
         ]
       },
       {
-        "dropdown": "Explanation",
-        "icon": "lightbulb",
+        "group": "Explanation",
         "pages": [
           "explanation/threat-model",
           "explanation/key-security-considerations",
