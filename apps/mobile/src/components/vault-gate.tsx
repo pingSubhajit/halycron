@@ -164,7 +164,7 @@ export const VaultGate = ({children}: {children: React.ReactNode}) => {
 
 						<View className="flex-row items-center justify-center gap-2">
 							<View className="w-1.5 h-1.5 rounded-full bg-primary" />
-							<Text className="text-sm font-bold text-neutral-100 uppercase tracking-widest font-mono">
+							<Text className="text-sm font-bold text-primary-foreground opacity-60 uppercase tracking-widest font-mono">
 								{title}
 							</Text>
 						</View>
@@ -244,7 +244,7 @@ export const VaultGate = ({children}: {children: React.ReactNode}) => {
 										className="py-3"
 										onPress={() => setView('recovery')}
 									>
-										<Text className="text-neutral-400 text-xs uppercase tracking-widest font-mono text-center">
+										<Text className="text-primary-foreground opacity-60 text-xs uppercase tracking-widest font-mono text-center">
 											Lost Password?
 										</Text>
 									</Pressable>
@@ -309,8 +309,8 @@ export const VaultGate = ({children}: {children: React.ReactNode}) => {
 									className="py-3 flex-row items-center justify-center gap-2"
 									onPress={() => setView('main')}
 								>
-									<ArrowLeft className="w-3 h-3 text-neutral-400" />
-									<Text className="text-neutral-400 text-xs uppercase tracking-widest font-mono">
+									<ArrowLeft className="w-3 h-3 text-primary-foreground opacity-60" />
+									<Text className="text-primary-foreground opacity-60 text-xs uppercase tracking-widest font-mono">
 										Return to Login
 									</Text>
 								</Pressable>
