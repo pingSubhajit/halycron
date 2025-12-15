@@ -4,7 +4,7 @@ import {useState} from 'react'
 import {zodResolver} from '@hookform/resolvers/zod'
 import {useForm} from 'react-hook-form'
 import * as z from 'zod'
-import {Eye, EyeOff, KeyRound, Copy, Check} from 'lucide-react'
+import {Eye, EyeOff} from 'lucide-react'
 import {Button} from '@halycron/ui/components/button'
 import {Form, FormControl, FormField, FormItem, FormMessage} from '@halycron/ui/components/form'
 import {Input} from '@halycron/ui/components/input'
@@ -18,8 +18,8 @@ import Link from 'next/link'
 import Image from 'next/image'
 import logo from '@halycron/ui/media/logo.svg'
 import {useSendVerificationEmail} from '@/app/api/auth/mutations'
-import {Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle} from '@halycron/ui/components/dialog'
 import {vaultBootstrap} from '@/lib/crypto/vault'
+import {RecoveryKeyDialog} from '@/components/recovery-key-dialog'
 
 const formSchema = z.object({
 	email: z.string().email('Hmm, that doesn\'t look like a valid email. Mind trying again?'),
@@ -104,8 +104,6 @@ const RegisterForm = () => {
 		}
 	}
 
-	const [copied, setCopied] = useState(false)
-
 	const onTwoFactorComplete = async () => {
 		toast.success('Perfect! Your account is now extra secure with 2FA.')
 
@@ -126,16 +124,6 @@ const RegisterForm = () => {
 		logout()
 	}
 
-	const handleCopyKey = () => {
-		if (recoveryKeyToShow) {
-			navigator.clipboard.writeText(recoveryKeyToShow)
-			setCopied(true)
-			setTimeout(() => setCopied(false), 2000)
-			toast.success('Recovery key copied to clipboard')
-		}
-	}
-
-
 	// Shared spring transition for all layout animations
 	const springTransition = {
 		type: 'spring',
@@ -147,64 +135,20 @@ const RegisterForm = () => {
 	return (
 		<LayoutGroup id="register-form-layout">
 			<div className="mx-auto w-full max-w-md space-y-6">
-				<Dialog
+				<RecoveryKeyDialog
 					open={Boolean(recoveryKeyToShow)}
-					// Do not allow closing without explicit confirmation.
-					onOpenChange={() => {}}
-				>
-					<DialogContent className="sm:max-w-lg shadow-2xl">
-						<DialogHeader>
-							<div className="flex flex-col items-center gap-4 pb-2">
-								<div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
-									<KeyRound className="h-6 w-6 text-primary" />
-								</div>
-								<div className="space-y-1 text-center">
-									<DialogTitle className="text-xl">Save your Recovery Key</DialogTitle>
-									<DialogDescription className="text-center">
-										This key is the <span className="text-foreground font-medium">only way</span> to recover your encrypted photos if you forget your password.
-									</DialogDescription>
-								</div>
-							</div>
-						</DialogHeader>
-
-						<div className="space-y-4 pt-2">
-							<div className="relative">
-								<div className="rounded-lg border border-border bg-muted/50 p-4 pr-12 font-mono text-sm break-all text-muted-foreground select-all text-center">
-									{recoveryKeyToShow}
-								</div>
-								<Button
-									size="icon"
-									variant="ghost"
-									className="absolute right-1 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-									onClick={handleCopyKey}
-									title="Copy to clipboard"
-								>
-									{copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
-								</Button>
-							</div>
-						</div>
-
-						<DialogFooter className="sm:justify-center pt-2">
-							<Button
-								type="button"
-								className="w-full font-bold"
-								size="lg"
-								onClick={() => {
-									setRecoveryKeyToShow(null)
-									setPendingVaultPassword(null)
-									// If we’re already in the 2FA step, finish by logging out.
-									if (twofa === '2fa') {
-										logout()
-									} else {
-										setTwofa('2fa')
-									}
-								}}
-							>
-								I have saved this key
-							</Button>
-						</DialogFooter>
-					</DialogContent>
-				</Dialog>
+					recoveryKey={recoveryKeyToShow}
+					onConfirm={() => {
+						setRecoveryKeyToShow(null)
+						setPendingVaultPassword(null)
+						// If we’re already in the 2FA step, finish by logging out.
+						if (twofa === '2fa') {
+							logout()
+						} else {
+							setTwofa('2fa')
+						}
+					}}
+				/>
 
 				{twofa !== '2fa' && <motion.div
 					className="flex flex-col text-center items-center"
