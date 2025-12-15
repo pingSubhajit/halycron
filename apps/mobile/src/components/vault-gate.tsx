@@ -78,8 +78,8 @@ export const VaultGate = ({children}: {children: React.ReactNode}) => {
 		return (
 			<View className="flex-1 bg-background items-center justify-center p-6">
 				<View className="w-full max-w-sm items-center gap-4">
-					<View className="w-12 h-12 rounded-full bg-muted items-center justify-center">
-						<Lock className="w-6 h-6 text-primary" />
+					<View className="w-16 h-16 rounded-2xl bg-gray-100 dark:bg-zinc-800 items-center justify-center">
+						<Lock className="w-8 h-8 text-primary" />
 					</View>
 					<View className="w-full gap-2 items-center">
 						<View className="h-1 w-full bg-muted rounded-full overflow-hidden">
@@ -98,7 +98,7 @@ export const VaultGate = ({children}: {children: React.ReactNode}) => {
 	if (bootstrapKey) {
 		return (
 			<View className="flex-1 bg-background items-center justify-center p-4">
-				<View className="w-full max-w-md bg-card rounded-2xl overflow-hidden border border-border">
+				<View className="w-full max-w-md bg-card rounded-2xl overflow-hidden shadow-sm">
 					{/* Warning header bar */}
 					<View className="h-2 bg-amber-500" />
 					
@@ -106,41 +106,41 @@ export const VaultGate = ({children}: {children: React.ReactNode}) => {
 						{/* Header */}
 						<View className="gap-2">
 							<View className="flex-row items-center gap-2">
-								<AlertTriangle className="w-5 h-5 text-amber-500" />
+								<AlertTriangle className="w-6 h-6 text-amber-500" />
 								<Text className="text-lg font-bold text-foreground uppercase tracking-tight font-mono">
 									Recovery Key Generated
 								</Text>
 							</View>
-							<Text className="text-sm text-muted-foreground">
+							<Text className="text-base text-muted-foreground">
 								This key is the <Text className="text-foreground font-bold">only way</Text> to restore access if you lose your password.
 							</Text>
 						</View>
 
 						{/* Recovery Key Display */}
 						<View className="relative">
-							<View className="bg-muted/50 border border-border p-4 pr-12 rounded-lg">
-								<Text className="font-mono text-sm text-foreground" selectable>
+							<View className="bg-gray-100 dark:bg-zinc-800 rounded-lg p-5 pr-12">
+								<Text className="font-mono text-base text-foreground" selectable>
 									{bootstrapKey}
 								</Text>
 							</View>
 							<Pressable
 								onPress={handleCopyKey}
-								className="absolute right-2 top-1/2 -translate-y-1/2 p-2"
+								className="absolute right-3 top-1/2 -translate-y-1/2 p-2"
 							>
 								{copied ? (
-									<Check className="w-4 h-4 text-green-500" />
+									<Check className="w-5 h-5 text-green-500" />
 								) : (
-									<Copy className="w-4 h-4 text-muted-foreground" />
+									<Copy className="w-5 h-5 text-muted-foreground" />
 								)}
 							</Pressable>
 						</View>
 
 						{/* Action Button */}
 						<Button 
-							className="w-full rounded-lg"
+							className="w-full h-14 rounded-xl"
 							onPress={() => setBootstrapKey(null)}
 						>
-							<Text className="text-primary font-bold">I have saved this key</Text>
+							<Text className="text-primary font-bold text-lg">I have saved this key</Text>
 						</Button>
 					</View>
 				</View>
@@ -150,40 +150,40 @@ export const VaultGate = ({children}: {children: React.ReactNode}) => {
 
 	return (
 		<View className="flex-1 bg-background items-center justify-center p-4">
-			<View className="w-full max-w-md bg-card rounded-2xl border border-border/50 overflow-hidden">
+			<View className="w-full max-w-md bg-card rounded-2xl overflow-hidden">
 				<View className="p-8">
 					{/* Header with Icon */}
-					<View className="items-center justify-center gap-6 mb-8">
-						<View className="w-16 h-16 rounded-2xl bg-muted items-center justify-center">
+					<View className="items-center justify-center mb-8">
+						<View className="w-20 h-20 rounded-3xl bg-gray-100 dark:bg-zinc-800 items-center justify-center mb-6">
 							{view === 'main' ? (
-								<Lock className="w-8 h-8 text-primary" />
+								<Lock className="w-10 h-10 text-primary" />
 							) : (
-								<KeyRound className="w-8 h-8 text-primary" />
+								<KeyRound className="w-10 h-10 text-primary" />
 							)}
 						</View>
 
 						<View className="flex-row items-center justify-center gap-2">
 							<View className="w-1.5 h-1.5 rounded-full bg-primary" />
-							<Text className="text-xs font-bold text-foreground uppercase tracking-widest font-mono">
+							<Text className="text-sm font-bold text-foreground uppercase tracking-widest font-mono">
 								{title}
 							</Text>
 						</View>
 					</View>
 
 					{view === 'main' ? (
-						<View className="gap-6">
+						<View>
 							{/* Error Message */}
 							{lastError && (
-								<View className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
-									<Text className="text-xs text-destructive font-medium">
+								<View className="p-4 mb-6 bg-destructive/10 border border-destructive/20 rounded-xl">
+									<Text className="text-sm text-destructive font-medium">
 										{lastError}
 									</Text>
 								</View>
 							)}
 
 							{/* Password Input */}
-							<View className="gap-2">
-								<Text className="text-xs uppercase text-muted-foreground font-bold tracking-wider font-mono">
+							<View className="mb-6">
+								<Text className="text-xs uppercase text-muted-foreground font-bold tracking-wider font-mono mb-2">
 									Password Access
 								</Text>
 								<Input
@@ -191,7 +191,7 @@ export const VaultGate = ({children}: {children: React.ReactNode}) => {
 									value={password}
 									onChangeText={setPassword}
 									placeholder="ENTER PASSWORD"
-									className="h-12 font-mono rounded-lg"
+									className="h-14 font-mono rounded-xl text-lg px-4"
 									autoCapitalize="none"
 									autoCorrect={false}
 									onSubmitEditing={() => {
@@ -203,37 +203,37 @@ export const VaultGate = ({children}: {children: React.ReactNode}) => {
 							</View>
 
 							{/* Action Buttons */}
-							<View className="gap-3">
+							<View className="gap-4">
 								{status === 'not_initialized' ? (
 									<Button
-										className="w-full rounded-lg"
+										className="w-full h-14 rounded-xl"
 										disabled={busy || !password}
 										onPress={handleBootstrap}
 									>
 										{busy ? (
 											<View className="flex-row items-center gap-2">
 												<ActivityIndicator size="small" color="currentColor" />
-												<Text className="text-primary font-bold tracking-wide">Initializing...</Text>
+												<Text className="text-primary font-bold tracking-wide text-lg">Initializing...</Text>
 											</View>
 										) : (
-											<Text className="text-primary font-bold tracking-wide">Initialize System</Text>
+											<Text className="text-primary font-bold tracking-wide text-lg">Initialize System</Text>
 										)}
 									</Button>
 								) : (
 									<Button
-										className="w-full rounded-lg"
+										className="w-full h-14 rounded-xl"
 										disabled={busy || !password}
 										onPress={handleUnlock}
 									>
 										{busy ? (
 											<View className="flex-row items-center gap-2">
 												<ActivityIndicator size="small" color="currentColor" />
-												<Text className="text-primary font-bold tracking-wide">Decrypting...</Text>
+												<Text className="text-primary font-bold tracking-wide text-lg">Decrypting...</Text>
 											</View>
 										) : (
 											<View className="flex-row items-center gap-2">
-												<Text className="text-primary font-bold tracking-wide">Unlock</Text>
-												<ArrowRight className="w-4 h-4 text-primary" />
+												<Text className="text-primary font-bold tracking-wide text-lg">Unlock</Text>
+												<ArrowRight className="w-5 h-5 text-primary" />
 											</View>
 										)}
 									</Button>
@@ -241,7 +241,7 @@ export const VaultGate = ({children}: {children: React.ReactNode}) => {
 
 								{status !== 'not_initialized' && (
 									<Pressable
-										className="py-2"
+										className="py-3"
 										onPress={() => setView('recovery')}
 									>
 										<Text className="text-muted-foreground text-xs uppercase tracking-widest font-mono text-center">
@@ -252,10 +252,10 @@ export const VaultGate = ({children}: {children: React.ReactNode}) => {
 							</View>
 						</View>
 					) : (
-						<View className="gap-6">
+						<View>
 							{/* Recovery Key Input */}
-							<View className="gap-2">
-								<Text className="text-xs uppercase text-muted-foreground font-bold tracking-wider font-mono">
+							<View className="mb-6">
+								<Text className="text-xs uppercase text-muted-foreground font-bold tracking-wider font-mono mb-2">
 									Recovery Key
 								</Text>
 								<TextInput
@@ -263,7 +263,7 @@ export const VaultGate = ({children}: {children: React.ReactNode}) => {
 									onChangeText={setRecoveryKey}
 									placeholder="PASTE RECOVERY KEY HERE"
 									placeholderTextColor="#71717a"
-									className="w-full border border-input bg-background px-3 py-2 text-sm text-foreground rounded-lg min-h-[100px] font-mono"
+									className="w-full border border-input bg-background px-4 py-3 text-base text-foreground rounded-xl min-h-[120px] font-mono"
 									multiline
 									textAlignVertical="top"
 									autoCapitalize="none"
@@ -272,8 +272,8 @@ export const VaultGate = ({children}: {children: React.ReactNode}) => {
 							</View>
 
 							{/* New Password Input */}
-							<View className="gap-2">
-								<Text className="text-xs uppercase text-muted-foreground font-bold tracking-wider font-mono">
+							<View className="mb-8">
+								<Text className="text-xs uppercase text-muted-foreground font-bold tracking-wider font-mono mb-2">
 									New Password
 								</Text>
 								<Input
@@ -281,16 +281,16 @@ export const VaultGate = ({children}: {children: React.ReactNode}) => {
 									value={password}
 									onChangeText={setPassword}
 									placeholder="SET NEW PASSWORD"
-									className="h-12 font-mono rounded-lg"
+									className="h-14 font-mono rounded-xl text-lg px-4"
 									autoCapitalize="none"
 									autoCorrect={false}
 								/>
 							</View>
 
 							{/* Action Buttons */}
-							<View className="gap-3 pt-2">
+							<View className="gap-4">
 								<Button
-									className="w-full rounded-lg"
+									className="w-full h-14 rounded-xl"
 									variant="destructive"
 									disabled={busy || !password || !recoveryKey}
 									onPress={handleRecover}
@@ -298,18 +298,18 @@ export const VaultGate = ({children}: {children: React.ReactNode}) => {
 									{busy ? (
 										<View className="flex-row items-center gap-2">
 											<ActivityIndicator size="small" color="white" />
-											<Text className="text-destructive-foreground font-bold tracking-wide">Recovering...</Text>
+											<Text className="text-destructive-foreground font-bold tracking-wide text-lg">Recovering...</Text>
 										</View>
 									) : (
-										<Text className="text-destructive-foreground font-bold tracking-wide">Reset & Unlock</Text>
+										<Text className="text-destructive-foreground font-bold tracking-wide text-lg">Reset & Unlock</Text>
 									)}
 								</Button>
 
 								<Pressable
-									className="py-2 flex-row items-center justify-center gap-2"
+									className="py-3 flex-row items-center justify-center gap-2"
 									onPress={() => setView('main')}
 								>
-									<ArrowLeft className="w-3 h-3 text-muted-foreground" />
+									<ArrowLeft className="w-4 h-4 text-muted-foreground" />
 									<Text className="text-muted-foreground text-xs uppercase tracking-widest font-mono">
 										Return to Login
 									</Text>
