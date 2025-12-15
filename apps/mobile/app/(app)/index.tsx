@@ -7,13 +7,18 @@ import {PhotoGallery} from '@/src/components/photo-gallery'
 import {UserMenu} from '@/src/components/user-menu'
 import {ProfilePicture} from '@/src/components/profile-picture'
 import {Feather} from '@expo/vector-icons'
+import {Skeleton} from '@/src/components/ui/skeleton'
 
 const Home = () => {
-	const {user} = useSession()
+	const {user, cachedProfile} = useSession()
 	const [shouldLoadGallery, setShouldLoadGallery] = useState(false)
 	const [showUserMenu, setShowUserMenu] = useState(false)
 	const [isAnimating, setIsAnimating] = useState(false)
 	const {width: screenWidth, height: screenHeight} = Dimensions.get('window')
+	
+	// Use cached first name if available, otherwise extract from user
+	const displayFirstName = cachedProfile.firstName || user?.name?.split(' ')[0]
+	const isProfileLoading = cachedProfile.isLoading && !user
 
 	// Animation values
 	const menuOpacity = useRef(new Animated.Value(0)).current
@@ -94,20 +99,28 @@ const Home = () => {
 	const renderHeader = () => (
 		<View className="mt-16 p-6 flex-1">
 			<View className="flex-row items-center justify-between mb-4">
-				<View className="">
+				<View className="flex-1 mr-4">
 					<Text className="text-primary-foreground opacity-80 text-3xl font-semibold mb-2">Welcome</Text>
-					<Text className="text-primary-foreground text-6xl font-bold mb-4">{user?.name.split(' ')[0]}</Text>
+					{isProfileLoading ? (
+						<Skeleton className="h-14 w-40 rounded-lg bg-primary-foreground/10" />
+					) : (
+						<Text className="text-primary-foreground text-6xl font-bold mb-4">{displayFirstName}</Text>
+					)}
 				</View>
 
 				{/* Profile Picture / Menu */}
 				<Pressable onPress={handleMenuToggle}>
-					<ProfilePicture
-						userImage={user?.image}
-						userEmail={user?.email}
-						size={50}
-						className="h-10 w-10 rounded-full"
-						fallback={<Feather name="user" size={20} color="#fff"/>}
-					/>
+					{isProfileLoading ? (
+						<Skeleton className="h-[50px] w-[50px] rounded-full bg-primary-foreground/10" />
+					) : (
+						<ProfilePicture
+							userImage={user?.image}
+							userEmail={user?.email}
+							size={50}
+							className="h-10 w-10 rounded-full"
+							fallback={<Feather name="user" size={20} color="#fff"/>}
+						/>
+					)}
 				</Pressable>
 			</View>
 		</View>

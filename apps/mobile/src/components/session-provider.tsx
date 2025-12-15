@@ -7,12 +7,26 @@ import CustomSplashScreen from '@/src/components/splash-screen'
 import * as Linking from 'expo-linking'
 import * as QuickActions from 'expo-quick-actions'
 import {vaultForgetThisDevice} from '@/src/lib/crypto/vault'
+import {
+	CachedProfileData,
+	clearProfileCache,
+	extractFirstName,
+	getCachedProfile,
+	setCachedProfile
+} from '@/src/lib/profile-cache'
+
+export interface CachedProfile {
+	firstName: string | null
+	profilePictureUrl: string | null
+	isLoading: boolean
+}
 
 interface SessionContextValue {
 	session: Session | null;
 	user: User | null;
 	initialRoute: Route | null;
 	status: 'loading' | 'authenticated' | 'unauthenticated';
+	cachedProfile: CachedProfile;
 	signOut: () => Promise<void>;
 	setSessionData: (session: Session, user: User) => Promise<void>;
 }
@@ -28,7 +42,13 @@ export const SessionProvider = ({children}: { children: React.ReactNode }) => {
 	const [sessionState, setSessionState] = useState<Session | null>(null)
 	const [userState, setUserState] = useState<User | null>(null)
 	const [initialRoute, setInitialRoute] = useState<string | null>(null)
+	const [cachedProfile, setCachedProfileState] = useState<CachedProfile>({
+		firstName: null,
+		profilePictureUrl: null,
+		isLoading: true
+	})
 	const lastUserKeyRef = useRef<string | null>(null)
+	const lastProfileKeyRef = useRef<string | null>(null)
 
 	const {data: sessionData, isPending} = authClient.useSession()
 
@@ -51,12 +71,42 @@ export const SessionProvider = ({children}: { children: React.ReactNode }) => {
 				const prevUserKey = lastUserKeyRef.current ?? getUserKey(userState)
 				if (prevUserKey && nextUserKey && prevUserKey !== nextUserKey) {
 					await vaultForgetThisDevice().catch(() => {})
+					// Also clear profile cache when user changes
+					await clearProfileCache().catch(() => {})
 				}
 				lastUserKeyRef.current = nextUserKey
 
 				// Save session to storage
 				await AsyncStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(sessionData.session))
 				await AsyncStorage.setItem(USER_STORAGE_KEY, JSON.stringify(sessionData.user))
+
+				// Update profile cache if name or profile picture changed
+				const currentUser = sessionData.user
+				const currentProfileKey = currentUser?.image || null
+				const firstName = extractFirstName(currentUser?.name)
+				
+				// Check if profile data has changed from what we have cached
+				const profileKeyChanged = lastProfileKeyRef.current !== currentProfileKey
+				const firstNameChanged = cachedProfile.firstName !== firstName
+				
+				if (profileKeyChanged || firstNameChanged || !lastProfileKeyRef.current) {
+					lastProfileKeyRef.current = currentProfileKey
+					
+					// Update the cached profile state
+					setCachedProfileState({
+						firstName,
+						profilePictureUrl: null, // Will be fetched by profile-picture component
+						isLoading: false
+					})
+					
+					// Persist to device storage
+					await setCachedProfile({
+						firstName,
+						profilePictureUrl: null,
+						profilePictureKey: currentProfileKey,
+						cachedAt: Date.now()
+					}).catch(() => {})
+				}
 
 				setSessionState(sessionData.session)
 				setUserState(sessionData.user)
@@ -67,10 +117,21 @@ export const SessionProvider = ({children}: { children: React.ReactNode }) => {
 		handleSessionUpdate()
 	}, [sessionData, userState])
 
-	// Effect to restore session on app launch
+	// Effect to restore session and cached profile on app launch
 	useEffect(() => {
 		const restoreSession = async () => {
 			try {
+				// Restore cached profile immediately for instant UI
+				const cachedProfileData = await getCachedProfile()
+				if (cachedProfileData) {
+					setCachedProfileState({
+						firstName: cachedProfileData.firstName,
+						profilePictureUrl: cachedProfileData.profilePictureUrl,
+						isLoading: false
+					})
+					lastProfileKeyRef.current = cachedProfileData.profilePictureKey
+				}
+
 				const storedSession = await AsyncStorage.getItem(SESSION_STORAGE_KEY)
 				const storedUser = await AsyncStorage.getItem(USER_STORAGE_KEY)
 
@@ -84,6 +145,12 @@ export const SessionProvider = ({children}: { children: React.ReactNode }) => {
 						setSessionState(sessionObj)
 						setUserState(userObj)
 						setStatus('authenticated')
+
+						// If we have a cached profile, mark loading as false
+						// The actual profile will be updated when sessionData comes in
+						if (cachedProfileData) {
+							setCachedProfileState(prev => ({...prev, isLoading: false}))
+						}
 
 						/*
 						 * Attempt to rehydrate the session with authClient
@@ -102,13 +169,18 @@ export const SessionProvider = ({children}: { children: React.ReactNode }) => {
 						// Keep the last known user key so we can detect account switches and clear cached UMK on next login.
 						lastUserKeyRef.current = getUserKey(userObj)
 						await clearSessionStorage()
+						// Also clear profile cache on session expiry
+						await clearProfileCache().catch(() => {})
+						setCachedProfileState({firstName: null, profilePictureUrl: null, isLoading: false})
 						setStatus('unauthenticated')
 					}
 				} else {
+					setCachedProfileState(prev => ({...prev, isLoading: false}))
 					setStatus('unauthenticated')
 				}
 			} catch (error) {
 				console.error('Error restoring session:', error)
+				setCachedProfileState(prev => ({...prev, isLoading: false}))
 				setStatus('unauthenticated')
 			}
 		}
@@ -129,10 +201,13 @@ export const SessionProvider = ({children}: { children: React.ReactNode }) => {
 			console.error('Error signing out:', error)
 		} finally {
 			await clearSessionStorage().catch(() => {})
+			await clearProfileCache().catch(() => {})
 			await vaultForgetThisDevice().catch(() => {})
 			lastUserKeyRef.current = null
+			lastProfileKeyRef.current = null
 			setSessionState(null)
 			setUserState(null)
+			setCachedProfileState({firstName: null, profilePictureUrl: null, isLoading: false})
 			setStatus('unauthenticated')
 			router.push('/onboarding')
 		}
@@ -145,12 +220,31 @@ export const SessionProvider = ({children}: { children: React.ReactNode }) => {
 			const prevUserKey = lastUserKeyRef.current ?? getUserKey(userState)
 			if (prevUserKey && nextUserKey && prevUserKey !== nextUserKey) {
 				await vaultForgetThisDevice().catch(() => {})
+				await clearProfileCache().catch(() => {})
 			}
 			lastUserKeyRef.current = nextUserKey
 
 			// Save to AsyncStorage
 			await AsyncStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session))
 			await AsyncStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user))
+			
+			// Update profile cache
+			const firstName = extractFirstName(user?.name)
+			const profileKey = user?.image || null
+			lastProfileKeyRef.current = profileKey
+			
+			setCachedProfileState({
+				firstName,
+				profilePictureUrl: null,
+				isLoading: false
+			})
+			
+			await setCachedProfile({
+				firstName,
+				profilePictureUrl: null,
+				profilePictureKey: profileKey,
+				cachedAt: Date.now()
+			}).catch(() => {})
 			
 			// Update state immediately
 			setSessionState(session)
@@ -302,6 +396,7 @@ export const SessionProvider = ({children}: { children: React.ReactNode }) => {
 				user: userState,
 				initialRoute,
 				status,
+				cachedProfile,
 				signOut,
 				setSessionData
 			}}

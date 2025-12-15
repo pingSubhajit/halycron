@@ -7,6 +7,7 @@ interface AvatarProps {
 	size?: number
 	className?: string
 	rounded?: boolean
+	isLoading?: boolean
 }
 
 export const Avatar = ({
@@ -14,9 +15,15 @@ export const Avatar = ({
 	fallback,
 	size = 40,
 	className = '',
-	rounded = false
+	rounded = false,
+	isLoading = false
 }: AvatarProps) => {
 	const [imageError, setImageError] = React.useState(false)
+
+	// Reset error state when imageUrl changes
+	React.useEffect(() => {
+		setImageError(false)
+	}, [imageUrl])
 
 	return (
 		<View
@@ -26,7 +33,9 @@ export const Avatar = ({
 				height: size
 			}}
 		>
-			{imageUrl && !imageError ? (
+			{isLoading ? (
+				fallback || null
+			) : imageUrl && !imageError ? (
 				<Image
 					source={{
 						uri: imageUrl,
