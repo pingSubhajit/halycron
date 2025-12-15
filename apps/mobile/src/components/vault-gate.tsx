@@ -191,7 +191,7 @@ export const VaultGate = ({children}: {children: React.ReactNode}) => {
 									value={password}
 									onChangeText={setPassword}
 									placeholder="ENTER PASSWORD"
-									className="h-14 font-mono rounded-xl text-lg px-4"
+									className="w-full border border-input bg-background px-4 py-3 text-base text-foreground rounded-xl min-h-[120px] font-mono"
 									autoCapitalize="none"
 									autoCorrect={false}
 									onSubmitEditing={() => {
@@ -281,7 +281,7 @@ export const VaultGate = ({children}: {children: React.ReactNode}) => {
 									value={password}
 									onChangeText={setPassword}
 									placeholder="SET NEW PASSWORD"
-									className="h-14 font-mono rounded-xl text-lg px-4"
+									className="w-full border border-input bg-background px-4 py-3 text-base text-foreground rounded-xl min-h-[120px] font-mono"
 									autoCapitalize="none"
 									autoCorrect={false}
 								/>
