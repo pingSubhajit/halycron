@@ -4,8 +4,9 @@ import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-nati
 import {Share} from '@/lib/icons/Share'
 import {Download} from '@/lib/icons/Download'
 import {Trash2} from '@/lib/icons/Trash2'
+import {FolderOpen} from '@/lib/icons/FolderOpen'
 import {Photo} from '@/src/lib/types'
-import {useDeleteConfirmation, useDownloadConfirmation, useShareOptions} from '@/src/components/dialog-provider'
+import {useDeleteConfirmation, useDownloadConfirmation, useShareOptions, useAlbumSelector} from '@/src/components/dialog-provider'
 
 interface PhotoActionsBarProps {
 	isVisible: boolean
@@ -18,6 +19,7 @@ const PhotoActionsBar: React.FC<PhotoActionsBarProps> = ({isVisible, currentPhot
 	const {openDownloadConfirmation} = useDownloadConfirmation()
 	const {openDeleteConfirmation} = useDeleteConfirmation()
 	const {openShareOptions} = useShareOptions()
+	const {openAlbumSelector} = useAlbumSelector()
 
 	// Animate opacity when visibility changes
 	useEffect(() => {
@@ -42,15 +44,14 @@ const PhotoActionsBar: React.FC<PhotoActionsBarProps> = ({isVisible, currentPhot
 		case 'Download':
 			openDownloadConfirmation(currentPhoto)
 			break
-		case 'Favorite':
-			console.log('Favorite pressed for photo:', currentPhoto.id)
-			// TODO: Implement favorite functionality
+		case 'Album':
+			openAlbumSelector(currentPhoto)
 			break
 		case 'Delete':
 			openDeleteConfirmation(currentPhoto, onPhotoDeleted)
 			break
 		}
-	}, [currentPhoto, openDownloadConfirmation, openDeleteConfirmation, openShareOptions, onPhotoDeleted])
+	}, [currentPhoto, openDownloadConfirmation, openDeleteConfirmation, openShareOptions, openAlbumSelector, onPhotoDeleted])
 
 	return (
 		<Animated.View style={[
@@ -85,13 +86,13 @@ const PhotoActionsBar: React.FC<PhotoActionsBarProps> = ({isVisible, currentPhot
 					<Text className="text-primary-foreground font-medium">Download</Text>
 				</TouchableOpacity>
 
-				{/* <TouchableOpacity*/}
-				{/*	onPress={() => handleActionPress('Favorite')}*/}
-				{/*	className="p-3 items-center gap-2"*/}
-				{/* >*/}
-				{/*	<Heart size={20} color="white"/>*/}
-				{/*	<Text className="text-primary-foreground font-medium">Favourite</Text>*/}
-				{/* </TouchableOpacity>*/}
+				<TouchableOpacity
+					onPress={() => handleActionPress('Album')}
+					className="p-3 items-center gap-2"
+				>
+					<FolderOpen size={20} color="white"/>
+					<Text className="text-primary-foreground font-medium">Album</Text>
+				</TouchableOpacity>
 
 				<TouchableOpacity
 					onPress={() => handleActionPress('Delete')}

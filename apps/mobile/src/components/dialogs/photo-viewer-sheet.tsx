@@ -181,8 +181,22 @@ const PhotoViewerSheet: React.FC<PhotoViewerSheetProps> = ({
 	// Fetch all photos
 	const {data: allPhotos = [], isLoading: isLoadingPhotos, refetch: refetchPhotos} = useAllPhotos()
 
-	// Use allPhotos directly instead of local state to avoid useEffect
-	const localPhotos = allPhotos
+	/**
+	 * IMPORTANT:
+	 * `/api/photos` intentionally filters out photos that belong to *any* sensitive album (and photos only in protected albums)
+	 * to keep them out of the main gallery feed.
+	 *
+	 * But albums can still show those photos. When a user opens the viewer from an album,
+	 * we must ensure the `initialPhoto` is present in the carousel data; otherwise the viewer
+	 * can't render/decrypt it and the user ends up with a blank viewer.
+	 */
+	const localPhotos = useMemo(() => {
+		if (!initialPhoto) return allPhotos
+		const existsInAll = allPhotos.some(p => p.id === initialPhoto.id)
+		if (existsInAll) return allPhotos
+		// Prepend the initial photo so it can be viewed even if it's filtered from `/api/photos`
+		return [initialPhoto, ...allPhotos]
+	}, [allPhotos, initialPhoto])
 
 
 	// Calculate the initial index for the carousel

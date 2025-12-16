@@ -46,6 +46,14 @@ export const DialogProvider: React.FC<DialogProviderProps> = ({children}) => {
 		photo: null
 	})
 
+	// State for Album Selector Sheet
+	const [isAlbumSelectorSheetOpen, setAlbumSelectorSheetOpen] = useState(false)
+	const [albumSelectorData, setAlbumSelectorData] = useState<{
+		photo: Photo | null
+	}>({
+		photo: null
+	})
+
 	// Function to close all dialogs
 	const closeAllDialogs = () => {
 		setExampleDialogOpen(false)
@@ -53,6 +61,7 @@ export const DialogProvider: React.FC<DialogProviderProps> = ({children}) => {
 		setDownloadConfirmationSheetOpen(false)
 		setDeleteConfirmationSheetOpen(false)
 		setShareOptionsSheetOpen(false)
+		setAlbumSelectorSheetOpen(false)
 
 		// Clear all data after a short delay to allow closing animations
 		setTimeout(() => {
@@ -60,6 +69,7 @@ export const DialogProvider: React.FC<DialogProviderProps> = ({children}) => {
 			setDownloadConfirmationData({photo: null})
 			setDeleteConfirmationData({photo: null, onPhotoDeleted: undefined})
 			setShareOptionsData({photo: null})
+			setAlbumSelectorData({photo: null})
 		}, 300)
 	}
 
@@ -92,6 +102,12 @@ export const DialogProvider: React.FC<DialogProviderProps> = ({children}) => {
 		setShareOptionsSheetOpen,
 		shareOptionsData,
 		setShareOptionsData,
+
+		// Album Selector Sheet
+		isAlbumSelectorSheetOpen,
+		setAlbumSelectorSheetOpen,
+		albumSelectorData,
+		setAlbumSelectorData,
 
 		// Close all dialogs function
 		closeAllDialogs
@@ -302,6 +318,48 @@ export const useShareOptions = () => {
 		shareOptionsData,
 		openShareOptions,
 		closeShareOptions
+	}
+}
+
+/**
+ * Hook to control the Album Selector Sheet
+ * Returns methods to open and close the album selector dialog
+ *
+ * Usage:
+ * const { openAlbumSelector, closeAlbumSelector } = useAlbumSelector()
+ *
+ * // To open the album selector with a specific photo
+ * openAlbumSelector(photo)
+ *
+ * // To close the album selector
+ * closeAlbumSelector()
+ */
+export const useAlbumSelector = () => {
+	const {
+		isAlbumSelectorSheetOpen,
+		setAlbumSelectorSheetOpen,
+		albumSelectorData,
+		setAlbumSelectorData
+	} = useDialogContext()
+
+	const openAlbumSelector = (photo: Photo) => {
+		setAlbumSelectorData({photo})
+		setAlbumSelectorSheetOpen(true)
+	}
+
+	const closeAlbumSelector = () => {
+		setAlbumSelectorSheetOpen(false)
+		// Clear data after a short delay to allow closing animation
+		setTimeout(() => {
+			setAlbumSelectorData({photo: null})
+		}, 300)
+	}
+
+	return {
+		isAlbumSelectorSheetOpen,
+		albumSelectorData,
+		openAlbumSelector,
+		closeAlbumSelector
 	}
 }
 

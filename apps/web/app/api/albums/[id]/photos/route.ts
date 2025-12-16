@@ -36,8 +36,12 @@ export const GET = async (request: NextRequest, {params}: {params: Promise<{id: 
 
 		// Check if album is protected
 		if (userAlbum.isProtected) {
-			// Get the verification cookie
-			const verificationCookie = request.cookies.get(`album-access-${id}`)?.value
+			// Prefer header-based token (mobile), fall back to cookie (web)
+			const headerToken =
+				request.headers.get('x-album-access-token') ||
+				request.headers.get('authorization')?.replace(/^Bearer\s+/i, '')
+			const cookieToken = request.cookies.get(`album-access-${id}`)?.value
+			const verificationCookie = headerToken || cookieToken
 
 			if (!verificationCookie) {
 				// No verification token found
@@ -85,12 +89,15 @@ export const GET = async (request: NextRequest, {params}: {params: Promise<{id: 
 					{status: 403}
 				)
 
-				// Clear the invalid cookie
-				response.cookies.set({
-					name: `album-access-${id}`,
-					value: '',
-					maxAge: 0
-				})
+				// Only clear cookie if auth was attempted via cookie (web). For header-based auth (mobile),
+				// there's nothing to clear server-side.
+				if (!headerToken && cookieToken) {
+					response.cookies.set({
+						name: `album-access-${id}`,
+						value: '',
+						maxAge: 0
+					})
+				}
 
 				return response
 			}

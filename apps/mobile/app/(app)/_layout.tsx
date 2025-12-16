@@ -91,6 +91,15 @@ const AuthenticatedAppLayout = () => {
 							<Stack.Screen name="index"/>
 							<Stack.Screen name="albums"/>
 							<Stack.Screen
+								name="album/[id]"
+								options={{
+									animation: 'slide_from_right',
+									gestureEnabled: true,
+									gestureDirection: 'horizontal',
+									headerShown: false
+								}}
+							/>
+							<Stack.Screen
 								name="upload"
 								options={{
 									presentation: Platform.OS === 'android' ? 'fullScreenModal' : 'modal',

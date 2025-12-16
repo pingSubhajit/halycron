@@ -1,4 +1,5 @@
 import {authClient} from './auth-client'
+import {Platform} from 'react-native'
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000'
 
@@ -21,9 +22,17 @@ class ApiClient {
 			cookies = cookies.replace(/^;\s*/, '')
 		}
 
+		// App-identifying headers (used by backend to tailor behavior for mobile)
+		const appHeaders = {
+			'X-App-Platform': 'Halycron-Mobile',
+			'X-App-Version': Platform.OS === 'ios' ? 'iOS' : 'Android',
+			'X-Halycron-App': 'Halycron-Mobile'
+		}
+
 		// Merge headers with auth cookie
 		const headers = {
 			'Content-Type': 'application/json',
+			...appHeaders,
 			...options.headers,
 			...(cookies ? {'Cookie': cookies} : {})
 		}
@@ -45,30 +54,35 @@ class ApiClient {
 		return response.json()
 	}
 
-	async get<T>(endpoint: string): Promise<T> {
+	async get<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
 		return this.request<T>(endpoint, {
 			method: 'GET'
+			,
+			...options
 		})
 	}
 
-	async post<T>(endpoint: string, body?: any): Promise<T> {
+	async post<T>(endpoint: string, body?: any, options: RequestInit = {}): Promise<T> {
 		return this.request<T>(endpoint, {
 			method: 'POST',
-			body: body ? JSON.stringify(body) : undefined
+			body: body ? JSON.stringify(body) : undefined,
+			...options
 		})
 	}
 
-	async patch<T>(endpoint: string, body?: any): Promise<T> {
+	async patch<T>(endpoint: string, body?: any, options: RequestInit = {}): Promise<T> {
 		return this.request<T>(endpoint, {
 			method: 'PATCH',
-			body: body ? JSON.stringify(body) : undefined
+			body: body ? JSON.stringify(body) : undefined,
+			...options
 		})
 	}
 
-	async delete<T>(endpoint: string, options?: { body?: any }): Promise<T> {
+	async delete<T>(endpoint: string, options?: { body?: any; headers?: HeadersInit }): Promise<T> {
 		return this.request<T>(endpoint, {
 			method: 'DELETE',
-			body: options?.body ? JSON.stringify(options.body) : undefined
+			body: options?.body ? JSON.stringify(options.body) : undefined,
+			headers: options?.headers
 		})
 	}
 }

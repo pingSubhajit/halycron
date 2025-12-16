@@ -98,7 +98,7 @@ export const VaultGate = ({children}: {children: React.ReactNode}) => {
 	if (bootstrapKey) {
 		return (
 			<View className="flex-1 bg-background items-center justify-center p-4">
-				<View className="w-full max-w-md bg-card rounded-2xl overflow-hidden shadow-sm">
+				<View className="w-full max-w-md bg-card overflow-hidden shadow-sm">
 					{/* Warning header bar */}
 					<View className="h-2 bg-amber-500" />
 					
@@ -107,19 +107,19 @@ export const VaultGate = ({children}: {children: React.ReactNode}) => {
 						<View className="gap-2">
 							<View className="flex-row items-center gap-2">
 								<AlertTriangle className="w-6 h-6 text-amber-500" />
-								<Text className="text-lg font-bold text-foreground uppercase tracking-tight font-mono">
+								<Text className="text-lg font-bold text-primary-foreground uppercase tracking-tight font-mono">
 									Recovery Key Generated
 								</Text>
 							</View>
 							<Text className="text-base text-muted-foreground">
-								This key is the <Text className="text-foreground font-bold">only way</Text> to restore access if you lose your password.
+								This key is the <Text className="text-primary-foreground font-bold">only way</Text> to restore access if you lose your password.
 							</Text>
 						</View>
 
 						{/* Recovery Key Display */}
 						<View className="relative">
-							<View className="bg-gray-100 dark:bg-zinc-800 rounded-lg p-5 pr-12">
-								<Text className="font-mono text-base text-foreground" selectable>
+							<View className="bg-gray-100 dark:bg-zinc-800 p-5 pr-12">
+								<Text className="font-mono text-base text-primary-foreground" selectable>
 									{bootstrapKey}
 								</Text>
 							</View>
@@ -137,7 +137,7 @@ export const VaultGate = ({children}: {children: React.ReactNode}) => {
 
 						{/* Action Button */}
 						<Button 
-							className="w-full h-14 rounded-xl"
+							className="w-full h-14"
 							onPress={() => setBootstrapKey(null)}
 						>
 							<Text className="text-primary font-bold text-lg">I have saved this key</Text>
@@ -150,7 +150,7 @@ export const VaultGate = ({children}: {children: React.ReactNode}) => {
 
 	return (
 		<View className="flex-1 bg-background items-center justify-center p-4">
-			<View className="w-full max-w-md bg-card rounded-2xl overflow-hidden">
+			<View className="w-full max-w-md bg-card overflow-hidden">
 				<View className="p-8">
 					{/* Header with Icon */}
 					<View className="items-center justify-center mb-8">
@@ -174,7 +174,7 @@ export const VaultGate = ({children}: {children: React.ReactNode}) => {
 						<View>
 							{/* Error Message */}
 							{lastError && (
-								<View className="p-4 mb-6 bg-destructive/10 border border-destructive/20 rounded-xl">
+								<View className="p-4 mb-6 bg-destructive/10 border border-destructive/20">
 									<Text className="text-sm text-destructive font-medium">
 										{lastError}
 									</Text>
@@ -191,7 +191,7 @@ export const VaultGate = ({children}: {children: React.ReactNode}) => {
 									value={password}
 									onChangeText={setPassword}
 									placeholder="ENTER PASSWORD"
-									className="w-full border border-input bg-background px-4 py-3 text-base text-foreground rounded-xl min-h-[120px] font-mono"
+									className="w-full border border-input bg-background px-4 py-3 text-base text-primary-foreground h-16 font-mono"
 									autoCapitalize="none"
 									autoCorrect={false}
 									onSubmitEditing={() => {
@@ -206,7 +206,7 @@ export const VaultGate = ({children}: {children: React.ReactNode}) => {
 							<View className="gap-4">
 								{status === 'not_initialized' ? (
 									<Button
-										className="w-full h-14 rounded-xl"
+										className="w-full h-14"
 										disabled={busy || !password}
 										onPress={handleBootstrap}
 									>
@@ -221,7 +221,7 @@ export const VaultGate = ({children}: {children: React.ReactNode}) => {
 									</Button>
 								) : (
 									<Button
-										className="w-full h-14 rounded-xl"
+										className="w-full h-14"
 										disabled={busy || !password}
 										onPress={handleUnlock}
 									>
@@ -263,7 +263,7 @@ export const VaultGate = ({children}: {children: React.ReactNode}) => {
 									onChangeText={setRecoveryKey}
 									placeholder="PASTE RECOVERY KEY HERE"
 									placeholderTextColor="#71717a"
-									className="w-full border border-input bg-background px-4 py-3 text-base text-foreground rounded-xl min-h-[120px] font-mono"
+									className="w-full border border-input bg-background px-4 py-3 text-base text-primary-foreground h-16 font-mono"
 									multiline
 									textAlignVertical="top"
 									autoCapitalize="none"
@@ -281,7 +281,7 @@ export const VaultGate = ({children}: {children: React.ReactNode}) => {
 									value={password}
 									onChangeText={setPassword}
 									placeholder="SET NEW PASSWORD"
-									className="w-full border border-input bg-background px-4 py-3 text-base text-foreground rounded-xl min-h-[120px] font-mono"
+									className="w-full border border-input bg-background px-4 py-3 text-base text-primary-foreground h-16 font-mono"
 									autoCapitalize="none"
 									autoCorrect={false}
 								/>
@@ -290,7 +290,7 @@ export const VaultGate = ({children}: {children: React.ReactNode}) => {
 							{/* Action Buttons */}
 							<View className="gap-4">
 								<Button
-									className="w-full h-14 rounded-xl"
+									className="w-full h-14"
 									variant="destructive"
 									disabled={busy || !password || !recoveryKey}
 									onPress={handleRecover}
