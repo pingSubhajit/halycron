@@ -62,8 +62,12 @@ export const AlbumCard: React.FC<AlbumCardProps> = ({album, onPress}) => {
 								style={{
 									color: darkTheme.mutedForeground,
 									fontSize: 12,
-									marginTop: 4
+									marginTop: 4,
+									textAlign: 'center',
+									maxWidth: '90%'
 								}}
+								numberOfLines={1}
+								ellipsizeMode="tail"
 							>
 								{album.isSensitive && album.isProtected
 									? 'Sensitive & Protected'
