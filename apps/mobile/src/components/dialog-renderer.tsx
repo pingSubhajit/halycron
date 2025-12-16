@@ -44,6 +44,7 @@ export const DialogRenderer: React.FC = () => {
 				isOpen={isPhotoViewerSheetOpen}
 				onClose={() => setPhotoViewerSheetOpen(false)}
 				initialPhoto={photoViewerData.initialPhoto}
+				photos={photoViewerData.photos || null}
 			/>
 
 			<DownloadConfirmationSheet

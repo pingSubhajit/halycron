@@ -88,10 +88,11 @@ const calculateMasonryLayout = (photos: Photo[]): PhotoWithLayout[] => {
 	return photosWithLayout
 }
 
-const MasonryPhotoItem = React.memo(({photo, shouldLoad, photoIndex}: {
+const MasonryPhotoItem = React.memo(({photo, shouldLoad, photoIndex, viewerPhotos}: {
 	photo: PhotoWithLayout;
 	shouldLoad: boolean;
 	photoIndex: number
+	viewerPhotos: Photo[]
 }) => {
 	return (
 		<View
@@ -106,6 +107,7 @@ const MasonryPhotoItem = React.memo(({photo, shouldLoad, photoIndex}: {
 			{shouldLoad ? (
 				<EncryptedImage
 					photo={photo}
+					viewerPhotos={viewerPhotos}
 					style={{
 						width: COLUMN_WIDTH,
 						height: photo.calculatedHeight
@@ -318,6 +320,7 @@ export const PhotoGallery = ({photos, isLoading, error, headerComponent, onRefre
 								photo={photo}
 								shouldLoad={loadableIds.has(photo.id)}
 								photoIndex={index}
+								viewerPhotos={photos || []}
 							/>
 						))}
 					</View>

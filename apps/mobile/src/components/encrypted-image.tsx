@@ -14,6 +14,7 @@ type Props = {
 	className?: string
 	shouldUseThumbnail?: boolean
 	loadDelay?: number // Delay in milliseconds before starting to load
+	viewerPhotos?: Photo[]
 }
 
 const ImageSkeleton = ({className, style}: { className?: string, style?: any }) => (
@@ -92,7 +93,8 @@ export const EncryptedImage = React.memo(({
 	style,
 	className,
 	shouldUseThumbnail = false,
-	loadDelay = 0
+	loadDelay = 0,
+	viewerPhotos
 }: Props) => {
 	const [shouldStartLoading, setShouldStartLoading] = React.useState(loadDelay === 0)
 
@@ -136,7 +138,7 @@ export const EncryptedImage = React.memo(({
 
 	const handleImagePress = () => {
 		// Always open full-size image in viewer, regardless of thumbnail usage
-		openPhotoViewer(photo)
+		openPhotoViewer(photo, viewerPhotos)
 	}
 
 	// Show placeholder while waiting for load delay

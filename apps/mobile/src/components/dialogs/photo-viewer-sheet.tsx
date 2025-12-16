@@ -20,6 +20,7 @@ interface PhotoViewerSheetProps {
 	isOpen: boolean
 	onClose: () => void
 	initialPhoto: Photo | null
+	photos?: Photo[] | null
 }
 
 
@@ -164,7 +165,8 @@ const PhotoItem = React.memo(({photo, isActive, onZoomStateChange, onImagePress}
 const PhotoViewerSheet: React.FC<PhotoViewerSheetProps> = ({
 	isOpen,
 	onClose,
-	initialPhoto
+	initialPhoto,
+	photos
 }) => {
 	const bottomSheetRef = useRef<BottomSheet>(null)
 	const carouselRef = useRef<any>(null)
@@ -178,7 +180,8 @@ const PhotoViewerSheet: React.FC<PhotoViewerSheetProps> = ({
 	// Check if delete confirmation is open
 	const {isDeleteConfirmationSheetOpen} = useDeleteConfirmation()
 
-	// Fetch all photos
+	// Fetch all photos (gallery scope) unless a scoped list is provided (e.g., album photos)
+	const shouldUseScopedPhotos = !!(photos && photos.length > 0)
 	const {data: allPhotos = [], isLoading: isLoadingPhotos, refetch: refetchPhotos} = useAllPhotos()
 
 	/**
@@ -191,12 +194,13 @@ const PhotoViewerSheet: React.FC<PhotoViewerSheetProps> = ({
 	 * can't render/decrypt it and the user ends up with a blank viewer.
 	 */
 	const localPhotos = useMemo(() => {
-		if (!initialPhoto) return allPhotos
-		const existsInAll = allPhotos.some(p => p.id === initialPhoto.id)
-		if (existsInAll) return allPhotos
-		// Prepend the initial photo so it can be viewed even if it's filtered from `/api/photos`
-		return [initialPhoto, ...allPhotos]
-	}, [allPhotos, initialPhoto])
+		const base = shouldUseScopedPhotos ? (photos as Photo[]) : allPhotos
+		if (!initialPhoto) return base
+		const exists = base.some(p => p.id === initialPhoto.id)
+		if (exists) return base
+		// Ensure the tapped photo is present (e.g., sensitive photos filtered from `/api/photos`)
+		return [initialPhoto, ...base]
+	}, [allPhotos, photos, shouldUseScopedPhotos, initialPhoto])
 
 
 	// Calculate the initial index for the carousel

@@ -16,8 +16,10 @@ export const DialogProvider: React.FC<DialogProviderProps> = ({children}) => {
 	const [isPhotoViewerSheetOpen, setPhotoViewerSheetOpen] = useState(false)
 	const [photoViewerData, setPhotoViewerData] = useState<{
 		initialPhoto: Photo | null
+		photos?: Photo[] | null
 	}>({
-		initialPhoto: null
+		initialPhoto: null,
+		photos: null
 	})
 
 	// State for Download Confirmation Sheet
@@ -174,8 +176,8 @@ export const usePhotoViewer = () => {
 		setPhotoViewerData
 	} = useDialogContext()
 
-	const openPhotoViewer = (photo: Photo) => {
-		setPhotoViewerData({initialPhoto: photo})
+	const openPhotoViewer = (photo: Photo, photos?: Photo[]) => {
+		setPhotoViewerData({initialPhoto: photo, photos: photos ?? null})
 		setPhotoViewerSheetOpen(true)
 	}
 
@@ -183,7 +185,7 @@ export const usePhotoViewer = () => {
 		setPhotoViewerSheetOpen(false)
 		// Clear data after a short delay to allow closing animation
 		setTimeout(() => {
-			setPhotoViewerData({initialPhoto: null})
+			setPhotoViewerData({initialPhoto: null, photos: null})
 		}, 300)
 	}
 

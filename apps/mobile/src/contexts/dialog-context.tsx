@@ -12,8 +12,9 @@ export interface DialogContextType {
 	setPhotoViewerSheetOpen: (open: boolean) => void
 	photoViewerData: {
 		initialPhoto: Photo | null
+		photos?: Photo[] | null
 	}
-	setPhotoViewerData: (data: { initialPhoto: Photo | null }) => void
+	setPhotoViewerData: (data: { initialPhoto: Photo | null; photos?: Photo[] | null }) => void
 
 	// Download Confirmation Sheet
 	isDownloadConfirmationSheetOpen: boolean
