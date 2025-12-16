@@ -10,6 +10,7 @@ import {useDecryptedUrl} from '@/hooks/use-decrypted-url'
 import {AlbumSelector} from './album-selector'
 import {ShareDialog} from '@/components/share'
 import {useHotkeys} from 'react-hotkeys-hook'
+import {PopConfirm} from '@/components/pop-confirm'
 
 interface LightboxContextType {
   openLightbox: (photo: Photo, hasNext?: boolean, hasPrev?: boolean, onDelete?: () => void) => void
@@ -368,15 +369,22 @@ const Lightbox = ({
 		>
 			<div className="absolute right-4 top-4 z-50 flex">
 				{onDelete && (
-					<Button
-						variant="ghost"
-						size="icon"
-						className="absolute top-4 right-16 z-50"
-						onClick={handleDelete}
+					<PopConfirm
+						title="Delete photo?"
+						description="This can’t be undone. Due to security reasons we can't recover the photo once
+						it's deleted, also there's no trash system. Are you sure you want to delete the photo?"
+						confirmText="Delete"
+						onConfirm={handleDelete}
 					>
-						<Trash2 className="h-4 w-4" />
-						<span className="sr-only">Delete</span>
-					</Button>
+						<Button
+							variant="ghost"
+							size="icon"
+							className="absolute top-4 right-16 z-50"
+						>
+							<Trash2 className="h-4 w-4" />
+							<span className="sr-only">Delete</span>
+						</Button>
+					</PopConfirm>
 				)}
 				<Button
 					variant="ghost"
