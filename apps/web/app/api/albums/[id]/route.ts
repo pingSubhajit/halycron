@@ -40,8 +40,12 @@ export const GET = async (request: NextRequest, {params}: Props) => {
 
 	// For protected albums, check verification before returning full details
 	if (result.isProtected) {
-		// Get the verification cookie
-		const verificationCookie = (await cookies()).get(`album-access-${id}`)?.value
+		// Prefer header-based token (mobile), fall back to cookie (web)
+		const headerToken =
+			request.headers.get('x-album-access-token') ||
+			request.headers.get('authorization')?.replace(/^Bearer\s+/i, '')
+
+		const verificationCookie = headerToken || (await cookies()).get(`album-access-${id}`)?.value
 
 		if (!verificationCookie) {
 			// For protected albums without verification, return limited info

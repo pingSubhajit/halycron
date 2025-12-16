@@ -194,7 +194,7 @@ const AsyncPhotoGallery = ({headerComponent}: { headerComponent: () => React.Rea
 			photos={photos || []}
 			isLoading={isLoading}
 			error={error?.message || null}
-			headerComponent={headerComponent}
+			headerComponent={headerComponent()}
 			onRefresh={handleRefresh}
 			isRefreshing={isRefetching}
 		/>

@@ -8,7 +8,7 @@ type Props = {
 	photos: Photo[]
 	isLoading?: boolean
 	error?: string | null
-	headerComponent?: () => React.ReactElement
+	headerComponent?: React.ReactElement
 	onRefresh?: () => void
 	isRefreshing?: boolean
 }
@@ -212,6 +212,17 @@ export const PhotoGallery = ({photos, isLoading, error, headerComponent, onRefre
 					data={[]}
 					renderItem={() => null}
 					ListHeaderComponent={headerComponent}
+					ListEmptyComponent={
+						<View style={{
+							flex: 1,
+							justifyContent: 'center',
+							alignItems: 'center',
+							padding: 24,
+							minHeight: 300
+						}}>
+							<LoadingState/>
+						</View>
+					}
 					refreshControl={
 						onRefresh ? (
 							<RefreshControl
@@ -220,20 +231,8 @@ export const PhotoGallery = ({photos, isLoading, error, headerComponent, onRefre
 							/>
 						) : undefined
 					}
-					contentContainerStyle={{flex: 1}}
+					contentContainerStyle={{flexGrow: 1}}
 				/>
-				<View style={{
-					position: 'absolute',
-					top: 0,
-					left: 0,
-					right: 0,
-					bottom: 0,
-					justifyContent: 'center',
-					alignItems: 'center',
-					padding: 24
-				}}>
-					<LoadingState/>
-				</View>
 			</View>
 		)
 	}
@@ -245,6 +244,17 @@ export const PhotoGallery = ({photos, isLoading, error, headerComponent, onRefre
 					data={[]}
 					renderItem={() => null}
 					ListHeaderComponent={headerComponent}
+					ListEmptyComponent={
+						<View style={{
+							flex: 1,
+							justifyContent: 'center',
+							alignItems: 'center',
+							padding: 24,
+							minHeight: 300
+						}}>
+							<ErrorState error={error}/>
+						</View>
+					}
 					refreshControl={
 						onRefresh ? (
 							<RefreshControl
@@ -253,20 +263,8 @@ export const PhotoGallery = ({photos, isLoading, error, headerComponent, onRefre
 							/>
 						) : undefined
 					}
-					contentContainerStyle={{flex: 1}}
+					contentContainerStyle={{flexGrow: 1}}
 				/>
-				<View style={{
-					position: 'absolute',
-					top: 0,
-					left: 0,
-					right: 0,
-					bottom: 0,
-					justifyContent: 'center',
-					alignItems: 'center',
-					padding: 24
-				}}>
-					<ErrorState error={error}/>
-				</View>
 			</View>
 		)
 	}
@@ -278,6 +276,17 @@ export const PhotoGallery = ({photos, isLoading, error, headerComponent, onRefre
 					data={[]}
 					renderItem={() => null}
 					ListHeaderComponent={headerComponent}
+					ListEmptyComponent={
+						<View style={{
+							flex: 1,
+							justifyContent: 'center',
+							alignItems: 'center',
+							padding: 24,
+							minHeight: 300
+						}}>
+							<EmptyState/>
+						</View>
+					}
 					refreshControl={
 						onRefresh ? (
 							<RefreshControl
@@ -286,20 +295,8 @@ export const PhotoGallery = ({photos, isLoading, error, headerComponent, onRefre
 							/>
 						) : undefined
 					}
-					contentContainerStyle={{flex: 1}}
+					contentContainerStyle={{flexGrow: 1}}
 				/>
-				<View style={{
-					position: 'absolute',
-					top: 0,
-					left: 0,
-					right: 0,
-					bottom: 0,
-					justifyContent: 'center',
-					alignItems: 'center',
-					padding: 24
-				}}>
-					<EmptyState/>
-				</View>
 			</View>
 		)
 	}

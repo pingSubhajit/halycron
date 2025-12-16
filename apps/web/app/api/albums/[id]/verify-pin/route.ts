@@ -14,8 +14,8 @@ interface Props {
 
 // Define the secret key for JWT
 const JWT_SECRET = process.env.BETTER_AUTH_SECRET || 'album-protection-secret'
-// Set token expiry to 1 hour
-const TOKEN_EXPIRY = '1h'
+// Token expiry should match server-side enforcement (5 minutes)
+const TOKEN_EXPIRY = '5m'
 
 export const POST = async (request: NextRequest, {params}: Props) => {
 	try {
@@ -73,9 +73,9 @@ export const POST = async (request: NextRequest, {params}: Props) => {
 			{expiresIn: TOKEN_EXPIRY}
 		)
 
-		// Set expiry time for 1 hour from now
+		// Set expiry time for 5 minutes from now
 		const expiryTime = new Date()
-		expiryTime.setHours(expiryTime.getHours() + 1)
+		expiryTime.setMinutes(expiryTime.getMinutes() + 5)
 
 		// Create the success response
 		const response = NextResponse.json({
@@ -84,16 +84,24 @@ export const POST = async (request: NextRequest, {params}: Props) => {
 			expiresAt: expiryTime.toISOString()
 		})
 
-		// Set the verification cookie
-		response.cookies.set({
-			name: `album-access-${id}`,
-			value: token,
-			httpOnly: true,
-			secure: process.env.NODE_ENV === 'production',
-			sameSite: 'strict',
-			path: '/',
-			maxAge: 300 // 5 minutes in seconds
-		})
+		// IMPORTANT:
+		// For mobile clients (Better Auth Expo client), persisting non-auth cookies via Set-Cookie
+		// can overwrite the stored session cookie and effectively "log out" the app, causing 401s
+		// on all subsequent requests. Mobile uses the returned accessToken via header instead.
+		const isMobileClient = request.headers.get('x-app-platform') === 'Halycron-Mobile'
+
+		if (!isMobileClient) {
+			// Set the verification cookie for web
+			response.cookies.set({
+				name: `album-access-${id}`,
+				value: token,
+				httpOnly: true,
+				secure: process.env.NODE_ENV === 'production',
+				sameSite: 'strict',
+				path: '/',
+				maxAge: 300 // 5 minutes in seconds
+			})
+		}
 
 		return response
 	} catch (error) {

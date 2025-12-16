@@ -40,6 +40,14 @@ export interface DialogContextType {
 	}
 	setShareOptionsData: (data: { photo: Photo | null }) => void
 
+	// Album Selector Sheet
+	isAlbumSelectorSheetOpen: boolean
+	setAlbumSelectorSheetOpen: (open: boolean) => void
+	albumSelectorData: {
+		photo: Photo | null
+	}
+	setAlbumSelectorData: (data: { photo: Photo | null }) => void
+
 	// Close all dialogs function
 	closeAllDialogs: () => void
 }
