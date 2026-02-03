@@ -5,6 +5,7 @@ import {user as userTable, session as sessionTable} from '@/db/schema'
 import {eq} from 'drizzle-orm'
 import {getCookies} from 'better-auth/cookies'
 import {auth} from '@/lib/auth/config'
+import {getNewSessionExpiresAt} from '@/lib/auth/session-policy'
 
 /**
  * Generate a secure random token matching better-auth's format
@@ -88,7 +89,7 @@ export const POST = async (request: NextRequest) => {
 		const userAgent = request.headers.get('user-agent') || ''
 
 		// Create session
-		const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days
+		const expiresAt = getNewSessionExpiresAt()
 		const sessionToken = generateSecureToken(32)
 
 		const [session] = await db.insert(sessionTable).values({

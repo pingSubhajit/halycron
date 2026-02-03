@@ -3,6 +3,7 @@ import {createAuthEndpoint} from 'better-auth/api'
 import {setSessionCookie} from 'better-auth/cookies'
 import {APIError} from 'better-call'
 import {verifyExchangeToken} from '@/app/api/auth/qr-login/utils'
+import {getNewSessionExpiresAt} from '@/lib/auth/session-policy'
 
 /**
  * Generate a secure random token matching better-auth's format
@@ -82,7 +83,7 @@ export const qrLoginPlugin = () => {
 					 * Create session using the adapter directly
 					 * The adapter.create method is the low-level way to insert records
 					 */
-					const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days
+					const expiresAt = getNewSessionExpiresAt()
 
 					// Generate a secure session token
 					const sessionToken = generateSecureToken(32)

@@ -12,6 +12,7 @@ import {createOTP} from '@better-auth/utils/otp'
 import {auth} from '@/lib/auth/config'
 import {toNextJsHandler} from 'better-auth/next-js'
 import {getCookies} from 'better-auth/cookies'
+import {getNewSessionExpiresAt} from '@/lib/auth/session-policy'
 
 const betterAuthHandler = toNextJsHandler(auth.handler)
 
@@ -178,7 +179,7 @@ export const POST = async (request: NextRequest) => {
 		const userAgent = request.headers.get('user-agent') || ''
 
 		// Create session
-		const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days
+		const expiresAt = getNewSessionExpiresAt()
 		const sessionToken = generateSecureToken(32)
 
 		const [session] = await db.insert(sessionTable).values({
