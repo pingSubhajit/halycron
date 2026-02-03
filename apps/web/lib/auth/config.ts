@@ -7,6 +7,7 @@ import {twoFactor} from 'better-auth/plugins'
 import {twoFactorClient} from 'better-auth/client/plugins'
 import {qrLoginPlugin} from './qr-login-plugin'
 import {sendPasswordResetEmail} from '@/lib/email/resend-client'
+import {SESSION_REFRESH_THRESHOLD_DAYS, SESSION_TTL_DAYS} from '@/lib/auth/session-policy'
 
 export const auth: ReturnType<typeof betterAuth> = betterAuth({
 	appName: 'Halycron',
@@ -81,6 +82,12 @@ export const auth: ReturnType<typeof betterAuth> = betterAuth({
 			// Optional hook for security hardening / audit logging.
 			console.log(`Password reset completed for user ${user.email}`)
 		}
+	},
+	session: {
+		// Defaults used to be ~7 days; keep users logged in for longer unless they explicitly sign out.
+		// Values are in seconds.
+		expiresIn: SESSION_TTL_DAYS * 24 * 60 * 60,
+		updateAge: SESSION_REFRESH_THRESHOLD_DAYS * 24 * 60 * 60
 	},
 	plugins: [
 		nextCookies(),

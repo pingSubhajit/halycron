@@ -7,6 +7,7 @@ import CustomSplashScreen from '@/src/components/splash-screen'
 import * as Linking from 'expo-linking'
 import * as QuickActions from 'expo-quick-actions'
 import {vaultForgetThisDevice} from '@/src/lib/crypto/vault'
+import {AppState} from 'react-native'
 import {
 	CachedProfileData,
 	clearProfileCache,
@@ -49,8 +50,23 @@ export const SessionProvider = ({children}: { children: React.ReactNode }) => {
 	})
 	const lastUserKeyRef = useRef<string | null>(null)
 	const lastProfileKeyRef = useRef<string | null>(null)
+	const lastSessionRefreshAttemptMsRef = useRef<number>(0)
 
 	const {data: sessionData, isPending} = authClient.useSession()
+
+	const getExpiresAtMs = (sessionObj: any): number => {
+		const raw = sessionObj?.expiresAt
+		if (raw instanceof Date) return raw.getTime()
+		if (typeof raw === 'number') {
+			// Some libs return seconds; normalize to ms.
+			return raw < 1_000_000_000_000 ? raw * 1000 : raw
+		}
+		if (typeof raw === 'string') {
+			const parsed = Date.parse(raw)
+			return Number.isFinite(parsed) ? parsed : 0
+		}
+		return 0
+	}
 
 	const getUserKey = (user: User | null | undefined): string | null => {
 		if (!user) return null
@@ -140,8 +156,8 @@ export const SessionProvider = ({children}: { children: React.ReactNode }) => {
 					const userObj = JSON.parse(storedUser)
 
 					// Check if token is expired
-					const expiresAt = sessionObj.expiresAt || 0
-					if (Date.now() < expiresAt) {
+					const expiresAtMs = getExpiresAtMs(sessionObj)
+					if (expiresAtMs > 0 && Date.now() < expiresAtMs) {
 						setSessionState(sessionObj)
 						setUserState(userObj)
 						setStatus('authenticated')
@@ -159,7 +175,7 @@ export const SessionProvider = ({children}: { children: React.ReactNode }) => {
 						 * built-in mechanisms to restore from storage if available
 						 */
 						try {
-							// Fetch current session to refresh it with stored data
+							// Fetch current session (server may extend rolling expiry).
 							await authClient.getSession()
 						} catch (error) {
 							console.error('Error rehydrating session:', error)
@@ -187,6 +203,26 @@ export const SessionProvider = ({children}: { children: React.ReactNode }) => {
 
 		restoreSession()
 	}, [])
+
+	// When the app returns to foreground, attempt to refresh the session.
+	// This prevents surprise logouts caused by a fixed server-side session expiry window.
+	useEffect(() => {
+		const subscription = AppState.addEventListener('change', (state) => {
+			if (state !== 'active') return
+			if (!sessionState?.id) return
+
+			// Throttle refresh attempts (avoid spamming on quick app switches).
+			const now = Date.now()
+			if (now - lastSessionRefreshAttemptMsRef.current < 5 * 60 * 1000) return
+			lastSessionRefreshAttemptMsRef.current = now
+
+			authClient.getSession().catch((error) => {
+				console.error('Error refreshing session on foreground:', error)
+			})
+		})
+
+		return () => subscription.remove()
+	}, [sessionState?.id])
 
 	const clearSessionStorage = async () => {
 		await AsyncStorage.removeItem(SESSION_STORAGE_KEY)
